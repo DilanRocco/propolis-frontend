@@ -1,15 +1,17 @@
 // This function loads data for the dashboard page
+import type { DashboardData } from "../lib/types/dashboard"
 export function load() {
     // In a real app, you might fetch this from an API
-    const dashboardData = {
+    const dashboardData: DashboardData = {
       creditCard: {
         cardNumber: "**** 2719",
         monthlyFee: 25.00,
         cardType: "visa"
       },
-      income: {
-        totalIncome: 23194.80,
-        totalPaid: 8145.20,
+      revenue: {
+        totalLongTerm: 24314.53,
+        totalShortTerm: 22312.23,
+        totalIncome: 46626.76,
         timeframe: "Weekly"
       },
       annualProfits: {

@@ -19,8 +19,9 @@
       cardType: "visa"
     },
     income: {
-      totalIncome: 23194.80,
-      totalPaid: 8145.20,
+      totalLongTerm: 24314.53,
+      totalShortTerm: 22312.23,
+      totalIncome: 46626.76,
       timeframe: "Weekly"
     },
     annualProfits: {
@@ -76,7 +77,7 @@
     </div>
     
     <div class="col-span-12 lg:col-span-4">
-      <IncomeCard {...dashboardData.income} />
+      <IncomeCard income={dashboardData.revenue} />
       <ActivityManager {...dashboardData.activityManager} />
     </div>
     

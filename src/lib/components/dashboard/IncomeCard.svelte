@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
+    import type { Revenue }  from "../../types/dashboard"
     import { RefreshCw, Eye } from 'lucide-svelte';
     import CardWidget from './CardWidget.svelte';
     
     // Props with defaults
-    export let totalIncome = 23194.80;
-    export let totalPaid = 8145.20;
+    export let income: Revenue
     export let timeframe = "Weekly";
     
     function viewChartMode() {
@@ -23,22 +23,22 @@
     </div>
     
     <div class="mb-6">
-      <div class="text-xs text-gray-500 mb-1">Total income</div>
-      <div class="text-2xl font-bold">$ {totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="text-xs text-gray-500 mb-1">Total Revenue</div>
+      <div class="text-2xl font-bold">$ {income.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
     
     <div class="pt-6 border-t border-gray-200 mb-4">
-      <div class="flex items-center justify-between mb-4">
-        <RefreshCw class="w-5 h-5 text-gray-400" />
-        <div class="flex items-center gap-2">
-          <span class="text-sm">{timeframe}</span>
-          <span class="text-xs">▼</span>
-        </div>
-      </div>
       
       <div>
-        <div class="text-xs text-gray-500 mb-1">Total paid</div>
-        <div class="text-2xl font-bold">$ {totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-xs text-gray-500 mb-1">Total long term</div>
+        <div class="text-2xl font-bold">$ {income.totalLongTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      </div>
+    </div>
+    <div class="pt-6 border-t border-gray-200 mb-4">
+      
+      <div>
+        <div class="text-xs text-gray-500 mb-1">Total short term</div>
+        <div class="text-2xl font-bold">$ {income.totalShortTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
     </div>
     

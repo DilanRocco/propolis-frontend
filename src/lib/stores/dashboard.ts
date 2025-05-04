@@ -1,15 +1,17 @@
 import { writable, derived } from 'svelte/store';
+import type { DashboardData } from '../types/dashboard';
 
 // Initial dashboard data
-const initialDashboardData = {
+const initialDashboardData: DashboardData = {
   creditCard: {
     cardNumber: "**** 2719",
     monthlyFee: 25.00,
     cardType: "visa"
   },
-  income: {
-    totalIncome: 23194.80,
-    totalPaid: 8145.20,
+  revenue: {
+    totalLongTerm: 24314.53,
+    totalShortTerm: 22312.23,
+    totalIncome: 46626.76,
     timeframe: "Weekly"
   },
   annualProfits: {
@@ -60,7 +62,7 @@ export const creditCardStore = derived(
 
 export const incomeStore = derived(
   dashboardStore,
-  $dashboardStore => $dashboardStore.income
+  $dashboardStore => $dashboardStore.revenue
 );
 
 export const profitsStore = derived(
@@ -90,36 +92,36 @@ export const stocksStore = derived(
 
 // Actions to update the dashboard data
 export const dashboardActions = {
-  updateCreditCard: (updatedData: any) => {
+  updateCreditCard: (updatedData: Partial<DashboardData["creditCard"]>) => {
     dashboardStore.update(data => ({
       ...data,
       creditCard: { ...data.creditCard, ...updatedData }
     }));
   },
-  
-  updateIncome: (updatedData: any) => {
+
+  updateIncome: (updatedData: Partial<DashboardData["revenue"]>) => {
     dashboardStore.update(data => ({
       ...data,
-      income: { ...data.income, ...updatedData }
+      income: { ...data.revenue, ...updatedData }
     }));
   },
-  
-  updateActivityTags: (tags:any) => {
+
+  updateActivityTags: (tags: string[]) => {
     dashboardStore.update(data => ({
       ...data,
-      activityManager: { 
-        ...data.activityManager, 
-        selectedTags: tags 
+      activityManager: {
+        ...data.activityManager,
+        selectedTags: tags
       }
     }));
   },
-  
-  toggleActivityItem: (id: any) => {
+
+  toggleActivityItem: (id: number) => {
     dashboardStore.update(data => {
-      const updatedItems = data.activityManager.activityItems.map(item => 
+      const updatedItems = data.activityManager.activityItems.map(item =>
         item.id === id ? { ...item, isOpen: !item.isOpen } : item
       );
-      
+
       return {
         ...data,
         activityManager: {
@@ -129,8 +131,8 @@ export const dashboardActions = {
       };
     });
   },
-  
-  updateStockRating: (rating: any) => {
+
+  updateStockRating: (rating: string) => {
     dashboardStore.update(data => ({
       ...data,
       stocks: { ...data.stocks, selectedRating: rating }
