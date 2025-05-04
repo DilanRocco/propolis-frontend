@@ -60,6 +60,12 @@ export interface CreditCard {
     ratingQuestion: string;
     selectedRating?: string; 
   }
+
+  export interface OccupanyRate {
+    averageOccupanyRate: number
+    averageLongTermRate: number
+    averageShortTermRate: number
+  }
   
   export interface DashboardData {
     creditCard: CreditCard;
@@ -69,5 +75,6 @@ export interface CreditCard {
     timeTracker: TimeTracker;
     growthRate: GrowthRate;
     stocks: Stocks;
+    occupancyRate: OccupanyRate
   }
   

@@ -48,6 +48,11 @@ export function load() {
         stocksValue: 16073.49,
         growthPercentage: 9.3,
         ratingQuestion: "How is your business management going?"
+      },
+      occupancyRate: {
+        averageOccupanyRate: 51.23,
+        averageLongTermRate: 71.59,
+        averageShortTermRate: 31.41
       }
     };
   

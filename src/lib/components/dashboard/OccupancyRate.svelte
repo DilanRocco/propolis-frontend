@@ -1,10 +1,11 @@
 <script lang="ts">
-    import type { Revenue }  from "../../types/dashboard"
+    import type { OccupanyRate }  from "../../types/dashboard"
     import { RefreshCw, Eye } from 'lucide-svelte';
     import CardWidget from './CardWidget.svelte';
+	import ProgressCircle from "../ui/ProgressCircle.svelte";
     
     // Props with defaults
-    export let income: Revenue
+    export let occupanyRate: OccupanyRate
     export let timeframe = "Weekly";
 
 
@@ -21,8 +22,8 @@
   <CardWidget>
     <div class="flex justify-between mb-4">
     <div>
-      <div class="text-xs text-gray-500 mb-1">Total Revenue</div>
-      <div class="text-2xl font-bold">$ {income.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="text-xs text-gray-500 mb-1">Average Occupany Rate</div>
+      <div class="text-2xl font-bold">{occupanyRate.averageOccupanyRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
     </div>
       <button on:click={changeTimeFrame} class="flex gap-2 cursor-pointer">
         <span class="text-sm">{timeframe}</span>
@@ -32,17 +33,16 @@
     
     
     <div class="pt-6 border-t border-gray-200 mb-4">
-      
-      <div>
-        <div class="text-xs text-gray-500 mb-1">Total long term</div>
-        <div class="text-2xl font-bold">$ {income.totalLongTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-      </div>
+        <div>
+            <div class="text-xs text-gray-500 mb-1">Long Term Occupany Rate</div>
+            <div class="text-2xl font-bold">{occupanyRate.averageLongTermRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
+          </div>
     </div>
     <div class="pt-6 border-t border-gray-200 mb-4">
       
       <div>
-        <div class="text-xs text-gray-500 mb-1">Total short term</div>
-        <div class="text-2xl font-bold">$ {income.totalShortTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-xs text-gray-500 mb-1">Short Term Occupany Rate</div>
+        <div class="text-2xl font-bold">{occupanyRate.averageShortTermRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
       </div>
     </div>
     

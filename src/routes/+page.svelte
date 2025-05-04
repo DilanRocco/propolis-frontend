@@ -7,12 +7,18 @@
   import TimeTracker from '../lib/components/dashboard/TimeTracker.svelte';
   import GrowthRate from '../lib/components/dashboard/GrowthRate.svelte';
   import StocksWidget from '../lib/components/dashboard/StocksWidget.svelte';
+	import OccupancyRate from '$lib/components/dashboard/OccupancyRate.svelte';
   
   // Import data from page data loading (if you use it)
   export let data;
   
   // Destructure data properties or use default values if not provided
   const dashboardData = data?.dashboardData || {
+    occupanyRate: {
+      averageOccupanyRate: 50.5,
+      averageLongTerm: 30,
+      averageShortTerm: 71,
+    },
     creditCard: {
       cardNumber: "**** 2719",
       monthlyFee: 25.00,
@@ -78,6 +84,7 @@
     
     <div class="col-span-12 lg:col-span-4">
       <IncomeCard income={dashboardData.revenue} />
+      <OccupancyRate occupanyRate={dashboardData.occupancyRate} />
       <ActivityManager {...dashboardData.activityManager} />
     </div>
     

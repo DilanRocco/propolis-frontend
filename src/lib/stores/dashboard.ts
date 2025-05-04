@@ -48,6 +48,11 @@ const initialDashboardData: DashboardData = {
     stocksValue: 16073.49,
     growthPercentage: 9.3,
     ratingQuestion: "How is your business management going?"
+  },
+  occupancyRate: {
+    averageOccupanyRate: 50.5,
+    averageLongTermRate: 70.1,
+    averageShortTermRate: 62.5
   }
 };
 
