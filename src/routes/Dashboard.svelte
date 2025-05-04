@@ -4,7 +4,6 @@
     import AnnualProfits from '../lib/components/dashboard/AnnualProfits.svelte';
     import IncomeCard from '../lib/components/dashboard/IncomeCard.svelte';
     import ActivityManager from '../lib/components/dashboard/ActivityManager.svelte';
-    import SystemLock from '../lib/components/dashboard/SystemLock.svelte';
     import TimeTracker from '../lib/components/dashboard/TimeTracker.svelte';
     import GrowthRate from '../lib/components/dashboard/GrowthRate.svelte';
     import StocksWidget from '../lib/components/dashboard/StocksWidget.svelte';
@@ -29,7 +28,6 @@
       </div>
       
       <div class="col-span-12 lg:col-span-3">
-        <SystemLock />
         <TimeTracker {...$dashboardStore.timeTracker} />
         <GrowthRate percentage={$dashboardStore.growthRate.percentage} />
         <StocksWidget {...$dashboardStore.stocks} />

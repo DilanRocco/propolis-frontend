@@ -18,7 +18,7 @@
         />
         <div class="absolute inset-0 flex flex-col items-center justify-center">
           <div class="text-2xl font-bold">{percentage}%</div>
-          <div class="text-xs text-gray-500">Growth rate</div>
+          <div class="text-xs text-coral-500">Growth rate</div>
         </div>
       </div>
     </div>
