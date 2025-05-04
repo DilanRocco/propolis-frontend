@@ -2,13 +2,12 @@
 	import { ArrowRight, Calendar, Mic } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	// Date state
 	let day = 19;
 	let dayOfWeek = 'Tue';
 	let month = 'December';
 	let year = '2025';
+
 	onMount(() => {
-		// You could update the date dynamically on mount
 		const now = new Date();
 		day = now.getDate();
 		dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
@@ -17,52 +16,45 @@
 	});
 
 	let isRecording = false;
-
 	function toggleMic() {
 		isRecording = !isRecording;
 		console.log('Mic clicked:', isRecording);
 	}
 
 	function showTasks() {
-		// Handle showing tasks
 		console.log('Show tasks clicked');
 	}
 </script>
 
-<div class="mb-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+<!-- Outer Container -->
+<div class="mb-8 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
 	<!-- Left: Date Section -->
-	<div class="flex items-center gap-6">
-		<div
-			class="flex h-28 w-28 flex-col items-center justify-center rounded-full border border-gray-200"
-		>
-			<div class="text-5xl font-medium">{day}</div>
+	<div class="flex items-center gap-4">
+		<div class="flex h-24 w-24 flex-col items-center justify-center rounded-full border border-gray-200">
+			<div class="text-4xl font-semibold">{day}</div>
 		</div>
 		<div>
-			<div class="text-2xl font-medium">{dayOfWeek},</div>
-			<div class="text-3xl font-bold">{month} {year}</div>
+			<div class="text-xl font-medium text-gray-600">{dayOfWeek},</div>
+			<div class="text-2xl font-bold text-gray-800">{month} {year}</div>
 		</div>
 	</div>
 
-	<!-- Right: Textarea + Microphone -->
-	<div class="flex items-center gap-6">
-		<div>
-			<div class="text-3xl font-bold md:text-4xl">Hey, Need help? 👋</div>
-      <div>
-			<textarea
-				class="w-full rounded-md text-3xl text-gray-600 h-10"
-				rows="2"
-				placeholder="Just ask me anything!"
-			></textarea>
-      </div>
+	<!-- Right: Help Prompt -->
+	<div class="flex items-center gap-4 md:gap-6">
+		<div class="flex flex-col justify-center">
+			<div class="text-2xl font-semibold md:text-3xl">Hey, Need help? 👋</div>
+			<div class="text-lg text-gray-500 md:text-xl">Just ask me anything!</div>
 		</div>
 
+		<!-- Mic Button -->
 		<button
 			on:click={toggleMic}
-			class={`mt-4 flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 md:mt-0 md:ml-2 ${
+			class={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full transition-colors duration-200 ${
 				isRecording ? 'bg-red-500' : 'bg-gray-300'
 			}`}
 		>
-			<Mic class="h-8 w-8 text-white" />
+			<Mic class="h-7 w-7 text-white" />
 		</button>
 	</div>
 </div>
