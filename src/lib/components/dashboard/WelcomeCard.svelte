@@ -1,51 +1,68 @@
 <script>
-    import { ArrowRight, Calendar } from 'lucide-svelte';
-    import { onMount } from 'svelte';
-    
-    // Date state
-    let day = 19;
-    let dayOfWeek = 'Tue';
-    let month = 'December';
-    
-    onMount(() => {
-      // You could update the date dynamically on mount
-      const now = new Date();
-      day = now.getDate();
-      dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'short' });
-      month = now.toLocaleDateString('en-US', { month: 'long' });
-    });
-    
-    function showTasks() {
-      // Handle showing tasks
-      console.log('Show tasks clicked');
-    }
-  </script>
-  
-  <div class="flex justify-between items-center mb-8">
-    <div class="flex items-center gap-6">
-      <div class="border border-gray-200 rounded-full p-6 flex flex-col items-center justify-center w-28 h-28">
-        <div class="text-3xl font-bold">{day}</div>
-        <div>
-          <div class="text-sm font-medium">{dayOfWeek},</div>
-          <div class="text-sm font-medium">{month}</div>
-        </div>
+	import { ArrowRight, Calendar, Mic } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+
+	// Date state
+	let day = 19;
+	let dayOfWeek = 'Tue';
+	let month = 'December';
+	let year = '2025';
+	onMount(() => {
+		// You could update the date dynamically on mount
+		const now = new Date();
+		day = now.getDate();
+		dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+		month = now.toLocaleDateString('en-US', { month: 'long' });
+		year = now.toLocaleDateString('en-us', { year: 'numeric' });
+	});
+
+	let isRecording = false;
+
+	function toggleMic() {
+		isRecording = !isRecording;
+		console.log('Mic clicked:', isRecording);
+	}
+
+	function showTasks() {
+		// Handle showing tasks
+		console.log('Show tasks clicked');
+	}
+</script>
+
+<div class="mb-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+	<!-- Left: Date Section -->
+	<div class="flex items-center gap-6">
+		<div
+			class="flex h-28 w-28 flex-col items-center justify-center rounded-full border border-gray-200"
+		>
+			<div class="text-5xl font-medium">{day}</div>
+		</div>
+		<div>
+			<div class="text-2xl font-medium">{dayOfWeek},</div>
+			<div class="text-3xl font-bold">{month} {year}</div>
+		</div>
+	</div>
+
+	<!-- Right: Textarea + Microphone -->
+	<div class="flex items-center gap-6">
+		<div>
+			<div class="text-3xl font-bold md:text-4xl">Hey, Need help? 👋</div>
+      <div>
+			<textarea
+				class="w-full rounded-md text-3xl text-gray-600 h-10"
+				rows="2"
+				placeholder="Just ask me anything!"
+			></textarea>
       </div>
-      
-      <button 
-        class="bg-coral-500 text-white px-4 py-3 rounded-full flex items-center gap-2"
-        on:click={showTasks}
-      >
-        <span>Show my Tasks</span>
-        <ArrowRight class="w-4 h-4" />
-      </button>
-      
-      <button class="p-2 border border-gray-200 rounded-lg">
-        <Calendar class="w-5 h-5 text-gray-600" />
-      </button>
-    </div>
-    
-    <div class="flex flex-col items-start">
-      <div class="text-4xl font-bold mb-2">Hey, Need help?👋</div>
-      <div class="text-gray-400 text-2xl">Just ask me anything!</div>
-    </div>
-  </div>
+		</div>
+
+		<button
+			on:click={toggleMic}
+			class={`mt-4 flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 md:mt-0 md:ml-2 ${
+				isRecording ? 'bg-red-500' : 'bg-gray-300'
+			}`}
+		>
+			<Mic class="h-8 w-8 text-white" />
+		</button>
+	</div>
+</div>

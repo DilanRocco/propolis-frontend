@@ -1,4 +1,4 @@
-import { Home, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle } from 'lucide-svelte';
+import { Home, MessageCircle, Building, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -9,40 +9,23 @@ export const routes = [
     icon: Home,
     description: 'Main dashboard overview'
   },
-
-];
-
-// Settings sub-routes
-export const settingsRoutes = [
   {
-    id: 'profile',
-    path: '/settings/profile',
-    name: 'Profile',
-    icon: Users,
-    description: 'User profile settings'
+    id: 'properties',
+    path: '/properties',
+    name: "Properties",
+    icon: Building,
+    description: "Short and long term properties overview"
   },
   {
-    id: 'notifications',
-    path: '/settings/notifications',
-    name: 'Notifications',
-    icon: Bell,
-    description: 'Notification preferences'
-  },
-  {
-    id: 'security',
-    path: '/settings/security',
-    name: 'Security',
-    icon: Shield,
-    description: 'Security settings'
-  },
-  {
-    id: 'help',
-    path: '/settings/help',
-    name: 'Help & Support',
-    icon: HelpCircle,
-    description: 'Get help and support'
+    id: 'Chat',
+    path: '/Chat',
+    name: "Chat",
+    icon: MessageCircle,
+    description: "Chat with properties"
   }
+
 ];
+
 
 // Utility function to get route by path
 export function getRouteByPath(path: any) {
@@ -52,7 +35,7 @@ export function getRouteByPath(path: any) {
   }
   
   // For other paths, find the matching route or sub-route
-  const allRoutes = [...routes, ...settingsRoutes];
+  const allRoutes = [...routes,];
   
   // First try exact match
   let route = allRoutes.find(route => route.path === path);
