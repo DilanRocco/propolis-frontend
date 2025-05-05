@@ -1,6 +1,5 @@
 <script>
 	import WelcomeCard from '../lib/components/dashboard/WelcomeCard.svelte';
-	import CreditCard from '../lib/components/dashboard/CreditCard.svelte';
 	import AnnualProfits from '../lib/components/dashboard/AnnualProfits.svelte';
 	import IncomeCard from '../lib/components/dashboard/IncomeCard.svelte';
 	import ReservationManager from '../lib/components/dashboard/ReservationManager.svelte';
@@ -114,7 +113,7 @@
 	<div class="grid grid-cols-12 gap-6">
 		<div class="col-span-12 lg:col-span-5">
 			<OccupancyRate occupancyRate={dashboardData.occupancyRate} />
-			<CreditCard {...dashboardData.creditCard} />
+
 			<AnnualProfits {...dashboardData.annualProfits} />
 		</div>
 
