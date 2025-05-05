@@ -23,13 +23,48 @@ const initialDashboardData: DashboardData = {
       { value: "14K", color: "coral-100", size: 64, position: { top: 10, right: 24 } },
     ]
   },
-  activityManager: {
-    businessPlanAmount: 43.20,
-    selectedTags: ["Team", "Insights", "Today"],
-    activityItems: [
-      { id: 1, name: "Bank loans", isOpen: true },
-      { id: 2, name: "Accounting", isOpen: false },
-      { id: 3, name: "HR management", isOpen: false },
+  ReservationManager: {
+    reservations: [
+      {
+        "guestName": "Alice Johnson",
+        "checkIn": "2025-05-10T15:00:00Z",
+        "checkout": "2025-05-14T11:00:00Z",
+        "listing": "Beachside Bungalow",
+        "source": "Airbnb",
+        "paid": true,
+        "autohostStatus": "approved",
+        "salto": true
+      },
+      {
+        "guestName": "Brian Smith",
+        "checkIn": "2025-06-01T15:00:00Z",
+        "checkout": "2025-06-05T11:00:00Z",
+        "listing": "Downtown Loft",
+        "source": "Direct",
+        "paid": false,
+        "autohostStatus": "pending",
+        "salto": false
+      },
+      {
+        "guestName": "Carla Mendes",
+        "checkIn": "2025-07-15T15:00:00Z",
+        "checkout": "2025-07-20T11:00:00Z",
+        "listing": "Lakeside Retreat",
+        "source": "Booking.com",
+        "paid": true,
+        "autohostStatus": "flagged",
+        "salto": true
+      },
+      {
+        "guestName": "David Lee",
+        "checkIn": "2025-08-10T15:00:00Z",
+        "checkout": "2025-08-13T11:00:00Z",
+        "listing": "Mountain Cabin",
+        "source": "VRBO",
+        "paid": true,
+        "autohostStatus": "approved",
+        "salto": false
+      }
     ]
   },
   timeTracker: {
@@ -41,7 +76,7 @@ const initialDashboardData: DashboardData = {
     prevYear: "2022",
     currentYear: "2023"
   },
-  TenantTurnover: {
+  tentantTurnover: {
     percentage: 36
   },
   stocks: {
@@ -77,7 +112,7 @@ export const profitsStore = derived(
 
 export const activityStore = derived(
   dashboardStore,
-  $dashboardStore => $dashboardStore.activityManager
+  $dashboardStore => $dashboardStore.ReservationManager
 );
 
 export const timeStore = derived(
@@ -87,7 +122,7 @@ export const timeStore = derived(
 
 export const growthStore = derived(
   dashboardStore,
-  $dashboardStore => $dashboardStore.TenantTurnover
+  $dashboardStore => $dashboardStore.tentantTurnover
 );
 
 export const stocksStore = derived(
@@ -114,28 +149,28 @@ export const dashboardActions = {
   updateActivityTags: (tags: string[]) => {
     dashboardStore.update(data => ({
       ...data,
-      activityManager: {
-        ...data.activityManager,
+      ReservationManager: {
+        ...data.reservationManager,
         selectedTags: tags
       }
     }));
   },
 
-  toggleActivityItem: (id: number) => {
-    dashboardStore.update(data => {
-      const updatedItems = data.activityManager.activityItems.map(item =>
-        item.id === id ? { ...item, isOpen: !item.isOpen } : item
-      );
+  // toggleActivityItem: (id: number) => {
+  //   dashboardStore.update(data => {
+  //     const updatedItems = data.ReservationManager.activityItems.map(item =>
+  //       item.id === id ? { ...item, isOpen: !item.isOpen } : item
+  //     );
 
-      return {
-        ...data,
-        activityManager: {
-          ...data.activityManager,
-          activityItems: updatedItems
-        }
-      };
-    });
-  },
+  //     return {
+  //       ...data,
+  //       ReservationManager: {
+  //         ...data.ReservationManager,
+  //         activityItems: updatedItems
+  //       }
+  //     };
+  //   });
+  // },
 
   updateStockRating: (rating: string) => {
     dashboardStore.update(data => ({

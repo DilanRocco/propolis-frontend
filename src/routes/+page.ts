@@ -23,13 +23,48 @@ export function load() {
           { value: "14K", color: "coral-100", size: 64, position: { top: 10, right: 24 } },
         ]
       },
-      activityManager: {
-        businessPlanAmount: 43.20,
-        selectedTags: ["Team", "Insights", "Today"],
-        activityItems: [
-          { id: 1, name: "Bank loans", isOpen: true },
-          { id: 2, name: "Accounting", isOpen: false },
-          { id: 3, name: "HR management", isOpen: false },
+      reservationManager: {
+        reservations: [
+          {
+            guestName: 'Alice Johnson',
+            checkIn: '2025-05-10T15:00:00Z',
+            checkout: '2025-05-14T11:00:00Z',
+            listing: 'Beachside Bungalow',
+            source: 'Airbnb',
+            paid: true,
+            autohostStatus: 'approved',
+            salto: true
+          },
+          {
+            guestName: 'Brian Smith',
+            checkIn: '2025-06-01T15:00:00Z',
+            checkout: '2025-06-05T11:00:00Z',
+            listing: 'Downtown Loft',
+            source: 'Direct',
+            paid: false,
+            autohostStatus: 'pending',
+            salto: false
+          },
+          {
+            guestName: 'Carla Mendes',
+            checkIn: '2025-07-15T15:00:00Z',
+            checkout: '2025-07-20T11:00:00Z',
+            listing: 'Lakeside Retreat',
+            source: 'Booking.com',
+            paid: true,
+            autohostStatus: 'flagged',
+            salto: true
+          },
+          {
+            guestName: 'David Lee',
+            checkIn: '2025-08-10T15:00:00Z',
+            checkout: '2025-08-13T11:00:00Z',
+            listing: 'Mountain Cabin',
+            source: 'VRBO',
+            paid: true,
+            autohostStatus: 'approved',
+            salto: false
+          }
         ]
       },
       timeTracker: {
@@ -41,7 +76,7 @@ export function load() {
         prevYear: "2022",
         currentYear: "2023"
       },
-      TenantTurnover: {
+      tentantTurnover: {
         percentage: 36
       },
       stocks: {

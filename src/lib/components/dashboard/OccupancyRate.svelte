@@ -19,7 +19,7 @@
 
 <CardWidget>
         <div>
-            <div class="font-bold mb-5 text-xl"> Average Occupany Rate</div>
+            <div class="font-medium mb-5 text-xl"> Occupancy Rate</div>
           <div class="flex justify-between">
             <div>
               <ProgressCircle radius={70} percentage={occupanyRate.averageOccupanyRate} />

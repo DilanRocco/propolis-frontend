@@ -28,16 +28,19 @@ export interface CreditCard {
     profits: ProfitItem[];
   }
   
-  export interface ActivityItem {
-    id: number;
-    name: string;
-    isOpen: boolean;
+  export interface Reservation {
+    guestName: string;
+    checkIn: string;
+    checkout: string;
+    listing: string;
+    source: string;
+    paid: boolean;
+    autohostStatus: string;
+    salto: boolean;
   }
   
-  export interface ActivityManager {
-    businessPlanAmount: number;
-    selectedTags: string[];
-    activityItems: ActivityItem[];
+  export interface ReservationManager {
+    reservations: Reservation[];
   }
   
   export interface TimeTracker {
@@ -71,9 +74,9 @@ export interface CreditCard {
     creditCard: CreditCard;
     revenue: Revenue;
     annualProfits: AnnualProfits;
-    activityManager: ActivityManager;
+    reservationManager: ReservationManager;
     timeTracker: TimeTracker;
-    TenantTurnover: TenantTurnover;
+    tentantTurnover: TenantTurnover;
     stocks: Stocks;
     occupancyRate: OccupanyRate
   }
