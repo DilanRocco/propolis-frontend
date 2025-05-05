@@ -41,7 +41,7 @@
 						{percentage}%
 					</text>
 				</svg>
-        <div class="text-center text-xl font-bold">Growth Rate</div>
+        <div class="text-center  font-bold">Tentant Turnover Rate</div>
 			</div>
 		</div>
 	</div>

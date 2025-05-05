@@ -5,7 +5,7 @@
   import IncomeCard from '../lib/components/dashboard/IncomeCard.svelte';
   import ActivityManager from '../lib/components/dashboard/ActivityManager.svelte';
   import TimeTracker from '../lib/components/dashboard/TimeTracker.svelte';
-  import GrowthRate from '../lib/components/dashboard/GrowthRate.svelte';
+  import TenantTurnover from '../lib/components/dashboard/TenantTurnover.svelte';
   import StocksWidget from '../lib/components/dashboard/StocksWidget.svelte';
 	import OccupancyRate from '$lib/components/dashboard/OccupancyRate.svelte';
   
@@ -57,7 +57,7 @@
       prevYear: "2022",
       currentYear: "2023"
     },
-    growthRate: {
+    TenantTurnover: {
       percentage: 36
     },
     stocks: {
@@ -78,19 +78,20 @@
   <!-- Main Content -->
   <div class="grid grid-cols-12 gap-6">
     <div class="col-span-12 lg:col-span-5">
+      <OccupancyRate occupanyRate={dashboardData.occupancyRate} />
       <CreditCard {...dashboardData.creditCard} />
       <AnnualProfits {...dashboardData.annualProfits} />
     </div>
     
     <div class="col-span-12 lg:col-span-4">
       <IncomeCard income={dashboardData.revenue} />
-      <OccupancyRate occupanyRate={dashboardData.occupancyRate} />
+      
       <ActivityManager {...dashboardData.activityManager} />
     </div>
     
     <div class="col-span-12 lg:col-span-3">
       <TimeTracker {...dashboardData.timeTracker} />
-      <GrowthRate percentage={dashboardData.growthRate.percentage} />
+      <TenantTurnover percentage={dashboardData.TenantTurnover.percentage} />
       <StocksWidget {...dashboardData.stocks} />
     </div>
   </div>

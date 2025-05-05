@@ -7,7 +7,7 @@
 
 	// State
 	let searchQuery = '';
-	let selectedTags = ['Team', 'Insights', 'Today'];
+	let selectedTags = ['Upcoming', 'Active', 'All'];
 	let activityItems = [
 		{ id: 1, name: 'Bank loans', isOpen: true },
 		{ id: 2, name: 'Accounting', isOpen: false },

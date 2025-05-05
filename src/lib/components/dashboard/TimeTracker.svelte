@@ -13,8 +13,9 @@
   </script>
   
   <CardWidget>
-    <div class="flex items-center justify-between mb-4">
-      <Clock class="w-5 h-5 text-gray-500" />
+    <div class="flex items-center gap-2 font-bold text-xl mb-2">
+      
+      Average Lease Duration
     </div>
     
     <div class="mb-4">

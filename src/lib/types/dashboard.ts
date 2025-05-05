@@ -50,7 +50,7 @@ export interface CreditCard {
     currentYear: string;
   }
   
-  export interface GrowthRate {
+  export interface TenantTurnover {
     percentage: number;
   }
   
@@ -73,7 +73,7 @@ export interface CreditCard {
     annualProfits: AnnualProfits;
     activityManager: ActivityManager;
     timeTracker: TimeTracker;
-    growthRate: GrowthRate;
+    TenantTurnover: TenantTurnover;
     stocks: Stocks;
     occupancyRate: OccupanyRate
   }

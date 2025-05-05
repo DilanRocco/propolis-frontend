@@ -1,61 +1,40 @@
 <script lang="ts">
-    import type { OccupanyRate }  from "../../types/dashboard"
-    import { RefreshCw, Eye } from 'lucide-svelte';
-    import CardWidget from './CardWidget.svelte';
-	import ProgressCircle from "../ui/ProgressCircle.svelte";
-    
-    // Props with defaults
-    export let occupanyRate: OccupanyRate
-    export let timeframe = "Weekly";
+	import type { OccupanyRate } from '../../types/dashboard';
+	import { RefreshCw, Eye } from 'lucide-svelte';
+	import CardWidget from './CardWidget.svelte';
+	import ProgressCircle from '../ui/ProgressCircle.svelte';
 
+	// Props with defaults
+	export let occupanyRate: OccupanyRate;
 
-    function changeTimeFrame() {
-      //TODO
-    }
-    function viewChartMode() {
-      //TODO
-      // Handle view chart mode
-      console.log('View chart mode clicked');
-    }
-  </script>
-  
-  <CardWidget>
-    <div class="flex justify-between mb-4">
-    <div>
-      <div class="text-xs text-gray-500 mb-1">Average Occupany Rate</div>
-      <div class="text-2xl font-bold">{occupanyRate.averageOccupanyRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
-    </div>
-      <button on:click={changeTimeFrame} class="flex gap-2 cursor-pointer">
-        <span class="text-sm">{timeframe}</span>
-        <span class="text-sm">▼</span>
-      </button>
-    </div>
-    
-    
-    <div class="pt-6 border-t border-gray-200 mb-4">
+	function changeTimeFrame() {
+		//TODO
+	}
+	function viewChartMode() {
+		//TODO
+		// Handle view chart mode
+		console.log('View chart mode clicked');
+	}
+</script>
+
+<CardWidget>
         <div>
-            <div class="text-xs text-gray-500 mb-1">Long Term Occupany Rate</div>
-            <div class="text-2xl font-bold">{occupanyRate.averageLongTermRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
+            <div class="font-bold mb-5 text-xl"> Average Occupany Rate</div>
+          <div class="flex justify-between">
+            <div>
+              <ProgressCircle radius={70} percentage={occupanyRate.averageOccupanyRate} />
+              <div class="my-1 font-bold text-black text-center">Average</div>
+            </div>
+            <div>
+              <ProgressCircle radius={70} percentage={occupanyRate.averageLongTermRate} />
+              <div class="my-1 font-bold text-black text-center">Long term rentals</div>
+            </div>
           </div>
-    </div>
-    <div class="pt-6 border-t border-gray-200 mb-4">
-      
-      <div>
-        <div class="text-xs text-gray-500 mb-1">Short Term Occupany Rate</div>
-        <div class="text-2xl font-bold">{occupanyRate.averageShortTermRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %</div>
-      </div>
-    </div>
-    
-    <button on:click={viewChartMode} class="flex items-center gap-2 mt-6 cursor-pointer">
-      <div 
-        class="bg-coral-100 p-1 rounded-full"
-        
-      >
-        <Eye class="w-4 h-4 text-coral-500" />
-      </div>
-      <div class="text-xs">
-        <span class="font-medium">View</span>
-        <span class="text-gray-500"> on chart mode</span>
-      </div>
-    </button>
-  </CardWidget>
+          <div class="flex justify-center mt-6">
+            <div>
+              <ProgressCircle radius={70} percentage={occupanyRate.averageShortTermRate} />
+              <div class="my-1 font-bold text-black text-center">Short term rentals</div>
+            </div>
+          </div>
+        </div>
+</CardWidget>

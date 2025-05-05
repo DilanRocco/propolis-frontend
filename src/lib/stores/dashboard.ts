@@ -41,7 +41,7 @@ const initialDashboardData: DashboardData = {
     prevYear: "2022",
     currentYear: "2023"
   },
-  growthRate: {
+  TenantTurnover: {
     percentage: 36
   },
   stocks: {
@@ -87,7 +87,7 @@ export const timeStore = derived(
 
 export const growthStore = derived(
   dashboardStore,
-  $dashboardStore => $dashboardStore.growthRate
+  $dashboardStore => $dashboardStore.TenantTurnover
 );
 
 export const stocksStore = derived(

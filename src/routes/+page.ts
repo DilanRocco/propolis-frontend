@@ -41,7 +41,7 @@ export function load() {
         prevYear: "2022",
         currentYear: "2023"
       },
-      growthRate: {
+      TenantTurnover: {
         percentage: 36
       },
       stocks: {
