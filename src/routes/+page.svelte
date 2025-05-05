@@ -14,8 +14,8 @@
 
 	// Destructure data properties or use default values if not provided
 	const dashboardData = data?.dashboardData || {
-		occupanyRate: {
-			averageOccupanyRate: 50.5,
+		occupancyTerm: {
+			averageOccupancyTerm: 50.5,
 			averageLongTerm: 30,
 			averageShortTerm: 71
 		},
@@ -113,7 +113,7 @@
 	<!-- Main Content -->
 	<div class="grid grid-cols-12 gap-6">
 		<div class="col-span-12 lg:col-span-5">
-			<OccupancyRate occupanyRate={dashboardData.occupancyRate} />
+			<OccupancyRate occupancyRate={dashboardData.occupancyRate} />
 			<CreditCard {...dashboardData.creditCard} />
 			<AnnualProfits {...dashboardData.annualProfits} />
 		</div>

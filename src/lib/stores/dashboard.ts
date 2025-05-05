@@ -23,7 +23,7 @@ const initialDashboardData: DashboardData = {
       { value: "14K", color: "coral-100", size: 64, position: { top: 10, right: 24 } },
     ]
   },
-  ReservationManager: {
+  reservationManager: {
     reservations: [
       {
         "guestName": "Alice Johnson",
@@ -85,7 +85,7 @@ const initialDashboardData: DashboardData = {
     ratingQuestion: "How is your business management going?"
   },
   occupancyRate: {
-    averageOccupanyRate: 50.5,
+    averageOccupancyTerm: 50.5,
     averageLongTermRate: 70.1,
     averageShortTermRate: 62.5
   }
@@ -112,7 +112,7 @@ export const profitsStore = derived(
 
 export const activityStore = derived(
   dashboardStore,
-  $dashboardStore => $dashboardStore.ReservationManager
+  $dashboardStore => $dashboardStore.reservationManager
 );
 
 export const timeStore = derived(

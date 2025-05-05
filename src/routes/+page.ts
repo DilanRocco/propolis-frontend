@@ -85,7 +85,7 @@ export function load() {
         ratingQuestion: "How is your business management going?"
       },
       occupancyRate: {
-        averageOccupanyRate: 51.23,
+        averageOccupancyTerm: 51.23,
         averageLongTermRate: 71.59,
         averageShortTermRate: 31.41
       }
