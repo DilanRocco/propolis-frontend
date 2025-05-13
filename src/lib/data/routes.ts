@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Building, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle } from 'lucide-svelte';
+import { Home, MessageCircle, Building, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle, GitGraph } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -17,11 +17,18 @@ export const routes = [
     description: "Short and long term properties overview"
   },
   {
-    id: 'Chat',
-    path: '/Chat',
+    id: 'Message',
+    path: '/messages',
     name: "Chat",
     icon: MessageCircle,
-    description: "Chat with properties"
+    description: "Message the properties"
+  },
+  {
+    id: 'finacials',
+    path: '/financials',
+    name: "Financials",
+    icon: GitGraph,
+    description: "Financials of the company"
   }
 
 ];

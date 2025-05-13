@@ -32,41 +32,11 @@ export const routes = [
   }
 ];
 
-// Settings sub-routes
-export const settingsRoutes = [
-  {
-    id: 'profile',
-    path: '/settings/profile',
-    name: 'Profile',
-    icon: Users,
-    description: 'User profile settings'
-  },
-  {
-    id: 'notifications',
-    path: '/settings/notifications',
-    name: 'Notifications',
-    icon: Bell,
-    description: 'Notification preferences'
-  },
-  {
-    id: 'security',
-    path: '/settings/security',
-    name: 'Security',
-    icon: Shield,
-    description: 'Security settings'
-  },
-  {
-    id: 'help',
-    path: '/settings/help',
-    name: 'Help & Support',
-    icon: HelpCircle,
-    description: 'Get help and support'
-  }
-];
+
 
 // Utility function to get route by ID
 export function getRouteById(id: string) {
-  return [...routes, ...settingsRoutes].find(route => route.id === id);
+  return [...routes].find(route => route.id === id);
 }
 
 // Utility function to check if a route is active
