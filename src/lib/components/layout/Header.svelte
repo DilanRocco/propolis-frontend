@@ -26,6 +26,7 @@
 
 	// Handle sidebar toggle
 	function toggleSidebar(): void {
+		console.log("TEST")
 		dispatch('toggleSidebar');
 	}
 

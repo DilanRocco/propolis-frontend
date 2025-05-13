@@ -6,7 +6,7 @@
 	import TimeTracker from '../lib/components/dashboard/TimeTracker.svelte';
 	import TenantTurnover from '../lib/components/dashboard/TenantTurnover.svelte';
 	import StocksWidget from '../lib/components/dashboard/StocksWidget.svelte';
-	import OccupancyRate from '$lib/components/dashboard/OccupancyRate.svelte';
+	import OccupancyRate from '../lib/components/dashboard/OccupancyRate.svelte';
 
 	// Import data from page data loading (if you use it)
 	export let data;

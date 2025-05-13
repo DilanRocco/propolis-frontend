@@ -46,7 +46,7 @@
           currency: "USD"
         },
         picture: {
-          thumbnail: "/api/placeholder/400/320"
+          thumbnail: ""
         },
         active: true,
         cleaningStatus: { value: "clean" }
@@ -69,7 +69,7 @@
           currency: "USD"
         },
         picture: {
-          thumbnail: "/api/placeholder/400/320"
+          thumbnail: ""
         },
         active: true,
         cleaningStatus: { value: "clean" }
@@ -92,7 +92,7 @@
           currency: "USD"
         },
         picture: {
-          thumbnail: "/api/placeholder/400/320"
+          thumbnail: ""
         },
         active: false,
         cleaningStatus: { value: "dirty" }
@@ -115,7 +115,7 @@
           currency: "USD"
         },
         picture: {
-          thumbnail: "/api/placeholder/400/320"
+          thumbnail: ""
         },
         active: true,
         cleaningStatus: { value: "clean" }
@@ -173,8 +173,8 @@
       },
       pictures: [
         { _id: "67c60c2a482b95001e5c7e72", thumbnail: "https://assets.guesty.com/image/upload/h_200,c_fit/v1741032467/production/5ec3f5d82d5b66002d600010/zoduosbbbrsbj3kmd9gc.jpg" },
-        { _id: "67c6176bca13d60012268b31", thumbnail: "/api/placeholder/400/320" },
-        { _id: "67c60c2a482b95001e5c7e78", thumbnail: "/api/placeholder/400/320" }
+        { _id: "67c6176bca13d60012268b31", thumbnail: "" },
+        { _id: "67c60c2a482b95001e5c7e78", thumbnail: "" }
       ],
       integrations: [
         {

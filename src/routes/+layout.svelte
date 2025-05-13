@@ -34,7 +34,7 @@
 
 	<!-- Overlay for mobile when sidebar is open -->
 	{#if !isDesktop && isSidebarOpen}
-		<div class="bg-opacity-30 fixed inset-0 z-10 bg-black" on:click={toggleSidebar}></div>
+		<button class="bg-opacity-30 fixed inset-0 z-10 bg-black" on:click={toggleSidebar}></button>
 	{/if}
 	<!-- Main Content - Adjusts margin based on sidebar state -->
 	<div
