@@ -21,7 +21,7 @@
     </div>
     
     <div class="mb-4">
-      <h3 class="font-medium">Main Stocks</h3>
+      <h3 class="font-medium">Main Listings</h3>
       <div class="text-xs text-gray-500">Extended & Limited</div>
     </div>
     
