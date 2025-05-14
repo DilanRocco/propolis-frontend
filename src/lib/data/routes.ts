@@ -31,10 +31,24 @@ export const routes = [
     description: "Financials of the company"
   }
 
-];
 
 
-// Utility function to get route by path
+]
+
+export const hiddenRoutes = [
+  {
+    id: 'login',
+    path: '/login',
+    name: "Login",
+    icon: Users,
+    description: "Login into the app"
+  }
+]
+
+
+
+
+//Utility function to get route by path
 export function getRouteByPath(path: any) {
   // Handle the root path
   if (path === '/') {
@@ -42,7 +56,7 @@ export function getRouteByPath(path: any) {
   }
   
   // For other paths, find the matching route or sub-route
-  const allRoutes = [...routes,];
+  const allRoutes = [...routes, ...hiddenRoutes];
   
   // First try exact match
   let route = allRoutes.find(route => route.path === path);

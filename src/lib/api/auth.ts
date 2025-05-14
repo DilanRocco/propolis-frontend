@@ -23,3 +23,10 @@ export async function getUser() {
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
 }
+
+
+
+export function logout() {
+    localStorage.removeItem("access_token");
+    window.location.href = "/login";
+}

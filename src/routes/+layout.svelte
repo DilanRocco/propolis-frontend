@@ -1,5 +1,7 @@
 <script>
 	import '../app.css';
+	import { getUser } from '$lib/api/auth';
+	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import Header from '../lib/components/layout/Header.svelte';
@@ -11,6 +13,7 @@
 		console.log('Sidebar toggled:', isSidebarOpen);
 	}
 	onMount(() => {
+
 		const handleResize = () => {
 			isDesktop = window.innerWidth >= 768;
 			isSidebarOpen = isDesktop; // Set initial state based on screen size
