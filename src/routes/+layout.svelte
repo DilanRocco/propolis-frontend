@@ -1,11 +1,11 @@
 <script>
 	import '../app.css';
-	import { getUser } from '$lib/api/auth';
 	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import Header from '../lib/components/layout/Header.svelte';
 	import Sidebar from '../lib/components/layout/Sidebar.svelte';
+	import { auth } from '$lib/api/auth';
 	let isSidebarOpen = false;
 	let isDesktop = true;
 	function toggleSidebar() {
@@ -13,7 +13,7 @@
 		console.log('Sidebar toggled:', isSidebarOpen);
 	}
 	onMount(() => {
-
+		auth.checkAuth();
 		const handleResize = () => {
 			isDesktop = window.innerWidth >= 768;
 			isSidebarOpen = isDesktop; // Set initial state based on screen size

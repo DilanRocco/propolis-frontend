@@ -1,35 +1,155 @@
-export async function login(email: string, password: string) {
-    const res = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
-        body: JSON.stringify({ email: email, password: password }),
-    });
+import { writable, derived } from 'svelte/store';
+import { goto } from '$app/navigation';
+import { browser } from '$app/environment';
+import { jwtDecode } from 'jwt-decode';
 
-    if (!res.ok) throw new Error(await res.text());
-
-    const data = await res.json();
-    console.log(data)
-    console.log("DATA")
-    localStorage.setItem("access_token", data.access_token);
-    return data;
+// Types
+interface User {
+  email: string;
 }
 
-export async function getUser() {
-    const token = localStorage.getItem("access_token");
-    if (!token) return null;
-
-    const res = await fetch("http://localhost:8000/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
 }
 
+// Auth store
+const createAuthStore = () => {
+  // Initialize from localStorage if in browser
+  const initialToken = browser ? localStorage.getItem('token') : null;
+  
+  let initialUser: User | null = null;
+  if (initialToken) {
+    try {
+      const decoded = jwtDecode<{ sub: string }>(initialToken);
+      initialUser = { email: decoded.sub };
+    } catch (e) {
+      // Token is invalid, ignore it
+      if (browser) localStorage.removeItem('token');
+    }
+  }
+  
+  const state: AuthState = {
+    user: initialUser,
+    token: initialToken,
+    loading: false,
+    error: null
+  };
+  
+  const { subscribe, set, update } = writable<AuthState>(state);
+  
+  return {
+    subscribe,
+    
+    login: async (email: string, password: string) => {
+      update(state => ({ ...state, loading: true, error: null }));
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.detail || 'Login failed');
+        }
+        
+        const token = data.access_token;
+        const decoded = jwtDecode<{ sub: string }>(token);
+        const user = { email: decoded.sub };
+        
+        if (browser) localStorage.setItem('token', token);
+        
+        update(state => ({ 
+          ...state, 
+          user, 
+          token,
+          loading: false,
+          error: null
+        }));
+        
+        return true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'An unknown error occurred';
+        update(state => ({ 
+          ...state, 
+          loading: false, 
+          error: message 
+        }));
+        return false;
+      }
+    },
+    
+    logout: () => {
+      if (browser) localStorage.removeItem('token');
+      set({ user: null, token: null, loading: false, error: null });
+      goto('/login');
+    },
+    
+    // Check if the current token is still valid
+    checkAuth: async () => {
+      const currentState = get(auth);
+      if (!currentState.token) return false;
+      
+      update(state => ({ ...state, loading: true }));
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/auth/me', {
+          headers: { 
+            'Authorization': `Bearer ${currentState.token}` 
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Session expired');
+        }
+        
+        const user = await response.json();
+        update(state => ({ 
+          ...state, 
+          user, 
+          loading: false, 
+          error: null 
+        }));
+        
+        return true;
+      } catch (error) {
+        if (browser) localStorage.removeItem('token');
+        set({ user: null, token: null, loading: false, error: null });
+        return false;
+      }
+    },
+    
+    // Helper to get the current state outside of a Svelte component
+    getState: () => {
+      let currentState: AuthState | undefined;
+      const unsubscribe = subscribe(state => {
+        currentState = state;
+      });
+      unsubscribe();
+      return currentState!;
+    }
+  };
+};
 
+// Create store
+export const auth = createAuthStore();
 
-export function logout() {
-    localStorage.removeItem("access_token");
-    window.location.href = "/login";
+// Helper function to get the current auth state (for use in server-side code)
+export function get(store: { subscribe: Function }) {
+  let value: any;
+  const unsubscribe = store.subscribe((v: any) => value = v);
+  unsubscribe();
+  return value;
 }
+
+// Derived stores for common auth state
+export const user = derived(auth, $auth => $auth.user);
+export const isAuthenticated = derived(auth, $auth => !!$auth.user);
+export const isLoading = derived(auth, $auth => $auth.loading);
+export const authError = derived(auth, $auth => $auth.error);
