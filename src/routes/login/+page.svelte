@@ -8,6 +8,7 @@
     async function handleLogin() {
       try {
         await login(email, password);
+        console.log("lgoin")
         goto('/');
       } catch (err: any) {
         errorMessage = err.message || 'Login failed';
