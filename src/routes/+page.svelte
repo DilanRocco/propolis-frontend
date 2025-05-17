@@ -6,6 +6,7 @@
 	import OccupancyRate from '../lib/components/dashboard/OccupancyRate.svelte';
 	import PercentageCard from '$lib/components/dashboard/PercentageCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
+	import MoneyMetricCard from '$lib/components/dashboard/MoneyMetricCard.svelte';
 
 	// Import data from page data loading (if you use it)
 	export let data;
@@ -36,6 +37,7 @@
 				<DurationCard title={"Time to Lease"} time={dashboardData.timeToLease} />
 				<DurationCard title={"Average Lease Tenancy"} time={dashboardData.timeTracker} />
 				<PercentageCard percentage={dashboardData.tentantTurnover.percentage} />
+				<MoneyMetricCard title={"Lease Balance Over Due"} moneyMetric={dashboardData.moneyMetric} />
 			</div>
 		</div>
 	</div>

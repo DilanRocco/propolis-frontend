@@ -85,6 +85,9 @@ export function load() {
     },
     timeToLease: {
       days: 44
+    },
+    moneyMetric: {
+      value: 16030.24
     }
   };
 

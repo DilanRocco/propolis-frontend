@@ -22,7 +22,7 @@
     <div class="flex justify-between mb-4">
     <div>
       <div class="text-xs text-gray-500 mb-1">Total Revenue</div>
-      <div class="text-2xl font-bold">$ {income.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="text-2xl font-bold"><span class="text-coral-500">$</span>  {income.totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
       <button on:click={changeTimeFrame} class="flex gap-2 cursor-pointer">
         <span class="text-sm">{timeframe}</span>
@@ -35,14 +35,14 @@
       
       <div>
         <div class="text-xs text-gray-500 mb-1">Total long term</div>
-        <div class="text-2xl font-bold">$ {income.totalLongTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-2xl font-bold"><span class="text-coral-500">$</span>  {income.totalLongTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
     </div>
     <div class="pt-6 border-t border-gray-200 mb-4">
       
       <div>
         <div class="text-xs text-gray-500 mb-1">Total short term</div>
-        <div class="text-2xl font-bold">$ {income.totalShortTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div class="text-2xl font-bold"> <span class="text-coral-500">$</span> {income.totalShortTerm.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </div>
     </div>
     

@@ -25,6 +25,9 @@ export interface YearProfit {
   profits: ProfitItem[];
 }
 
+export interface MoneyMetric {
+  value: number
+}
 
 
 
@@ -79,4 +82,5 @@ export interface DashboardData {
   stocks: Stocks;
   occupancyRate: OccupancyTerm
   timeToLease: Days
+  moneyMetric: MoneyMetric
 }
