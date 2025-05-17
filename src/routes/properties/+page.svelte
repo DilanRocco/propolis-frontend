@@ -4,10 +4,10 @@
 	import { onMount } from 'svelte';
 
 	// this comes from your load fn
-	export let data: { dummyListing: Listing[] };
+	  import { propertyStore } from '$lib/stores/propertyStore';
+    let originalProperties = $propertyStore;
 
 	// keep the original array, and a mutable one for filtering
-	let originalProperties: Listing[] = [];
 	let properties: Listing[] = [];
 
 	let activeTab = 'overview';
@@ -15,7 +15,6 @@
 	let selectedProperty: Listing | undefined = undefined;
 
 	onMount(() => {
-		originalProperties = data?.dummyListing ?? [];
 		// start with everything visible
 		properties = [...originalProperties];
 	});
