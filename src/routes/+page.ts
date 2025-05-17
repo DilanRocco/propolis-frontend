@@ -3,11 +3,6 @@ import type { DashboardData } from "../lib/types/dashboard"
 export function load() {
   // In a real app, you might fetch this from an API
   const dashboardData: DashboardData = {
-    creditCard: {
-      cardNumber: "**** 2719",
-      monthlyFee: 25.00,
-      cardType: "visa"
-    },
     revenue: {
       totalLongTerm: 24314.53,
       totalShortTerm: 22312.23,

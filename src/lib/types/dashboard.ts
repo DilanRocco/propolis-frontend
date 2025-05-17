@@ -1,10 +1,5 @@
 // types/dashboard.ts
 
-export interface CreditCard {
-  cardNumber: string;
-  monthlyFee: number;
-  cardType: string;
-}
 
 export interface Revenue {
   totalLongTerm: number;
@@ -73,7 +68,6 @@ export interface Days {
 }
 
 export interface DashboardData {
-  creditCard: CreditCard;
   revenue: Revenue;
   annualProfits: YearProfit[];
   reservationManager: ReservationManager;

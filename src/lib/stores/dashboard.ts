@@ -7,10 +7,7 @@ import type { DashboardData } from '../types/dashboard';
 export const dashboardStore = writable<DashboardData>();
 
 // Create derived stores for specific sections
-export const creditCardStore = derived(
-  dashboardStore,
-  $dashboardStore => $dashboardStore.creditCard
-);
+
 
 export const incomeStore = derived(
   dashboardStore,
@@ -44,12 +41,7 @@ export const stocksStore = derived(
 
 // Actions to update the dashboard data
 export const dashboardActions = {
-  updateCreditCard: (updatedData: Partial<DashboardData["creditCard"]>) => {
-    dashboardStore.update(data => ({
-      ...data,
-      creditCard: { ...data.creditCard, ...updatedData }
-    }));
-  },
+
 
   updateIncome: (updatedData: Partial<DashboardData["revenue"]>) => {
     dashboardStore.update(data => ({
