@@ -5,7 +5,7 @@
 
 	// this comes from your load fn
 	  import { propertyStore } from '$lib/stores/propertyStore';
-    let originalProperties = $propertyStore;
+    let store = $propertyStore;
 
 	// keep the original array, and a mutable one for filtering
 	let properties: Listing[] = [];
@@ -16,13 +16,13 @@
 
 	onMount(() => {
 		// start with everything visible
-		properties = [...originalProperties];
+		properties = [...store.listings];
 	});
 
 	function handleFilterChange(newFilters: Partial<FilterOptions>) {
 		filters = { ...filters, ...newFilters };
 
-		let filtered = originalProperties;
+		let filtered = store.listings;
 
 		if (filters.search) {
 			const q = filters.search.toLowerCase();
