@@ -28,7 +28,7 @@
   <title>Login</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center">
+<div class="flex items-center justify-center">
   <div class="w-full max-w-md">
     <div class="rounded-lg bg-white p-8 shadow-md">
       <h1 class="mb-6 text-center text-2xl font-bold text-gray-900">Login to your account</h1>

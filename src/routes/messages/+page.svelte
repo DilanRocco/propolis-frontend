@@ -1,6 +1,10 @@
 <script>
-    export let data;
+	import ProtectedRoute from '$lib/protectedRoute.svelte';
+
+	export let data;
 </script>
 
-<h1>Messages</h1>
-<p>This is the messages page.</p>
+<ProtectedRoute>
+	<h1>Messages</h1>
+	<p>This is the messages page.</p>
+</ProtectedRoute>

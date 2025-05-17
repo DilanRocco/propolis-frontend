@@ -1,12 +1,10 @@
 <script>
 	import WelcomeCard from '../lib/components/dashboard/WelcomeCard.svelte';
-	import AnnualProfits from '../lib/components/dashboard/AnnualProfits.svelte';
 	import IncomeCard from '../lib/components/dashboard/IncomeCard.svelte';
-	import ReservationManager from '../lib/components/dashboard/ReservationManager.svelte';
-	import TimeTracker from '../lib/components/dashboard/TimeTracker.svelte';
-	import TenantTurnover from '../lib/components/dashboard/TenantTurnover.svelte';
-	import StocksWidget from '../lib/components/dashboard/StocksWidget.svelte';
+	import ActivityManager from '../lib/components/dashboard/ActivityManager.svelte';
+	import DurationCard from '../lib/components/dashboard/DurationCard.svelte';
 	import OccupancyRate from '../lib/components/dashboard/OccupancyRate.svelte';
+	import PercentageCard from '$lib/components/dashboard/PercentageCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
 
 	// Import data from page data loading (if you use it)
@@ -27,20 +25,17 @@
 		<div class="grid grid-cols-12 gap-6">
 			<div class="col-span-12 lg:col-span-5">
 				<OccupancyRate occupancyRate={dashboardData.occupancyRate} />
-
-				<AnnualProfits {...dashboardData.annualProfits} />
 			</div>
 
 			<div class="col-span-12 lg:col-span-4">
 				<IncomeCard income={dashboardData.revenue} />
-
-				<ReservationManager reservations={dashboardData.reservationManager} />
+				<ActivityManager reservations={dashboardData.reservationManager} />
 			</div>
 
 			<div class="col-span-12 lg:col-span-3">
-				<TimeTracker {...dashboardData.timeTracker} />
-				<TenantTurnover percentage={dashboardData.tentantTurnover.percentage} />
-				<StocksWidget {...dashboardData.stocks} />
+				<DurationCard title={"Time to Lease"} time={dashboardData.timeToLease} />
+				<DurationCard title={"Average Lease Tenancy"} time={dashboardData.timeTracker} />
+				<PercentageCard percentage={dashboardData.tentantTurnover.percentage} />
 			</div>
 		</div>
 	</div>

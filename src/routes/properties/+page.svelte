@@ -1,6 +1,7 @@
 <script lang="ts">
     // Properties data - would normally be fetched from an API
-    import type { Property, FilterOptions } from "../../lib/types/properties"
+    import ProtectedRoute from "$lib/protectedRoute.svelte";
+import type { Property, FilterOptions } from "../../lib/types/properties"
     import { onMount } from 'svelte';
   
     // Mock properties data
@@ -248,7 +249,7 @@
       activeTab = tab;
     }
   </script>
-  
+ <ProtectedRoute>
   <div class="bg-gray-50 min-h-screen p-6">
     {#if selectedPropertyId}
       <!-- Property Detail View -->
@@ -815,3 +816,4 @@
       </div>
     {/if}
   </div>
+</ProtectedRoute> 
