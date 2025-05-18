@@ -90,7 +90,7 @@ function createPropertyStore() {
       if (loadedListings) return;
       update(state => ({ ...state, loading: true, error: null }));
       try {
-        const res = await fetchFn(`${PUBLIC_API_URL}/api/guesty/listings`);
+        const res = await fetchFn(`${PUBLIC_API_URL}/api/properties/listings`);
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
         const listings: Listing[] = await res.json();

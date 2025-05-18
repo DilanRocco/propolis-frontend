@@ -27,7 +27,7 @@
 	let selectedNames: string[] = [];
 	let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	let chartHeight = 400;
-	let windowWidth: number;
+	let windowWidth: number = 0;
 
 	// Responsive chart height and settings
 	$: {

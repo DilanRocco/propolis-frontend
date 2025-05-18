@@ -32,11 +32,11 @@
 		}
 
 		if (filters.propertyType) {
-			filtered = filtered.filter((p) => p.propertyType === filters.propertyType);
+			filtered = filtered.filter((p) => p.property_type === filters.propertyType);
 		}
 
 		if (filters.location) {
-			filtered = filtered.filter((p) => p.address.city === filters.location);
+			filtered = filtered.filter((p) => p.address_city === filters.location);
 		}
 
 		if (filters.status === 'active') {
@@ -95,12 +95,11 @@
 								{selectedProperty.active ? 'Active' : 'Inactive'}
 							</span>
 							<span
-								class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {selectedProperty
-									.cleaningStatus.value === 'clean'
+								class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {selectedProperty.cleaning_status === 'clean'
 									? 'bg-blue-100 text-blue-800'
 									: 'bg-amber-100 text-amber-800'}"
 							>
-								{selectedProperty.cleaningStatus.value === 'clean' ? 'Clean' : 'Needs Cleaning'}
+								{selectedProperty.cleaning_status === 'clean' ? 'Clean' : 'Needs Cleaning'}
 							</span>
 						</div>
 					</div>
@@ -120,7 +119,7 @@
 								d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
 							/>
 						</svg>
-						<span>{selectedProperty.address.full}</span>
+						<span>{selectedProperty.address_full}</span>
 					</div>
 
 					<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
@@ -138,7 +137,7 @@
 									d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
 								/>
 							</svg>
-							<span>{selectedProperty.propertyType}</span>
+							<span>{selectedProperty.property_type}</span>
 						</div>
 						<div class="flex items-center">
 							<svg
@@ -202,7 +201,7 @@
 									d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<span class="font-medium">{selectedProperty.prices.basePrice}</span>
+							<span class="font-medium">{selectedProperty.base_price}</span>
 							<span class="ml-1 text-xs">/ night</span>
 						</div>
 					</div>
@@ -277,11 +276,11 @@
 								<div class="space-y-3">
 									<div class="flex justify-between">
 										<span class="text-gray-500">Type</span>
-										<span class="font-medium">{selectedProperty.propertyType}</span>
+										<span class="font-medium">{selectedProperty.property_type}</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Room Type</span>
-										<span class="font-medium">{selectedProperty.roomType}</span>
+										<span class="font-medium">{selectedProperty.room_type}</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Bedrooms</span>
@@ -308,11 +307,11 @@
 									<div class="flex justify-between">
 										<span class="text-gray-500">Cleaning</span>
 										<span
-											class="font-medium {selectedProperty.cleaningStatus.value === 'clean'
+											class="font-medium {selectedProperty.cleaning_status === 'clean'
 												? 'text-blue-600'
 												: 'text-amber-600'}"
 										>
-											{selectedProperty.cleaningStatus.value === 'clean'
+											{selectedProperty.cleaning_status === 'clean'
 												? 'Clean'
 												: 'Needs Cleaning'}
 										</span>
@@ -340,39 +339,39 @@
 								<div class="space-y-3">
 									<div class="flex justify-between">
 										<span class="text-gray-500">Base Price</span>
-										<span class="font-medium">${selectedProperty.prices.basePrice} per night</span>
+										<span class="font-medium">${selectedProperty.base_price} per night</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Weekly Discount</span>
 										<span class="font-medium"
-											>{(1 - selectedProperty.prices.weeklyPriceFactor) * 100}%</span
+											>{(1 - selectedProperty.weekly_price_factor) * 100}%</span
 										>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Monthly Discount</span>
 										<span class="font-medium"
-											>{(1 - selectedProperty.prices.monthlyPriceFactor) * 100}%</span
+											>{(1 - selectedProperty.monthly_price_factor) * 100}%</span
 										>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Extra Guest Fee</span>
 										<span class="font-medium"
-											>${selectedProperty.prices.extraPersonFee} per person</span
+											>${selectedProperty.extra_person_fee} per person</span
 										>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Included Guests</span>
 										<span class="font-medium"
-											>{selectedProperty.prices.guestsIncludedInRegularFee} guests</span
+											>{selectedProperty.guests_included} guests</span
 										>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Security Deposit</span>
-										<span class="font-medium">${selectedProperty.prices.securityDepositFee}</span>
+										<span class="font-medium">${selectedProperty.security_deposit_fee}</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Currency</span>
-										<span class="font-medium">{selectedProperty.prices.currency}</span>
+										<span class="font-medium">{selectedProperty.currency}</span>
 									</div>
 								</div>
 							</div>
@@ -397,11 +396,11 @@
 								<div class="space-y-3">
 									<div class="flex justify-between">
 										<span class="text-gray-500">Minimum Nights</span>
-										<span class="font-medium">{selectedProperty.terms.minNights} nights</span>
+										<span class="font-medium">{selectedProperty.min_nights} nights</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Maximum Nights</span>
-										<span class="font-medium">{selectedProperty.terms.maxNights} nights</span>
+										<span class="font-medium">{selectedProperty.max_nights} nights</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Check-in Time</span>
@@ -416,7 +415,7 @@
 								<div class="mt-6 border-t border-gray-100 pt-4">
 									<h4 class="mb-2 text-sm font-medium">Channel Distribution</h4>
 									<div class="flex items-center gap-3">
-										{#if selectedProperty.integrations}
+										<!-- {#if selectedProperty.integrations}
 											{#each selectedProperty.integrations as integration}
 												<a
 													href={integration.externalUrl}
@@ -440,7 +439,7 @@
 													</svg>
 												</a>
 											{/each}
-										{/if}
+										{/if} -->
 									</div>
 								</div>
 							</div>
@@ -449,7 +448,7 @@
 						<div class="mb-8 rounded-lg bg-white p-5 shadow-sm">
 							<h3 class="mb-4 text-lg font-medium">Description</h3>
 							<p class="whitespace-pre-line text-gray-700">
-								{selectedProperty.publicDescription.summary}
+								{selectedProperty.description_summary}
 							</p>
 						</div>
 
@@ -476,16 +475,16 @@
 									/>
 								</svg>
 								<div>
-									<p class="text-gray-700">{selectedProperty.address.buildingName}</p>
-									<p class="text-gray-700">{selectedProperty.address.full}</p>
+									<p class="text-gray-700">{selectedProperty.address_building_name}</p>
+									<p class="text-gray-700">{selectedProperty.address_full}</p>
 									<p class="mt-1 text-gray-500">
-										Neighborhood: {selectedProperty.address.neighborhood}
+										Neighborhood: {selectedProperty.address_neighborhood}
 									</p>
 								</div>
 							</div>
 						</div>
 
-						<div class="rounded-lg bg-white p-5 shadow-sm">
+						<!-- <div class="rounded-lg bg-white p-5 shadow-sm">
 							<div class="mb-4 flex items-center justify-between">
 								<h3 class="text-lg font-medium">Amenities</h3>
 							</div>
@@ -502,13 +501,13 @@
 									Show all {selectedProperty.amenities.length} amenities
 								</button>
 							{/if}
-						</div>
+						</div> -->
 					</div>
 				{:else if activeTab === 'photos'}
 					<div class="rounded-lg bg-white p-5 shadow-sm">
 						<h3 class="mb-4 text-lg font-medium">Property Photos</h3>
 						<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-							{#each selectedProperty.pictures as picture, i}
+							<!-- {#each selectedProperty.pictures as picture, i}
 								<div class="aspect-square overflow-hidden rounded-lg">
 									<img
 										src={picture.thumbnail}
@@ -516,7 +515,7 @@
 										class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
 									/>
 								</div>
-							{/each}
+							{/each} -->
 						</div>
 					</div>
 				{:else if activeTab === 'settings'}
@@ -541,12 +540,12 @@
 										<select
 											class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 										>
-											<option selected={selectedProperty.propertyType === 'Apartment'}
+											<option selected={selectedProperty.property_type === 'Apartment'}
 												>Apartment</option
 											>
-											<option selected={selectedProperty.propertyType === 'House'}>House</option>
-											<option selected={selectedProperty.propertyType === 'Condo'}>Condo</option>
-											<option selected={selectedProperty.propertyType === 'Villa'}>Villa</option>
+											<option selected={selectedProperty.property_type === 'House'}>House</option>
+											<option selected={selectedProperty.property_type === 'Condo'}>Condo</option>
+											<option selected={selectedProperty.property_type === 'Villa'}>Villa</option>
 										</select>
 									</div>
 								</div>
@@ -716,7 +715,7 @@
 						>
 							<div class="relative h-48">
 								<img
-									src={property.picture.thumbnail}
+									src={property.thumbnail_url}
 									alt={property.title}
 									class="h-full w-full object-cover"
 								/>
@@ -732,11 +731,11 @@
 								<div class="absolute bottom-3 left-3">
 									<span
 										class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {property
-											.cleaningStatus.value === 'clean'
+											.cleaning_status === 'clean'
 											? 'bg-blue-100 text-blue-800'
 											: 'bg-amber-100 text-amber-800'}"
 									>
-										{property.cleaningStatus.value === 'clean' ? 'Clean' : 'Needs Cleaning'}
+										{property.cleaning_status === 'clean' ? 'Clean' : 'Needs Cleaning'}
 									</span>
 								</div>
 							</div>
@@ -759,7 +758,7 @@
 											d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
 										/>
 									</svg>
-									<span>{property.address.city}, {property.address.state}</span>
+									<span>{property.address_city}, {property.address_state}</span>
 								</div>
 
 								<div class="mb-2 flex items-center justify-between">
@@ -772,7 +771,7 @@
 												d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
 											/>
 										</svg>
-										<span>{property.propertyType}</span>
+										<span>{property.property_type}</span>
 									</div>
 									<div class="flex items-center text-sm text-gray-600">
 										<svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -783,7 +782,7 @@
 												d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 											/>
 										</svg>
-										<span class="font-medium">{property.prices.basePrice}</span>
+										<span class="font-medium">{property.base_price}</span>
 										<span class="ml-1 text-xs">/ night</span>
 									</div>
 								</div>
