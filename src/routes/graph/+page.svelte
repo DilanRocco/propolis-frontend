@@ -17,9 +17,11 @@
 	use([BarChart, GridComponent, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 	let listingNames: string[] = [];
+	let filteredListingNames: string[] = []; // New array for filtered listings
 	let listingData: Record<string, ListingData[]> = {};
 	let loading = false;
 	let error: string | null = null;
+	let searchTerm = ''; // New search term property
 
 	// Now an array of selected names
 	let selectedNames: string[] = [];
@@ -37,6 +39,18 @@
 			chartHeight = 350;
 		} else {
 			chartHeight = 400; // Desktop
+		}
+	}
+
+	// Filter properties based on search term
+	$: {
+		if (searchTerm.trim() === '') {
+			filteredListingNames = [...listingNames]; // Show all if search is empty
+		} else {
+			const term = searchTerm.toLowerCase().trim();
+			filteredListingNames = listingNames.filter(name => 
+				name.toLowerCase().includes(term)
+			);
 		}
 	}
 
@@ -89,7 +103,10 @@
 	};
 
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
-		listingNames = s.listingNames;
+		// Sort listing names alphabetically
+		listingNames = [...s.listingNames].sort((a, b) => a.localeCompare(b));
+		// Initialize filtered names with the sorted array
+		filteredListingNames = [...listingNames];
 		listingData = s.listingData;
 		loading = s.loading;
 		error = s.error;
@@ -119,6 +136,11 @@
 	function onSelectBucket(e: Event) {
 		selectedBucket = (e.target as HTMLSelectElement).value as any;
 		rebuildChart();
+	}
+
+	// Clear search term
+	function clearSearch() {
+		searchTerm = '';
 	}
 
 	// utility to floor a date to bucket start
@@ -373,13 +395,33 @@
 
 			<div class="control-group properties-section">
 				<label>Properties</label>
+				
+				<!-- Search bar for properties -->
+				<div class="search-container">
+					<div class="search-input-wrapper">
+						<input 
+							type="text" 
+							placeholder="Search properties..." 
+							bind:value={searchTerm}
+							class="search-input"
+						/>
+						{#if searchTerm}
+							<button class="search-clear-button" on:click={clearSearch}>×</button>
+						{/if}
+						<span class="search-icon">🔍</span>
+					</div>
+					{#if searchTerm && filteredListingNames.length === 0}
+						<p class="search-no-results">No properties match your search</p>
+					{/if}
+				</div>
+
 				<div class="chips-container">
 					{#if listingNames.length === 0 && loading}
 						<div class="chips-loading">Loading properties...</div>
 					{:else if listingNames.length === 0}
 						<div class="chips-empty">No properties available</div>
 					{:else}
-						{#each listingNames as name}
+						{#each filteredListingNames as name}
 							<button
 								class="property-chip {selectedNames.includes(name) ? 'selected' : ''}"
 								on:click={() => toggleProperty(name)}
@@ -451,7 +493,6 @@
 	.dashboard-container {
 		font-family: var(--font-family);
 		max-width: 100%;
-
 		padding: 1rem;
 	}
 
@@ -494,6 +535,80 @@
 		font-weight: 600;
 		margin-bottom: 0.5rem;
 		color: #444;
+	}
+
+	/* Search box styles */
+	.search-container {
+		margin-bottom: 0.75rem;
+	}
+
+	.search-input-wrapper {
+		position: relative;
+		margin-bottom: 0.5rem;
+	}
+
+	.search-input {
+		width: 100%;
+		padding: 0.75rem;
+		padding-left: 2.5rem;
+		padding-right: 2rem;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		font-size: 0.95rem;
+		color: #333;
+		background-color: white;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		transition: all 0.2s;
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--color-coral-300);
+		box-shadow: 0 0 0 3px var(--color-coral-100);
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 12px;
+		top: 50%;
+		transform: translateY(-50%);
+		color: #777;
+		font-size: 0.875rem;
+		pointer-events: none;
+		opacity: 0.6;
+	}
+
+	.search-clear-button {
+		position: absolute;
+		right: 12px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: #eee;
+		border: none;
+		color: #666;
+		font-size: 1rem;
+		line-height: 1;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.search-clear-button:hover {
+		background: #ddd;
+		color: #333;
+	}
+
+	.search-no-results {
+		color: #666;
+		font-size: 0.875rem;
+		font-style: italic;
+		margin: 0;
+		padding: 0.25rem 0;
 	}
 
 	.select-wrapper {
