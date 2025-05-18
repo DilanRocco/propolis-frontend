@@ -46,7 +46,7 @@
 		class:ml-64={isSidebarOpen && isDesktop}
 	>
 		<Header on:toggleSidebar={toggleSidebar} {isDesktop} {isSidebarOpen} currentPath={$page.url.pathname} />
-		<main class="flex-1 overflow-y-auto bg-white p-6">
+		<main class="flex-1 overflow-scroll bg-white p-6">
 			<slot />
 		</main>
 	</div>

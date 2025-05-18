@@ -19,14 +19,66 @@
   // Now an array of selected names
   let selectedNames: string[] = [];
   let selectedBucket: 'week' | 'month' | 'year' = 'month';
+  let chartHeight = 400;
+  let windowWidth: number;
+
+  // Responsive chart height and settings
+  $: {
+    if (windowWidth <= 640) { // Small mobile
+      chartHeight = 300;
+    } else if (windowWidth <= 768) { // Tablet
+      chartHeight = 350;
+    } else {
+      chartHeight = 400; // Desktop
+    }
+  }
 
   let options: any = {
-    title: { text: 'Reservations Comparison' },
-    tooltip: { trigger: 'axis' },
-    legend: { data: [] },
-    xAxis: { type: 'category', data: [] },
-    yAxis: { type: 'value' },
-    series: []
+    title: { 
+      text: 'Reservations Comparison',
+      textStyle: {
+        color: '#333'
+      }
+    },
+    tooltip: { 
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      borderColor: 'var(--color-coral-300)',
+      textStyle: {
+        color: '#333'
+      }
+    },
+    legend: { 
+      data: [],
+      textStyle: {
+        color: '#333'
+      },
+      type: windowWidth <= 640 ? 'scroll' : 'plain'
+    },
+    xAxis: { 
+      type: 'category', 
+      data: [],
+      axisLabel: {
+        rotate: windowWidth <= 640 ? 45 : 0,
+        margin: 8,
+        color: '#666'
+      }
+    },
+    yAxis: { 
+      type: 'value',
+      axisLabel: {
+        color: '#666'
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: windowWidth <= 640 ? '15%' : '10%',
+      top: windowWidth <= 640 ? '15%' : '10%',
+      containLabel: true
+    },
+    series: [],
+    color: ['var(--color-coral-500)', '#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
   };
 
   const unsub = propertyStore.subscribe((s: PropertyState) => {
@@ -41,13 +93,20 @@
     return unsub;
   });
 
-  async function onSelectProperties(e: Event) {
-    const select = e.target as HTMLSelectElement;
-    // Gather all selected options
-    selectedNames = Array.from(select.selectedOptions).map(o => o.value);
-    // Fetch fresh data for each newly selected
-    await Promise.all(selectedNames.map(name => propertyStore.getDataFor(name, fetch)));
-    rebuildChart();
+  // Toggle property selection
+  function toggleProperty(name: string) {
+    if (selectedNames.includes(name)) {
+      selectedNames = selectedNames.filter(n => n !== name);
+    } else {
+      selectedNames = [...selectedNames, name];
+    }
+    
+    // Fetch fresh data for this property if newly selected
+    if (selectedNames.includes(name)) {
+      propertyStore.getDataFor(name, fetch).then(() => rebuildChart());
+    } else {
+      rebuildChart();
+    }
   }
 
   function onSelectBucket(e: Event) {
@@ -55,8 +114,8 @@
     rebuildChart();
   }
 
-// utility to floor a date to bucket start
-function floorToBucket(dt: Date): Date {
+  // utility to floor a date to bucket start
+  function floorToBucket(dt: Date): Date {
     const d = new Date(dt);
     if (selectedBucket === 'week') {
       // move to Monday of this week
@@ -102,9 +161,23 @@ function floorToBucket(dt: Date): Date {
     }
   }
 
+  function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  }
+
   function rebuildChart() {
     if (!selectedNames.length) {
-      options = { ...options, xAxis: { ...options.xAxis, data: [] }, series: [], legend: { data: [] } };
+      options = { 
+        ...options, 
+        xAxis: { ...options.xAxis, data: [] }, 
+        series: [], 
+        legend: { ...options.legend, data: [] } 
+      };
       return;
     }
 
@@ -116,7 +189,12 @@ function floorToBucket(dt: Date): Date {
       for (const rec of arr) all.push({ name, rec });
     }
     if (!all.length) {
-      options = { ...options, xAxis: { ...options.xAxis, data: [] }, series: [], legend: { data: [] } };
+      options = { 
+        ...options, 
+        xAxis: { ...options.xAxis, data: [] }, 
+        series: [], 
+        legend: { ...options.legend, data: [] } 
+      };
       return;
     }
 
@@ -148,64 +226,451 @@ function floorToBucket(dt: Date): Date {
     const series = selectedNames.map(name => ({
       name,
       type: 'bar',
-      data: cats.map(c => +(sums[name].get(c) || 0).toFixed(2))
+      data: cats.map(c => +(sums[name].get(c) || 0).toFixed(2)),
+      itemStyle: {
+        borderRadius: 4
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowOffsetX: 0,
+          shadowColor: 'rgba(0, 0, 0, 0.2)'
+        }
+      }
     }));
 
+    // Update responsive settings based on current window width
+    const legendType = windowWidth <= 640 ? 'scroll' : 'plain';
+    const axisRotation = windowWidth <= 640 ? 45 : 0;
+    const gridBottom = windowWidth <= 640 ? '15%' : '10%';
+    const gridTop = windowWidth <= 640 ? '15%' : '10%';
+
     options = {
-      title: { text: `Comparison — ${selectedBucket}` },
-      tooltip: { trigger: 'axis' },
-      legend: { data: selectedNames },
-      xAxis: { type: 'category', data: cats },
-      yAxis: { type: 'value' },
-      series
+      title: { 
+        text: `Reservations — ${selectedBucket}`,
+        textStyle: {
+          color: '#333'
+        }
+      },
+      tooltip: { 
+        trigger: 'axis',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: 'var(--color-coral-300)',
+        textStyle: {
+          color: '#333'
+        },
+        formatter: function(params: any) {
+          let result = `<div style="font-weight:bold;margin-bottom:5px;">${params[0].axisValue}</div>`;
+          params.forEach((item: any) => {
+            result += `<div style="display:flex;justify-content:space-between;margin:3px 0;">
+              <span style="display:inline-block;margin-right:10px;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
+                ${item.seriesName}:
+              </span>
+              <span style="font-weight:bold;">${formatCurrency(item.value)}</span>
+            </div>`;
+          });
+          return result;
+        }
+      },
+      legend: { 
+        data: selectedNames,
+        textStyle: {
+          color: '#333'
+        },
+        type: legendType,
+        pageButtonPosition: 'end',
+        pageIconColor: 'var(--color-coral-500)',
+        pageIconInactiveColor: 'var(--color-coral-200)',
+        pageTextStyle: {
+          color: '#333'
+        }
+      },
+      xAxis: { 
+        type: 'category', 
+        data: cats,
+        axisLabel: {
+          rotate: axisRotation,
+          margin: 8,
+          color: '#666'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#ddd'
+          }
+        }
+      },
+      yAxis: { 
+        type: 'value',
+        axisLabel: {
+          color: '#666',
+          formatter: function(value: number) {
+            if (value >= 1000) {
+              return '$' + (value / 1000) + 'k';
+            }
+            return '$' + value;
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#eee'
+          }
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: gridBottom,
+        top: gridTop,
+        containLabel: true
+      },
+      series,
+      color: ['var(--color-coral-500)', '#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
     };
   }
 </script>
 
-<div class="controls">
-  <label>
-    Properties (hold ⌘/Ctrl to multi-select):
-    <select multiple size="5" on:change={onSelectProperties}>
-      {#each listingNames as name}
-        <option value={name}>{name}</option>
-      {/each}
-    </select>
-  </label>
+<svelte:window bind:innerWidth={windowWidth}/>
 
-  <label>
-    Bucket:
-    <select on:change={onSelectBucket} bind:value={selectedBucket}>
-      <option value="week">Weekly</option>
-      <option value="month">Monthly</option>
-      <option value="year">Yearly</option>
-    </select>
-  </label>
+<div class="dashboard-container">
+  <div class="card">
+    <h2 class="card-title">Property Revenue Comparison</h2>
+    
+    <div class="controls">
+      <div class="control-group time-period">
+        <label for="bucket">Time Period</label>
+        <div class="select-wrapper">
+          <select id="bucket" class="bucket-select" on:change={onSelectBucket} bind:value={selectedBucket}>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+          </select>
+          <span class="select-icon">▼</span>
+        </div>
+      </div>
+
+      <div class="control-group properties-section">
+        <label>Properties</label>
+        <div class="chips-container">
+          {#if listingNames.length === 0 && loading}
+            <div class="chips-loading">Loading properties...</div>
+          {:else if listingNames.length === 0}
+            <div class="chips-empty">No properties available</div>
+          {:else}
+            {#each listingNames as name}
+              <button 
+                class="property-chip {selectedNames.includes(name) ? 'selected' : ''}" 
+                on:click={() => toggleProperty(name)}
+              >
+                {name}
+                  
+              </button>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    {#if loading}
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading data...</p>
+      </div>
+    {:else if error}
+      <div class="error-container">
+        <p class="error">{error}</p>
+        <button class="retry-button" on:click={() => propertyStore.loadListingNames(fetch)}>
+          Try Again
+        </button>
+      </div>
+    {:else if selectedNames.length === 0}
+      <div class="empty-state">
+        <p>Select one or more properties to view their reservation data</p>
+      </div>
+    {:else}
+      <div class="chart-container" style="height: {chartHeight}px;">
+        <Chart {init} {options} />
+      </div>
+      <div class="selected-properties">
+        <p>Comparing {selectedNames.length} {selectedNames.length === 1 ? 'property' : 'properties'}</p>
+        <button class="clear-button" on:click={() => { selectedNames = []; rebuildChart(); }}>
+          Clear All
+        </button>
+      </div>
+    {/if}
+  </div>
 </div>
 
-{#if loading}
-  <p>Loading data…</p>
-{:else if error}
-  <p class="error">{error}</p>
-{:else}
-  <div class="chart-container">
-    <Chart {init} {options} style="width: 100%; height: 400px;" />
-  </div>
-{/if}
-
 <style>
+  /* Theme variables from the application */
+
+
+  .dashboard-container {
+    font-family: var(--font-family);
+    max-width: 100%;
+
+    padding: 1rem;
+  }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    border-bottom: 2px solid #f5f5f5;
+    padding-bottom: 0.75rem;
+  }
+
   .controls {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
   }
+
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .time-period {
+    max-width: 300px;
+  }
+
+  label {
+    font-size: 0.925rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #444;
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
   select {
-    margin-left: 0.5rem;
+    appearance: none;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: white;
+    color: #333;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
+
+  select:focus {
+    outline: none;
+    border-color: var(--color-coral-300);
+    box-shadow: 0 0 0 3px var(--color-coral-100);
+  }
+
+  .select-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #777;
+    font-size: 0.65rem;
+    pointer-events: none;
+  }
+
+  .chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
+    border-radius: 8px;
+  }
+
+  .property-chip {
+    background-color: #f5f5f7;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .property-chip:hover {
+    background-color: #efefef;
+    transform: translateY(-1px);
+  }
+
+  .property-chip.selected {
+    background-color: var(--color-coral-100);
+    border-color: var(--color-coral-300);
+    color: var(--color-coral-700);
+    font-weight: 500;
+  }
+
+  .check-icon {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+  }
+
   .chart-container {
     width: 100%;
-    height: 400px;
+    transition: height 0.3s ease;
+    margin-top: 1rem;
   }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-coral-100);
+    border-top: 3px solid var(--color-coral-500);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    padding: 1rem;
+  }
+
   .error {
-    color: red;
+    color: var(--color-coral-600);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .retry-button {
+    background-color: var(--color-coral-500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .retry-button:hover {
+    background-color: var(--color-coral-600);
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #777;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .chips-loading, .chips-empty {
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+  }
+
+  .selected-properties {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+    color: #666;
+  }
+
+  .clear-button {
+    background: none;
+    border: none;
+    color: var(--color-coral-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .clear-button:hover {
+    background-color: var(--color-coral-50);
+    color: var(--color-coral-700);
+  }
+
+  /* Responsive adjustments */
+  @media (min-width: 768px) {
+    .controls {
+      flex-direction: row;
+    }
+    
+    .time-period {
+      flex: 0 0 220px;
+    }
+    
+    .properties-section {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-container {
+      padding: 0.5rem;
+    }
+    
+    .card {
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    
+    .card-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+    }
+    
+    .property-chip {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.8125rem;
+    }
   }
 </style>
