@@ -43,7 +43,7 @@ function createPropertyStore() {
         if (!res.ok) throw new Error(res.statusText);
 
         const reservations: ListingData[] = await res.json();
-
+        console.log(reservations)
         update(s => ({
           ...s,
           listingData: { ...s.listingData, [name]: reservations },
