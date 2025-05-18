@@ -3,56 +3,123 @@ import { writable } from 'svelte/store';
 import type { Listing } from '../types/properties';
 import { PUBLIC_API_URL } from '$env/static/public';
 
-interface PropertyState {
+export interface ListingData {
+  guesty_created_at: Date;
+  total_paid: number;
+}
+
+export interface PropertyState {
   listings: Listing[];
+  listingNames: string[];
+  listingData: Record<string, ListingData[]>;
   loading: boolean;
   error: string | null;
 }
 
 function createPropertyStore() {
-  const { subscribe, update, set } = writable<PropertyState>({
+  const initialState: PropertyState = {
     listings: [],
+    listingNames: [],
+    listingData: {},      // ← our dictionary
     loading: false,
     error: null,
-  });
-  let loaded = false;
+  };
+
+  const { subscribe, update, set } = writable<PropertyState>(initialState);
+  let loadedListings = false;
+  let loadedNames = false;
 
   return {
     subscribe,
 
-    async load(fetchFn: typeof fetch) {
-      // if we already succeeded once, bail
-      if (loaded) return;
-
-      // kick off loading
-      update(state => ({ ...state, loading: true, error: null }));
-
+    /** Fetch reservations for a single property and stash under `listingData[name]` */
+    async getDataFor(name: string, fetchFn: typeof fetch) {
+      update(s => ({ ...s, loading: true, error: null }));
       try {
-        const res = await fetchFn(`${PUBLIC_API_URL}/api/guesty/listings`);
-        if (!res.ok) {
-          // non-200, e.g. 502
-          throw new Error(`Server returned ${res.status} ${res.statusText}`);
-        }
-        const listings: Listing[] = await res.json();
-        set({ listings, loading: false, error: null });
-        loaded = true;
+        const url = new URL(`${PUBLIC_API_URL}/api/reservations`);
+        url.searchParams.set('property_full_name', name);
+
+        const res = await fetchFn(url.toString());
+        if (!res.ok) throw new Error(res.statusText);
+
+        const reservations: ListingData[] = await res.json();
+
+        update(s => ({
+          ...s,
+          listingData: { ...s.listingData, [name]: reservations },
+          loading: false,
+          error: null,
+        }));
+
+        return reservations;               
       } catch (err: any) {
-        // record the error but leave loaded = false so user can retry
-        set({
-          listings:   [],                // or keep previous if you prefer
-          loading:    false,
-          error:      err.message || "Unknown error",
-        });
-        console.error("fetchProperties failed:", err);
+        update(s => ({ ...s, loading: false, error: err.message }));
+        console.error(err);
+        throw err;                         
       }
     },
 
-    // if you ever want to force a reload:
+    /** Once‐only fetch of all property names */
+    async loadListingNames(fetchFn: typeof fetch) {
+      if (loadedNames) return;
+      update(state => ({ ...state, loading: true, error: null }));
+      try {
+        const res = await fetchFn(`${PUBLIC_API_URL}/api/reservations/names`);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+        const names: string[] = await res.json();
+        update(state => ({
+          ...state,
+          listingNames: names,
+          loading: false,
+          error: null,
+        }));
+        loadedNames = true;
+      } catch (err: any) {
+        update(state => ({
+          ...state,
+          loading: false,
+          error: err.message || 'Error fetching names',
+        }));
+        console.error('loadListingNames failed:', err);
+      }
+    },
+
+    /** Once‐only fetch of all Guesty listings */
+    async loadListings(fetchFn: typeof fetch) {
+      if (loadedListings) return;
+      update(state => ({ ...state, loading: true, error: null }));
+      try {
+        const res = await fetchFn(`${PUBLIC_API_URL}/api/guesty/listings`);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+        const listings: Listing[] = await res.json();
+        update(state => ({
+          ...state,
+          listings,
+          loading: false,
+          error: null,
+        }));
+        loadedListings = true;
+      } catch (err: any) {
+        update(state => ({
+          ...state,
+          loading: false,
+          error: err.message || 'Error fetching listings',
+        }));
+        console.error('loadListings failed:', err);
+      }
+    },
+
+    /** Reset everything back to initial empty state */
     reset() {
-      loaded = false;
-      set({ listings: [], loading: false, error: null });
+      loadedListings = false;
+      loadedNames = false;
+      set(initialState);
     }
   };
 }
 
-export const propertyStore = createPropertyStore();
+export const propertyStore = createPropertyStore()
+
+

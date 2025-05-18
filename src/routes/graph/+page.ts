@@ -1,8 +1,7 @@
-import type { Listing } from "../../lib/types/properties"
 import { propertyStore } from '$lib/stores/propertyStore';
 import type { PageLoad } from "../$types";
 export const load: PageLoad = async ({ fetch }) => {
-  await propertyStore.loadListings(fetch);
+  await propertyStore.loadListingNames(fetch);
   return { listings: propertyStore };
 };
 

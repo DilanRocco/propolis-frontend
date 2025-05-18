@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Building, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle, GitGraph } from 'lucide-svelte';
+import { Home, MessageCircle, Building, Book, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle, GitGraph } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -29,6 +29,13 @@ export const routes = [
     name: "Financials",
     icon: GitGraph,
     description: "Financials of the company"
+  },
+  {
+    id: 'graph',
+    path: '/graph',
+    name: "Graph",
+    icon: Book,
+    description: "Graph properties"
   }
 
 
