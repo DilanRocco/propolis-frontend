@@ -4,8 +4,8 @@
 	import { onMount } from 'svelte';
 
 	// this comes from your load fn
-	  import { propertyStore } from '$lib/stores/propertyStore';
-    let store = $propertyStore;
+	import { propertyStore } from '$lib/stores/propertyStore';
+	let store = $propertyStore;
 
 	// keep the original array, and a mutable one for filtering
 	let properties: Listing[] = [];
@@ -13,7 +13,7 @@
 	let activeTab = 'overview';
 	let filters: FilterOptions = {};
 	let selectedProperty: Listing | undefined = undefined;
-
+	let showAll = false;
 	onMount(() => {
 		// start with everything visible
 		properties = [...store.listings];
@@ -59,6 +59,8 @@
 	function setActiveTab(tab: string) {
 		activeTab = tab;
 	}
+
+	
 </script>
 
 <ProtectedRoute>
@@ -95,7 +97,8 @@
 								{selectedProperty.active ? 'Active' : 'Inactive'}
 							</span>
 							<span
-								class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {selectedProperty.cleaning_status === 'clean'
+								class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium {selectedProperty.cleaning_status ===
+								'clean'
 									? 'bg-blue-100 text-blue-800'
 									: 'bg-amber-100 text-amber-800'}"
 							>
@@ -311,9 +314,7 @@
 												? 'text-blue-600'
 												: 'text-amber-600'}"
 										>
-											{selectedProperty.cleaning_status === 'clean'
-												? 'Clean'
-												: 'Needs Cleaning'}
+											{selectedProperty.cleaning_status === 'clean' ? 'Clean' : 'Needs Cleaning'}
 										</span>
 									</div>
 								</div>
@@ -355,15 +356,11 @@
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Extra Guest Fee</span>
-										<span class="font-medium"
-											>${selectedProperty.extra_person_fee} per person</span
-										>
+										<span class="font-medium">${selectedProperty.extra_person_fee} per person</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Included Guests</span>
-										<span class="font-medium"
-											>{selectedProperty.guests_included} guests</span
-										>
+										<span class="font-medium">{selectedProperty.guests_included} guests</span>
 									</div>
 									<div class="flex justify-between">
 										<span class="text-gray-500">Security Deposit</span>
@@ -484,12 +481,12 @@
 							</div>
 						</div>
 
-						<!-- <div class="rounded-lg bg-white p-5 shadow-sm">
+						<div class="rounded-lg bg-white p-5 shadow-sm">
 							<div class="mb-4 flex items-center justify-between">
 								<h3 class="text-lg font-medium">Amenities</h3>
 							</div>
 							<div class="grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-3 lg:grid-cols-4">
-								{#each selectedProperty.amenities.slice(0, 20) as amenity, i}
+								{#each showAll ? selectedProperty.amenities : selectedProperty.amenities.slice(0, 20) as amenity, i}
 									<div class="flex items-center">
 										<div class="mr-2 h-2 w-2 rounded-full bg-blue-500"></div>
 										<span class="text-gray-700">{amenity}</span>
@@ -497,11 +494,16 @@
 								{/each}
 							</div>
 							{#if selectedProperty.amenities.length > 20}
-								<button class="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800">
-									Show all {selectedProperty.amenities.length} amenities
+								<button
+									on:click={() => (showAll = !showAll)}
+									class="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800"
+								>
+									{showAll
+										? 'Show less'
+										: `Show all ${selectedProperty.amenities.length} amenities`}
 								</button>
 							{/if}
-						</div> -->
+						</div>
 					</div>
 				{:else if activeTab === 'photos'}
 					<div class="rounded-lg bg-white p-5 shadow-sm">
@@ -518,84 +520,10 @@
 							{/each} -->
 						</div>
 					</div>
-				{:else if activeTab === 'settings'}
-					<div class="rounded-lg bg-white p-5 shadow-sm">
-						<h3 class="mb-6 text-lg font-medium">Property Settings</h3>
-						<div class="max-w-2xl">
-							<div class="mb-8">
-								<h4 class="text-md mb-4 font-medium">Basic Information</h4>
-								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-									<div>
-										<label class="mb-1 block text-sm font-medium text-gray-700">Property Name</label
-										>
-										<input
-											type="text"
-											value={selectedProperty.nickname}
-											class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-										/>
-									</div>
-									<div>
-										<label class="mb-1 block text-sm font-medium text-gray-700">Property Type</label
-										>
-										<select
-											class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-										>
-											<option selected={selectedProperty.property_type === 'Apartment'}
-												>Apartment</option
-											>
-											<option selected={selectedProperty.property_type === 'House'}>House</option>
-											<option selected={selectedProperty.property_type === 'Condo'}>Condo</option>
-											<option selected={selectedProperty.property_type === 'Villa'}>Villa</option>
-										</select>
-									</div>
-								</div>
-							</div>
-
-							<div class="mb-8">
-								<h4 class="text-md mb-4 font-medium">Property Status</h4>
-								<div class="flex items-center space-x-4">
-									<label class="inline-flex items-center">
-										<input
-											type="radio"
-											name="status"
-											checked={selectedProperty.active}
-											class="form-radio h-4 w-4 text-blue-600"
-										/>
-										<span class="ml-2 text-gray-700">Active</span>
-									</label>
-									<label class="inline-flex items-center">
-										<input
-											type="radio"
-											name="status"
-											checked={!selectedProperty.active}
-											class="form-radio h-4 w-4 text-blue-600"
-										/>
-										<span class="ml-2 text-gray-700">Inactive</span>
-									</label>
-								</div>
-							</div>
-
-							<div class="border-t border-gray-200 pt-6">
-								<button class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-									Save Changes
-								</button>
-								<button
-									class="ml-3 rounded-md bg-gray-100 px-4 py-2 text-gray-800 hover:bg-gray-200"
-								>
-									Cancel
-								</button>
-							</div>
-						</div>
-					</div>
 				{:else if activeTab === 'bookings'}
 					<div class="rounded-lg bg-white p-5 shadow-sm">
 						<h3 class="mb-4 text-lg font-medium">Bookings</h3>
 						<p class="text-gray-500">No bookings found for this property.</p>
-					</div>
-				{:else if activeTab === 'calendar'}
-					<div class="rounded-lg bg-white p-5 shadow-sm">
-						<h3 class="mb-4 text-lg font-medium">Calendar</h3>
-						<p class="text-gray-500">Calendar functionality will be implemented here.</p>
 					</div>
 				{/if}
 			</div>
@@ -728,16 +656,16 @@
 										{property.active ? 'Active' : 'Inactive'}
 									</span>
 								</div>
-								<div class="absolute bottom-3 left-3">
+								<!-- <div class="absolute bottom-3 left-3">
 									<span
-										class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {property
-											.cleaning_status === 'clean'
+										class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {property.cleaning_status ===
+										'clean'
 											? 'bg-blue-100 text-blue-800'
 											: 'bg-amber-100 text-amber-800'}"
 									>
 										{property.cleaning_status === 'clean' ? 'Clean' : 'Needs Cleaning'}
 									</span>
-								</div>
+								</div> -->
 							</div>
 							<div class="p-4 text-start">
 								<h3 class="mb-1 truncate text-lg font-semibold">{property.nickname}</h3>

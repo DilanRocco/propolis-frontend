@@ -49,6 +49,7 @@ export const ListingNormalizedSchema = z.object({
   payment_provider_id: z.string().nullable(),
 
   tags: z.array(z.string()),
+  amenities: z.array(z.string()),
 });
 
 export type FilterOptions = {

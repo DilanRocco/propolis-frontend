@@ -2,6 +2,7 @@
 import { writable } from 'svelte/store';
 import type { Listing } from '../types/properties';
 import { PUBLIC_API_URL } from '$env/static/public';
+import { list } from 'postcss';
 
 export interface ListingData {
   guesty_created_at: Date;
@@ -94,6 +95,7 @@ function createPropertyStore() {
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
         const listings: Listing[] = await res.json();
+        console.log(listings[0])
         update(state => ({
           ...state,
           listings,
