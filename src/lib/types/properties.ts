@@ -61,3 +61,8 @@ export type FilterOptions = {
 
 // Type for convenience
 export type Listing = z.infer<typeof ListingNormalizedSchema>;
+
+
+// export type PropertyType = {
+//    coliving
+// }

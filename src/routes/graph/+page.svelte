@@ -13,21 +13,25 @@
 
 	import { propertyStore, type ListingData } from '$lib/stores/propertyStore';
 	import type { PropertyState } from '$lib/stores/propertyStore';
+	
+	// Import the new PropertyFilters component
+	import PropertyFilters from '$lib/components/Filter.svelte';
 
 	use([BarChart, GridComponent, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
-	let listingNames: string[] = [];
-	let filteredListingNames: string[] = []; // New array for filtered listings
 	let listingData: Record<string, ListingData[]> = {};
 	let loading = false;
 	let error: string | null = null;
-	let searchTerm = ''; // New search term property
 
 	// Now an array of selected names
 	let selectedNames: string[] = [];
 	let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	let chartHeight = 400;
 	let windowWidth: number = 0;
+	
+	// Filter state
+	let dateStart: Date | null = null;
+	let dateEnd: Date | null = null;
 
 	// Responsive chart height and settings
 	$: {
@@ -39,18 +43,6 @@
 			chartHeight = 350;
 		} else {
 			chartHeight = 400; // Desktop
-		}
-	}
-
-	// Filter properties based on search term
-	$: {
-		if (searchTerm.trim() === '') {
-			filteredListingNames = [...listingNames]; // Show all if search is empty
-		} else {
-			const term = searchTerm.toLowerCase().trim();
-			filteredListingNames = listingNames.filter(name => 
-				name.toLowerCase().includes(term)
-			);
 		}
 	}
 
@@ -103,10 +95,6 @@
 	};
 
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
-		// Sort listing names alphabetically
-		listingNames = [...s.listingNames].sort((a, b) => a.localeCompare(b));
-		// Initialize filtered names with the sorted array
-		filteredListingNames = [...listingNames];
 		listingData = s.listingData;
 		loading = s.loading;
 		error = s.error;
@@ -117,30 +105,24 @@
 		return unsub;
 	});
 
-	// Toggle property selection
-	function toggleProperty(name: string) {
-		if (selectedNames.includes(name)) {
-			selectedNames = selectedNames.filter((n) => n !== name);
-		} else {
-			selectedNames = [...selectedNames, name];
-		}
-
-		// Fetch fresh data for this property if newly selected
-		if (selectedNames.includes(name)) {
-			propertyStore.getDataFor(name, fetch).then(() => rebuildChart());
-		} else {
-			rebuildChart();
-		}
+	// Event handlers for the PropertyFilters component
+	function handleSelectionChange(event: CustomEvent) {
+		selectedNames = event.detail.selectedNames;
 	}
-
-	function onSelectBucket(e: Event) {
-		selectedBucket = (e.target as HTMLSelectElement).value as any;
+	
+	function handleBucketChange(event: CustomEvent) {
+		selectedBucket = event.detail.selectedBucket;
 		rebuildChart();
 	}
-
-	// Clear search term
-	function clearSearch() {
-		searchTerm = '';
+	
+	function handleDataUpdated() {
+		rebuildChart();
+	}
+	
+	function handleFiltersApplied(event: CustomEvent) {
+		dateStart = event.detail.dateStart;
+		dateEnd = event.detail.dateEnd;
+		rebuildChart();
 	}
 
 	// utility to floor a date to bucket start
@@ -268,7 +250,6 @@
 			emphasis: {
 				focus: 'series',
 				itemStyle: {
-					
 					shadowBlur: 10,
 					shadowOffsetX: 0,
 					shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -283,10 +264,29 @@
 		const axisRotation = windowWidth <= 640 ? 45 : 0;
 		const gridBottom = windowWidth <= 640 ? '15%' : '10%';
 		const gridTop = windowWidth <= 640 ? '15%' : '10%';
+		
+		// Generate title with date range info if present
+		let chartTitle = `Reservations — ${selectedBucket}`;
+		if (dateStart && dateEnd) {
+			const formatDate = (date: Date) => {
+				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+			};
+			chartTitle += ` (${formatDate(dateStart)} - ${formatDate(dateEnd)})`;
+		} else if (dateStart) {
+			const formatDate = (date: Date) => {
+				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+			};
+			chartTitle += ` (From ${formatDate(dateStart)})`;
+		} else if (dateEnd) {
+			const formatDate = (date: Date) => {
+				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+			};
+			chartTitle += ` (Until ${formatDate(dateEnd)})`;
+		}
 
 		options = {
 			title: {
-				text: `Reservations — ${selectedBucket}`,
+				text: chartTitle,
 				textStyle: {
 					color: '#333'
 				}
@@ -375,64 +375,17 @@
 	<div class="card">
 		<h2 class="card-title">Property Revenue Comparison</h2>
 
-		<div class="controls">
-			<div class="control-group time-period">
-				<label for="bucket">Time Period</label>
-				<div class="select-wrapper">
-					<select
-						id="bucket"
-						class="bucket-select"
-						on:change={onSelectBucket}
-						bind:value={selectedBucket}
-					>
-						<option value="week">Weekly</option>
-						<option value="month">Monthly</option>
-						<option value="year">Yearly</option>
-					</select>
-					<span class="select-icon">▼</span>
-				</div>
-			</div>
-
-			<div class="control-group properties-section">
-				<label>Properties</label>
-				
-				<!-- Search bar for properties -->
-				<div class="search-container">
-					<div class="search-input-wrapper">
-						<input 
-							type="text" 
-							placeholder="Search properties..." 
-							bind:value={searchTerm}
-							class="search-input"
-						/>
-						{#if searchTerm}
-							<button class="search-clear-button" on:click={clearSearch}>×</button>
-						{/if}
-						<span class="search-icon">🔍</span>
-					</div>
-					{#if searchTerm && filteredListingNames.length === 0}
-						<p class="search-no-results">No properties match your search</p>
-					{/if}
-				</div>
-
-				<div class="chips-container">
-					{#if listingNames.length === 0 && loading}
-						<div class="chips-loading">Loading properties...</div>
-					{:else if listingNames.length === 0}
-						<div class="chips-empty">No properties available</div>
-					{:else}
-						{#each filteredListingNames as name}
-							<button
-								class="property-chip {selectedNames.includes(name) ? 'selected' : ''}"
-								on:click={() => toggleProperty(name)}
-							>
-								{name}
-							</button>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		</div>
+		<!-- Use the new PropertyFilters component -->
+		<PropertyFilters 
+			bind:selectedNames={selectedNames}
+			bind:selectedBucket={selectedBucket}
+			initialDateStart={dateStart}
+			initialDateEnd={dateEnd}
+			on:selectionChange={handleSelectionChange}
+			on:bucketChange={handleBucketChange}
+			on:dataUpdated={handleDataUpdated}
+			on:filtersApplied={handleFiltersApplied}
+		/>
 
 		{#if loading}
 			<div class="loading-container">
@@ -459,15 +412,6 @@
 					Comparing {selectedNames.length}
 					{selectedNames.length === 1 ? 'property' : 'properties'}
 				</p>
-				<button
-					class="clear-button"
-					on:click={() => {
-						selectedNames = [];
-						rebuildChart();
-					}}
-				>
-					Clear All
-				</button>
 			</div>
 		{/if}
 	</div>
@@ -511,179 +455,6 @@
 		margin: 0 0 1.5rem 0;
 		border-bottom: 2px solid #f5f5f5;
 		padding-bottom: 0.75rem;
-	}
-
-	.controls {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-		margin-bottom: 1.5rem;
-	}
-
-	.control-group {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
-
-	.time-period {
-		max-width: 300px;
-	}
-
-	label {
-		font-size: 0.925rem;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-		color: #444;
-	}
-
-	/* Search box styles */
-	.search-container {
-		margin-bottom: 0.75rem;
-	}
-
-	.search-input-wrapper {
-		position: relative;
-		margin-bottom: 0.5rem;
-	}
-
-	.search-input {
-		width: 100%;
-		padding: 0.75rem;
-		padding-left: 2.5rem;
-		padding-right: 2rem;
-		border: 1px solid #e0e0e0;
-		border-radius: 8px;
-		font-size: 0.95rem;
-		color: #333;
-		background-color: white;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-		transition: all 0.2s;
-	}
-
-	.search-input:focus {
-		outline: none;
-		border-color: var(--color-coral-300);
-		box-shadow: 0 0 0 3px var(--color-coral-100);
-	}
-
-	.search-icon {
-		position: absolute;
-		left: 12px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #777;
-		font-size: 0.875rem;
-		pointer-events: none;
-		opacity: 0.6;
-	}
-
-	.search-clear-button {
-		position: absolute;
-		right: 12px;
-		top: 50%;
-		transform: translateY(-50%);
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		background: #eee;
-		border: none;
-		color: #666;
-		font-size: 1rem;
-		line-height: 1;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-	}
-
-	.search-clear-button:hover {
-		background: #ddd;
-		color: #333;
-	}
-
-	.search-no-results {
-		color: #666;
-		font-size: 0.875rem;
-		font-style: italic;
-		margin: 0;
-		padding: 0.25rem 0;
-	}
-
-	.select-wrapper {
-		position: relative;
-	}
-
-	select {
-		appearance: none;
-		width: 100%;
-		padding: 0.75rem;
-		font-size: 0.95rem;
-		border: 1px solid #e0e0e0;
-		border-radius: 8px;
-		background-color: white;
-		color: #333;
-		font-weight: 500;
-		transition: all 0.2s;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-	}
-
-	select:focus {
-		outline: none;
-		border-color: var(--color-coral-300);
-		box-shadow: 0 0 0 3px var(--color-coral-100);
-	}
-
-	.select-icon {
-		position: absolute;
-		right: 12px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #777;
-		font-size: 0.65rem;
-		pointer-events: none;
-	}
-
-	.chips-container {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		max-height: 200px;
-		overflow-y: auto;
-		padding: 0.25rem 0;
-		border-radius: 8px;
-	}
-
-	.property-chip {
-		background-color: #f5f5f7;
-		border: 1px solid #eee;
-		border-radius: 20px;
-		padding: 0.5rem 0.875rem;
-		font-size: 0.875rem;
-		color: #444;
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.property-chip:hover {
-		background-color: #efefef;
-		transform: translateY(-1px);
-	}
-
-	.property-chip.selected {
-		background-color: var(--color-coral-100);
-		border-color: var(--color-coral-300);
-		color: var(--color-coral-700);
-		font-weight: 500;
-	}
-
-	.check-icon {
-		font-size: 0.75rem;
-		margin-left: 0.25rem;
 	}
 
 	.chart-container {
@@ -764,15 +535,6 @@
 		text-align: center;
 	}
 
-	.chips-loading,
-	.chips-empty {
-		width: 100%;
-		padding: 1rem;
-		text-align: center;
-		color: #777;
-		font-style: italic;
-	}
-
 	.selected-properties {
 		display: flex;
 		justify-content: space-between;
@@ -784,37 +546,7 @@
 		color: #666;
 	}
 
-	.clear-button {
-		background: none;
-		border: none;
-		color: var(--color-coral-500);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		padding: 0.25rem 0.5rem;
-		border-radius: 4px;
-	}
-
-	.clear-button:hover {
-		background-color: var(--color-coral-50);
-		color: var(--color-coral-700);
-	}
-
 	/* Responsive adjustments */
-	@media (min-width: 768px) {
-		.controls {
-			flex-direction: row;
-		}
-
-		.time-period {
-			flex: 0 0 220px;
-		}
-
-		.properties-section {
-			flex: 1;
-		}
-	}
-
 	@media (max-width: 640px) {
 		.dashboard-container {
 			padding: 0.5rem;
@@ -829,11 +561,6 @@
 			font-size: 1.25rem;
 			margin-bottom: 1rem;
 			padding-bottom: 0.5rem;
-		}
-
-		.property-chip {
-			padding: 0.375rem 0.75rem;
-			font-size: 0.8125rem;
 		}
 	}
 </style>

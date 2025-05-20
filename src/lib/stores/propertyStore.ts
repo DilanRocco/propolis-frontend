@@ -34,11 +34,15 @@ function createPropertyStore() {
     subscribe,
 
     /** Fetch reservations for a single property and stash under `listingData[name]` */
-    async getDataFor(name: string, fetchFn: typeof fetch) {
+    async getDataFor(fetchFn: typeof fetch, property_name: string, date_start?: string, date_end?: string, beds?: number, property_type?: string) {
       update(s => ({ ...s, loading: true, error: null }));
       try {
-        const url = new URL(`${PUBLIC_API_URL}/api/reservations`);
-        url.searchParams.set('property_full_name', name);
+        const url = new URL(`${PUBLIC_API_URL}/api/reservations`); 
+        url.searchParams.set('building_name', property_name);
+        if (property_type) url.searchParams.set('property_type', property_type);
+        if (beds) url.searchParams.set('number_of_beds', beds.toString());
+        if (date_start) url.searchParams.set('date_start', date_start);
+        if (date_end) url.searchParams.set('date_end', date_end);
 
         const res = await fetchFn(url.toString());
         if (!res.ok) throw new Error(res.statusText);
@@ -47,7 +51,7 @@ function createPropertyStore() {
         console.log(reservations)
         update(s => ({
           ...s,
-          listingData: { ...s.listingData, [name]: reservations },
+          listingData: { ...s.listingData, [property_name]: reservations },
           loading: false,
           error: null,
         }));
