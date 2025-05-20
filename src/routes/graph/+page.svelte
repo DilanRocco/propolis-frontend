@@ -30,8 +30,8 @@
 	let windowWidth: number = 0;
 	
 	// Filter state
-	let dateStart: Date | null = null;
-	let dateEnd: Date | null = null;
+	let dateStart: string | null = null;
+	let dateEnd: string | null = null;
 
 	// Responsive chart height and settings
 	$: {
@@ -271,17 +271,17 @@
 			const formatDate = (date: Date) => {
 				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 			};
-			chartTitle += ` (${formatDate(dateStart)} - ${formatDate(dateEnd)})`;
+			chartTitle += ` (${dateStart} - ${dateEnd})`;
 		} else if (dateStart) {
 			const formatDate = (date: Date) => {
 				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 			};
-			chartTitle += ` (From ${formatDate(dateStart)})`;
+			chartTitle += ` (From ${dateStart})`;
 		} else if (dateEnd) {
 			const formatDate = (date: Date) => {
 				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 			};
-			chartTitle += ` (Until ${formatDate(dateEnd)})`;
+			chartTitle += ` (Until ${dateEnd})`;
 		}
 
 		options = {

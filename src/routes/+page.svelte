@@ -31,8 +31,7 @@
 			</div>
 
 			<div class="col-span-12 lg:col-span-4">
-				<IncomeCard income={dashboardData.revenue} />
-				<ActivityManager reservations={dashboardData.reservationManager} />
+				<IncomeCard income={dashboardData.revenue} />	
 			</div>
 
 			<div class="col-span-12 lg:col-span-3">
