@@ -6,5 +6,5 @@
 
 <ProtectedRoute>
 	<h1>Financials</h1>
-	<p>This is the Financials page.</p>
+	<p>This is the Financials page. Coming Soon</p>
 </ProtectedRoute>

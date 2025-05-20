@@ -7,12 +7,14 @@
 	import PercentageCard from '$lib/components/dashboard/PercentageCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
 	import MoneyMetricCard from '$lib/components/dashboard/MoneyMetricCard.svelte';
+	import { TestTube } from 'lucide-svelte';
 
 	// Import data from page data loading (if you use it)
 	export let data;
 
 	// Destructure data properties or use default values if not provided
 	const dashboardData = data?.dashboardData;
+
 </script>
 
 <svelte:head>

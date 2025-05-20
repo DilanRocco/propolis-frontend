@@ -69,7 +69,7 @@
 			</div>
 			{#if isSidebarOpen}
 				<div>
-					<div class="font-medium">Username</div>
+					<div class="font-medium">Misha Gurevich</div>
 					<div class="text-xs text-gray-500">ADMIN</div>
 				</div>
 			{/if}
