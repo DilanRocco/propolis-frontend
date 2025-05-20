@@ -2,16 +2,20 @@
 import { writable } from 'svelte/store';
 import type { Listing } from '../types/properties';
 import { PUBLIC_API_URL } from '$env/static/public';
-import { list } from 'postcss';
 
 export interface ListingData {
   guesty_created_at: Date;
   total_paid: number;
 }
 
+export interface ListingNames {
+  property_names: string[];
+  building_names: string[];
+}
+
 export interface PropertyState {
   listings: Listing[];
-  listingNames: string[];
+  listingNames: ListingNames;
   listingData: Record<string, ListingData[]>;
   loading: boolean;
   error: string | null;
@@ -20,7 +24,10 @@ export interface PropertyState {
 function createPropertyStore() {
   const initialState: PropertyState = {
     listings: [],
-    listingNames: [],
+    listingNames: {
+      property_names: [],
+      building_names: [] 
+    },
     listingData: {},      // ← our dictionary
     loading: false,
     error: null,
@@ -34,24 +41,52 @@ function createPropertyStore() {
     subscribe,
 
     /** Fetch reservations for a single property and stash under `listingData[name]` */
-    async getDataFor(fetchFn: typeof fetch, property_name: string, date_start?: string, date_end?: string, beds?: number, property_type?: string) {
+    async getDataFor(fetchFn: typeof fetch, name: string, date_start?: string, date_end?: string, beds?: number, property_type?: string) {
+      // Create a variable to store the current state
+      let currentState: PropertyState | undefined;
+      
+      // Get the current state first to safely access the listing names
+      const unsubscribe = subscribe(state => {
+        currentState = state;
+      });
+      
+      // Unsubscribe immediately after getting the current state
+      unsubscribe();
+      
+      // Now update to set loading state
       update(s => ({ ...s, loading: true, error: null }));
+      
       try {
         const url = new URL(`${PUBLIC_API_URL}/api/reservations`); 
-        url.searchParams.set('building_name', property_name);
+        
+        // Safely check if the name exists in buildings or properties
+        const isBuilding = currentState?.listingNames.building_names.includes(name) || false;
+        const isProperty = currentState?.listingNames.property_names.includes(name) || false;
+        
+        if (isBuilding) {
+          url.searchParams.set('building_name', name);
+        } else if (isProperty) {
+          url.searchParams.set('property_name', name);
+        } else {
+          // If it's neither (shouldn't happen), default to building name
+          url.searchParams.set('building_name', name);
+        }
+        
         if (property_type) url.searchParams.set('property_type', property_type);
         if (beds) url.searchParams.set('number_of_beds', beds.toString());
         if (date_start) url.searchParams.set('date_start', date_start);
         if (date_end) url.searchParams.set('date_end', date_end);
-
+        
         const res = await fetchFn(url.toString());
         if (!res.ok) throw new Error(res.statusText);
-
+        
         const reservations: ListingData[] = await res.json();
-        console.log(reservations)
+
+       
+        
         update(s => ({
           ...s,
-          listingData: { ...s.listingData, [property_name]: reservations },
+          listingData: { ...s.listingData, [name]: reservations },
           loading: false,
           error: null,
         }));
@@ -71,14 +106,19 @@ function createPropertyStore() {
       try {
         const res = await fetchFn(`${PUBLIC_API_URL}/api/reservations/names`);
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-
-        const names: string[] = await res.json();
+    
+        const data: { property_names: string[]; building_names: string[] } = await res.json();
+    
         update(state => ({
           ...state,
-          listingNames: names,
+          listingNames: {
+            property_names: data.property_names,
+            building_names: data.building_names,
+          },
           loading: false,
           error: null,
         }));
+    
         loadedNames = true;
       } catch (err: any) {
         update(state => ({
@@ -99,7 +139,6 @@ function createPropertyStore() {
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
 
         const listings: Listing[] = await res.json();
-        console.log(listings[0])
         update(state => ({
           ...state,
           listings,
@@ -127,5 +166,3 @@ function createPropertyStore() {
 }
 
 export const propertyStore = createPropertyStore()
-
-

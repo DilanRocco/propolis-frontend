@@ -9,6 +9,8 @@
 	
 	// State
 	let listingNames: string[] = [];
+	let buildingNames: string[] = [];
+	let allNames: string[] = []; // Combined list of all names
 	let filteredListingNames: string[] = [];
 	let searchTerm = '';
 	let loading = false;
@@ -17,6 +19,7 @@
 	let dateEnd: string | null = initialDateEnd;
 	let selectedBeds: number | null = null;
 	let selectedPropertyType: string | null = null;
+	let searchMode: 'buildings' | 'properties' = 'buildings';
 	
 	// Property types options
 	const propertyTypes = [
@@ -35,14 +38,24 @@
 		{ value: 5, label: '5+ Beds' }
 	];
 	
+	// Search mode options
+	const searchModeOptions = [
+
+		{ value: 'buildings', label: 'Buildings' },
+		{ value: 'properties', label: 'Properties' }
+	];
+	
 	const dispatch = createEventDispatcher();
 	
 	// Subscribe to property store
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
-		// Sort listing names alphabetically
-		listingNames = [...s.listingNames].sort((a, b) => a.localeCompare(b));
-		// Initialize filtered names with the sorted array
-		filteredListingNames = [...listingNames];
+		// Sort names alphabetically
+		buildingNames = [...s.listingNames.building_names].sort((a, b) => a.localeCompare(b));
+		listingNames = [...s.listingNames.property_names].sort((a, b) => a.localeCompare(b));
+		// Create combined list that doesn't have duplicates
+		allNames = [...new Set([...buildingNames, ...listingNames])].sort((a, b) => a.localeCompare(b));
+		// Initialize filtered names based on current search mode
+		updateFilteredList();
 		loading = s.loading;
 		error = s.error;
 	});
@@ -51,15 +64,32 @@
 		return unsub;
 	});
 	
-	// Filter properties based on search term
-	$: {
+	// Update filtered list based on search mode and term
+	function updateFilteredList() {
+		let namesToFilter = 
+			searchMode === 'buildings' ? buildingNames : 
+			searchMode === 'properties' ? listingNames : 
+			allNames;
+			
 		if (searchTerm.trim() === '') {
-			filteredListingNames = [...listingNames]; // Show all if search is empty
+			filteredListingNames = [...namesToFilter]; // Show all if search is empty
 		} else {
 			const term = searchTerm.toLowerCase().trim();
-			filteredListingNames = listingNames.filter(name => 
+			filteredListingNames = namesToFilter.filter(name => 
 				name.toLowerCase().includes(term)
 			);
+		}
+	}
+	
+	// Filter properties based on search term and mode
+	$: {
+		updateFilteredList();
+	}
+	
+	// When search mode changes, update filtered list
+	$: {
+		if (searchMode) {
+			updateFilteredList();
 		}
 	}
 	
@@ -75,9 +105,6 @@
 		dispatch('selectionChange', { selectedNames });
 		
 		// If newly selected, fetch data for this property
-        console.log("Dates")
-        console.log(typeof(dateStart))
-        console.log(dateEnd)
 		if (selectedNames.includes(name)) {
 			propertyStore.getDataFor(
 				fetch, 
@@ -224,29 +251,43 @@
 			{/if}
 		</div>
 		
-		<!-- Search bar for properties -->
+		<!-- Search bar for properties with mode selection -->
 		<div class="search-container">
-			<div class="search-input-wrapper">
-				<input 
-					type="text" 
-					placeholder="Search properties..." 
-					bind:value={searchTerm}
-					class="search-input"
-				/>
-				{#if searchTerm}
-					<button class="search-clear-button" on:click={clearSearch}>×</button>
-				{/if}
-				<span class="search-icon">🔍</span>
+			<div class="search-mode-wrapper">
+				<div class="search-input-wrapper">
+					<input 
+						type="text" 
+						placeholder="Search properties..." 
+						bind:value={searchTerm}
+						class="search-input"
+					/>
+					{#if searchTerm}
+						<button class="search-clear-button" on:click={clearSearch}>×</button>
+					{/if}
+					<span class="search-icon">🔍</span>
+				</div>
+				
+				<div class="search-mode-selector">
+					{#each searchModeOptions as mode}
+						<button 
+							class="mode-button {searchMode === mode.value ? 'active' : ''}" 
+							on:click={() => searchMode = mode.value}
+						>
+							{mode.label}
+						</button>
+					{/each}
+				</div>
 			</div>
+			
 			{#if searchTerm && filteredListingNames.length === 0}
 				<p class="search-no-results">No properties match your search</p>
 			{/if}
 		</div>
 
 		<div class="chips-container">
-			{#if listingNames.length === 0 && loading}
+			{#if (searchMode === 'buildings' ? buildingNames : listingNames).length === 0 && loading}
 				<div class="chips-loading">Loading properties...</div>
-			{:else if listingNames.length === 0}
+			{:else if (searchMode === 'buildings' ? buildingNames : listingNames).length === 0}
 				<div class="chips-empty">No properties available</div>
 			{:else}
 				{#each filteredListingNames as name}
@@ -255,6 +296,13 @@
 						on:click={() => toggleProperty(name)}
 					>
 						{name}
+						{#if buildingNames.includes(name) && listingNames.includes(name)}
+							<span class="chip-badge">B&P</span>
+						{:else if buildingNames.includes(name)}
+							<span class="chip-badge">B</span>
+						{:else if listingNames.includes(name)}
+							<span class="chip-badge">P</span>
+						{/if}
 					</button>
 				{/each}
 			{/if}
@@ -420,9 +468,15 @@
 		margin-bottom: 0.75rem;
 	}
 
+	.search-mode-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
 	.search-input-wrapper {
 		position: relative;
-		margin-bottom: 0.5rem;
 	}
 
 	.search-input {
@@ -489,6 +543,40 @@
 		padding: 0.25rem 0;
 	}
 
+	/* Search mode selector */
+	.search-mode-selector {
+		display: flex;
+		border-radius: 6px;
+		overflow: hidden;
+		border: 1px solid #e0e0e0;
+		background-color: #f5f5f7;
+	}
+
+	.mode-button {
+		flex: 1;
+		background: none;
+		border: none;
+		padding: 0.5rem;
+		font-size: 0.815rem;
+		color: #555;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.mode-button:not(:last-child) {
+		border-right: 1px solid #e0e0e0;
+	}
+
+	.mode-button:hover {
+		background-color: rgba(0,0,0,0.05);
+	}
+
+	.mode-button.active {
+		background-color: var(--color-coral-100);
+		color: var(--color-coral-700);
+		font-weight: 500;
+	}
+
 	.select-wrapper {
 		position: relative;
 	}
@@ -541,7 +629,7 @@
 		color: #444;
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: 0.5rem;
 		cursor: pointer;
 		transition: all 0.2s;
 	}
@@ -556,6 +644,19 @@
 		border-color: var(--color-coral-300);
 		color: var(--color-coral-700);
 		font-weight: 500;
+	}
+
+	.chip-badge {
+		font-size: 0.7rem;
+		background: rgba(0,0,0,0.1);
+		border-radius: 4px;
+		padding: 0.1rem 0.3rem;
+		color: #666;
+	}
+
+	.property-chip.selected .chip-badge {
+		background: rgba(var(--color-coral-rgb-500), 0.2);
+		color: var(--color-coral-700);
 	}
 
 	.chips-loading,
