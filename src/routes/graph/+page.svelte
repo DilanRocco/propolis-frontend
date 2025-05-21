@@ -7,17 +7,26 @@
 		GridComponent,
 		TitleComponent,
 		TooltipComponent,
+		GraphicComponent,
 		LegendComponent
 	} from 'echarts/components';
 	import { CanvasRenderer } from 'echarts/renderers';
 
 	import { propertyStore, type ListingData } from '$lib/stores/propertyStore';
 	import type { PropertyState } from '$lib/stores/propertyStore';
-	
+
 	// Import the PropertyFilters component
 	import PropertyFilters from '$lib/components/Filter.svelte';
 
-	use([BarChart, GridComponent, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
+	use([
+		BarChart,
+		GridComponent,
+		TitleComponent,
+		GraphicComponent,
+		TooltipComponent,
+		LegendComponent,
+		CanvasRenderer
+	]);
 
 	// This now reflects the store structure as a dictionary
 	let listingData: Record<string, ListingData[]> = {};
@@ -29,7 +38,7 @@
 	let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	let chartHeight = 400;
 	let windowWidth: number = 0;
-	
+
 	// Filter state
 	let dateStart: string | null = null;
 	let dateEnd: string | null = null;
@@ -101,7 +110,7 @@
 		listingData = s.listingData; // Now getting a dictionary
 		loading = s.loading;
 		error = s.error;
-		
+
 		// Rebuild chart when data changes
 		if (!loading && !error) {
 			rebuildChart();
@@ -116,57 +125,57 @@
 	// Event handlers for the PropertyFilters component
 	function handleSelectionChange(event: CustomEvent) {
 		const newSelectedNames = event.detail.selectedNames;
-		
+
 		// Get properties to remove (ones that were deselected)
-		const removedProperties = selectedNames.filter(name => !newSelectedNames.includes(name));
-		
+		const removedProperties = selectedNames.filter((name) => !newSelectedNames.includes(name));
+
 		// Get properties to add (ones that were just selected)
-		const addedProperties = newSelectedNames.filter(name => !selectedNames.includes(name));
-		
+		const addedProperties = newSelectedNames.filter((name) => !selectedNames.includes(name));
+
 		// Update the selected names
 		selectedNames = newSelectedNames;
-		
+
 		// Remove data for deselected properties
 		if (removedProperties.length > 0) {
 			propertyStore.clearProperties(removedProperties);
 		}
-		
+
 		// Fetch data for newly selected properties
 		if (addedProperties.length > 0) {
 			propertyStore.getDataFor(
-				fetch, 
-				addedProperties, 
-				dateStart || undefined, 
-				dateEnd || undefined, 
-				selectedBeds || undefined, 
+				fetch,
+				addedProperties,
+				dateStart || undefined,
+				dateEnd || undefined,
+				selectedBeds || undefined,
 				selectedPropertyType || undefined
 			);
 		}
 	}
-	
+
 	function handleBucketChange(event: CustomEvent) {
 		selectedBucket = event.detail.selectedBucket;
 		rebuildChart();
 	}
-	
+
 	function handleDataUpdated() {
 		rebuildChart();
 	}
-	
+
 	function handleFiltersApplied(event: CustomEvent) {
 		dateStart = event.detail.dateStart;
 		dateEnd = event.detail.dateEnd;
 		selectedBeds = event.detail.selectedBeds;
 		selectedPropertyType = event.detail.selectedPropertyType;
-		
+
 		// Fetch updated data for all selected properties
 		if (selectedNames.length > 0) {
 			propertyStore.getDataFor(
-				fetch, 
-				selectedNames, 
-				dateStart || undefined, 
-				dateEnd || undefined, 
-				selectedBeds || undefined, 
+				fetch,
+				selectedNames,
+				dateStart || undefined,
+				dateEnd || undefined,
+				selectedBeds || undefined,
 				selectedPropertyType || undefined
 			);
 		}
@@ -229,42 +238,99 @@
 	}
 
 	function rebuildChart() {
-		if (!selectedNames.length) {
+		// Create a function to set up the "no data" state with a message
+		const setNoDataState = (message: string) => {
 			options = {
+				title: {
+					text: "No Reservations Found",
+					textStyle: {
+						color: '#333'
+					}
+				},
 				...options,
 				xAxis: { ...options.xAxis, data: [] },
 				series: [],
-				legend: { ...options.legend, data: [] }
+				legend: { ...options.legend, data: [] },
+				graphic: [
+					{
+						type: 'group',
+						left: 'center',
+						top: 'middle',
+						children: [
+							{
+								type: 'text',
+								style: {
+									text: 'No Data Available',
+									font: 'bold 18px sans-serif',
+									fill: '#888'
+								},
+								left: 'center',
+								top: 0
+							},
+							{
+								type: 'text',
+								style: {
+									text: message,
+									font: '14px sans-serif',
+									fill: '#666',
+									lineHeight: 20
+								},
+								left: 'center',
+								top: 30
+							}
+						]
+					}
+				]
 			};
+		};
+		console.log(Object.keys(listingData).length === 0);
+		if (Object.keys(listingData).length === 0) {
+			setNoDataState('Please select at least one property to display data.');
 			return;
 		}
 
 		// Collect all data for selected properties
-		const allPropertyData: Array<{name: string, rec: ListingData}> = [];
-		
+		const allPropertyData: Array<{ name: string; rec: ListingData }> = [];
+
 		for (const name of selectedNames) {
 			const propertyData = listingData[name] || [];
 			for (const rec of propertyData) {
 				allPropertyData.push({ name, rec });
 			}
 		}
-		
+
 		if (!allPropertyData.length) {
-			options = {
-				...options,
-				xAxis: { ...options.xAxis, data: [] },
-				series: [],
-				legend: { ...options.legend, data: [] }
-			};
+			// Create a helpful message based on what filters are active
+			let filterMessage = 'No reservations found with the current filters:';
+			const activeFilters = [];
+
+			if (selectedBucket) activeFilters.push(`Time bucket: ${selectedBucket}`);
+			if (dateStart) activeFilters.push(`Start date: ${dateStart}`);
+			if (dateEnd) activeFilters.push(`End date: ${dateEnd}`);
+			if (selectedBeds) activeFilters.push(`${selectedBeds} Beds`);
+			if (selectedPropertyType) activeFilters.push(`Type: ${selectedPropertyType}`);
+
+			filterMessage +=
+				activeFilters.length > 0
+					? ' ' + activeFilters.join(', ')
+					: ' No active filters, but no data found.';
+
+			setNoDataState(filterMessage);
 			return;
 		}
+
+		// Clear any previous "no data" graphic elements
+		options = {
+			...options,
+			graphic: [] // Remove the "no data" message if it was previously showing
+		};
 
 		// Find global date range for all selected properties
 		allPropertyData.sort(
 			(a, b) =>
 				new Date(a.rec.guesty_created_at).getTime() - new Date(b.rec.guesty_created_at).getTime()
 		);
-		
+
 		const start = floorToBucket(new Date(allPropertyData[0].rec.guesty_created_at));
 		const end = new Date(allPropertyData[allPropertyData.length - 1].rec.guesty_created_at);
 
@@ -279,7 +345,7 @@
 		// Per-listing sums map by time bucket
 		const sums: Record<string, Map<string, number>> = {};
 		for (const name of selectedNames) sums[name] = new Map();
-		
+
 		allPropertyData.forEach(({ name, rec }) => {
 			const dt = new Date(rec.guesty_created_at);
 			const floored = floorToBucket(dt);
@@ -313,10 +379,10 @@
 		const axisRotation = windowWidth <= 640 ? 45 : 0;
 		const gridBottom = windowWidth <= 640 ? '15%' : '10%';
 		const gridTop = windowWidth <= 640 ? '15%' : '10%';
-		
+
 		// Generate title with date range and filter info
 		let chartTitle = `Reservations — ${selectedBucket}`;
-		
+
 		// Add date range to title if present
 		if (dateStart && dateEnd) {
 			chartTitle += ` (${dateStart} - ${dateEnd})`;
@@ -325,7 +391,7 @@
 		} else if (dateEnd) {
 			chartTitle += ` (Until ${dateEnd})`;
 		}
-		
+
 		// Add beds/property type to title if filters are active
 		const filterParts = [];
 		if (selectedBeds) {
@@ -334,7 +400,7 @@
 		if (selectedPropertyType) {
 			filterParts.push(selectedPropertyType);
 		}
-		
+
 		if (filterParts.length > 0) {
 			chartTitle += ` | ${filterParts.join(', ')}`;
 		}
@@ -356,31 +422,31 @@
 				},
 				formatter: function (params: any) {
 					let result = `<div style="font-weight:bold;margin-bottom:5px;">${params[0].axisValue}</div>`;
-					
+
 					// Sort bars by value in descending order for better readability
 					params.sort((a: any, b: any) => b.value - a.value);
-					
+
 					params.forEach((item: any) => {
 						result += `<div style="display:flex;justify-content:space-between;margin:3px 0;">
-							<span style="display:inline-block;margin-right:10px;">
-								<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
-								${item.seriesName}:
-							</span>
-							<span style="font-weight:bold;">${formatCurrency(item.value)}</span>
-						</div>`;
+						<span style="display:inline-block;margin-right:10px;">
+							<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
+							${item.seriesName}:
+						</span>
+						<span style="font-weight:bold;">${formatCurrency(item.value)}</span>
+					</div>`;
 					});
-					
+
 					// Add a total if there's more than one property
 					if (params.length > 1) {
 						const total = params.reduce((sum: number, item: any) => sum + item.value, 0);
 						result += `<div style="margin-top:5px;padding-top:5px;border-top:1px solid #eee;">
-							<div style="display:flex;justify-content:space-between;">
-								<span style="font-weight:bold;">Total:</span>
-								<span style="font-weight:bold;">${formatCurrency(total)}</span>
-							</div>
-						</div>`;
+						<div style="display:flex;justify-content:space-between;">
+							<span style="font-weight:bold;">Total:</span>
+							<span style="font-weight:bold;">${formatCurrency(total)}</span>
+						</div>
+					</div>`;
 					}
-					
+
 					return result;
 				}
 			},
@@ -436,7 +502,16 @@
 				containLabel: true
 			},
 			series,
-			color: ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#0ea5e9']
+			color: [
+				'#6366f1',
+				'#10b981',
+				'#f59e0b',
+				'#8b5cf6',
+				'#ec4899',
+				'#14b8a6',
+				'#f43f5e',
+				'#0ea5e9'
+			]
 		};
 	}
 </script>
@@ -448,13 +523,13 @@
 		<h2 class="card-title">Property Revenue Comparison</h2>
 
 		<!-- Use the PropertyFilters component -->
-		<PropertyFilters 
-			bind:selectedNames={selectedNames}
-			bind:selectedBucket={selectedBucket}
+		<PropertyFilters
+			bind:selectedNames
+			bind:selectedBucket
 			initialDateStart={dateStart}
 			initialDateEnd={dateEnd}
-			bind:selectedBeds={selectedBeds}
-			bind:selectedPropertyType={selectedPropertyType}
+			bind:selectedBeds
+			bind:selectedPropertyType
 			on:selectionChange={handleSelectionChange}
 			on:bucketChange={handleBucketChange}
 			on:dataUpdated={handleDataUpdated}
