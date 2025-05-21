@@ -4,8 +4,10 @@ import type { Listing } from '../types/properties';
 import { PUBLIC_API_URL } from '$env/static/public';
 
 export interface ListingData {
+  id: number;
   guesty_created_at: Date;
   total_paid: number;
+  property_full_name?: string; // Add this to help with grouping
 }
 
 export interface ListingNames {
@@ -16,6 +18,7 @@ export interface ListingNames {
 export interface PropertyState {
   listings: Listing[];
   listingNames: ListingNames;
+  // A dictionary with property name as key and array of ListingData as value
   listingData: Record<string, ListingData[]>;
   loading: boolean;
   error: string | null;
@@ -26,9 +29,9 @@ function createPropertyStore() {
     listings: [],
     listingNames: {
       property_names: [],
-      building_names: [] 
+      building_names: []
     },
-    listingData: {},      // ← our dictionary
+    listingData: {},  // Object/dictionary
     loading: false,
     error: null,
   };
@@ -37,65 +40,175 @@ function createPropertyStore() {
   let loadedListings = false;
   let loadedNames = false;
 
+  // Helper function to fetch data for a single property - defined OUTSIDE the getDataFor method
+  async function fetchSingleProperty(
+    fetchFn: typeof fetch, 
+    propertyName: string, 
+    currentState: PropertyState,
+    date_start?: string, 
+    date_end?: string, 
+    beds?: number, 
+    property_type?: string
+  ): Promise<ListingData[]> {
+    const url = new URL(`${PUBLIC_API_URL}/api/reservations`);
+    
+    // Check if it's a building or property name
+    const isBuilding = currentState.listingNames.building_names.includes(propertyName) || false;
+    const isProperty = currentState.listingNames.property_names.includes(propertyName) || false;
+    
+    if (isBuilding) {
+      url.searchParams.set('building_name', propertyName);
+    } else if (isProperty) {
+      url.searchParams.set('property_full_name', propertyName);
+    } else {
+      // Default to property_full_name if we're unsure
+      url.searchParams.set('property_full_name', propertyName);
+    }
+    
+    // Add other filters
+    if (property_type) url.searchParams.set('property_type', property_type);
+    if (beds) url.searchParams.set('number_of_beds', beds.toString());
+    if (date_start) url.searchParams.set('date_start', date_start);
+    if (date_end) url.searchParams.set('date_end', date_end);
+    
+    console.log(`Fetching data for ${propertyName}:`, url.toString());
+    const res = await fetchFn(url.toString());
+    
+    if (!res.ok) throw new Error(res.statusText);
+    const data: ListingData[] = await res.json();
+    
+    return data;
+  }
+
   return {
     subscribe,
 
-    /** Fetch reservations for a single property and stash under `listingData[name]` */
-    async getDataFor(fetchFn: typeof fetch, name: string, date_start?: string, date_end?: string, beds?: number, property_type?: string) {
+    /** 
+     * Fetch reservations for one or multiple properties and store under listingData
+     * If name is undefined, it will fetch data for all properties based on other filters
+     */
+    async getDataFor(fetchFn: typeof fetch, 
+                     name?: string | string[], 
+                     date_start?: string, 
+                     date_end?: string, 
+                     beds?: number, 
+                     property_type?: string) {
       // Create a variable to store the current state
       let currentState: PropertyState | undefined;
-      
+
       // Get the current state first to safely access the listing names
       const unsubscribe = subscribe(state => {
         currentState = state;
       });
-      
+
       // Unsubscribe immediately after getting the current state
       unsubscribe();
-      
-      // Now update to set loading state
+
+      if (!currentState) {
+        throw new Error("Could not access store state");
+      }
+
+      // If we're fetching for specific properties, set loading state
       update(s => ({ ...s, loading: true, error: null }));
-      
+
       try {
-        const url = new URL(`${PUBLIC_API_URL}/api/reservations`); 
-        
-        // Safely check if the name exists in buildings or properties
-        const isBuilding = currentState?.listingNames.building_names.includes(name) || false;
-        const isProperty = currentState?.listingNames.property_names.includes(name) || false;
-        
-        if (isBuilding) {
-          url.searchParams.set('building_name', name);
-        } else if (isProperty) {
-          url.searchParams.set('property_name', name);
+        // If name is an array, we need to fetch data for each property separately
+        if (Array.isArray(name) && name.length > 0) {
+          const allResults: Record<string, ListingData[]> = {};
+          
+          // Process properties in sequence to avoid too many parallel requests
+          for (const propertyName of name) {
+            const result = await fetchSingleProperty(
+              fetchFn, 
+              propertyName,
+              currentState,
+              date_start, 
+              date_end, 
+              beds, 
+              property_type
+            );
+            
+            allResults[propertyName] = result;
+          }
+          
+          // Update store with all the results
+          update(s => ({
+            ...s,
+            listingData: {
+              ...allResults
+            },
+            loading: false,
+            error: null,
+          }));
+          
+          return allResults;
+        } else if (typeof name === 'string') {
+          // Fetch data for a single property
+          const result = await fetchSingleProperty(
+            fetchFn, 
+            name,
+            currentState,
+            date_start, 
+            date_end, 
+            beds, 
+            property_type
+          );
+          
+          // Update store with the single property result
+          update(s => ({
+            ...s,
+            listingData: {
+              ...s.listingData,
+              [name]: result
+            },
+            loading: false,
+            error: null,
+          }));
+          
+          return { [name]: result };
         } else {
-          // If it's neither (shouldn't happen), default to building name
-          url.searchParams.set('building_name', name);
+          // No specific property, fetch data based on filters only
+          const url = new URL(`${PUBLIC_API_URL}/api/reservations`);
+          
+          if (property_type) url.searchParams.set('property_type', property_type);
+          if (beds) url.searchParams.set('number_of_beds', beds.toString());
+          if (date_start) url.searchParams.set('date_start', date_start);
+          if (date_end) url.searchParams.set('date_end', date_end);
+          
+          console.log("Fetching with filters only:", url.toString());
+          const res = await fetchFn(url.toString());
+          if (!res.ok) throw new Error(res.statusText);
+          
+          const reservations: ListingData[] = await res.json();
+          
+          // Group reservations by property name
+          const groupedData: Record<string, ListingData[]> = {};
+          
+          reservations.forEach(reservation => {
+            const propertyName = reservation.property_full_name || "Unknown";
+            if (!groupedData[propertyName]) {
+              groupedData[propertyName] = [];
+            }
+            groupedData[propertyName].push(reservation);
+          });
+          
+          // Update the store with the grouped data
+          update(s => ({
+            ...s,
+            listingData: {
+              ...s.listingData,
+              ...groupedData
+            },
+            loading: false,
+            error: null,
+          }));
+          
+          return groupedData;
         }
-        
-        if (property_type) url.searchParams.set('property_type', property_type);
-        if (beds) url.searchParams.set('number_of_beds', beds.toString());
-        if (date_start) url.searchParams.set('date_start', date_start);
-        if (date_end) url.searchParams.set('date_end', date_end);
-        
-        const res = await fetchFn(url.toString());
-        if (!res.ok) throw new Error(res.statusText);
-        
-        const reservations: ListingData[] = await res.json();
-
-       
-        
-        update(s => ({
-          ...s,
-          listingData: { ...s.listingData, [name]: reservations },
-          loading: false,
-          error: null,
-        }));
-
-        return reservations;               
       } catch (err: any) {
         update(s => ({ ...s, loading: false, error: err.message }));
         console.error(err);
-        throw err;                         
+        throw err;
       }
     },
 
@@ -106,9 +219,9 @@ function createPropertyStore() {
       try {
         const res = await fetchFn(`${PUBLIC_API_URL}/api/reservations/names`);
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
-    
+
         const data: { property_names: string[]; building_names: string[] } = await res.json();
-    
+
         update(state => ({
           ...state,
           listingNames: {
@@ -118,7 +231,7 @@ function createPropertyStore() {
           loading: false,
           error: null,
         }));
-    
+
         loadedNames = true;
       } catch (err: any) {
         update(state => ({
@@ -156,6 +269,22 @@ function createPropertyStore() {
       }
     },
 
+    // Clear data for specific properties
+    clearProperties(propertyNames: string[]) {
+      update(s => {
+        const newListingData = { ...s.listingData };
+        
+        for (const name of propertyNames) {
+          delete newListingData[name];
+        }
+        
+        return {
+          ...s,
+          listingData: newListingData
+        };
+      });
+    },
+
     /** Reset everything back to initial empty state */
     reset() {
       loadedListings = false;
@@ -165,4 +294,4 @@ function createPropertyStore() {
   };
 }
 
-export const propertyStore = createPropertyStore()
+export const propertyStore = createPropertyStore();

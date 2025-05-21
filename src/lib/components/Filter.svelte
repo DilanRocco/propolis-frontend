@@ -4,8 +4,11 @@
 	
 	// Props
 	export let selectedNames: string[] = [];
+	export let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	export let initialDateStart: string | null = null;
 	export let initialDateEnd: string | null = null;
+	export let selectedBeds: number | null = null;
+	export let selectedPropertyType: string | null = null;
 	
 	// State
 	let listingNames: string[] = [];
@@ -17,13 +20,19 @@
 	let error: string | null = null;
 	let dateStart: string | null = initialDateStart;
 	let dateEnd: string | null = initialDateEnd;
-	let selectedBeds: number | null = null;
-	let selectedPropertyType: string | null = null;
-	let searchMode: 'buildings' | 'properties' = 'buildings';
+	let searchMode: 'buildings' | 'units' | 'all' = 'buildings';
+	let showAdvancedFilters = false;
+	
+	// Time bucket options
+	const bucketOptions = [
+		{ value: 'week', label: 'Weekly' },
+		{ value: 'month', label: 'Monthly' },
+		{ value: 'year', label: 'Yearly' }
+	];
 	
 	// Property types options
 	const propertyTypes = [
-		{ value: '', label: 'All Property Types' },
+		{ value: null, label: 'All Property Types' },
 		{ value: 'Dorm', label: 'Co-Living' },
 		{ value: 'Apartment', label: 'Apartment' }
 	];
@@ -40,9 +49,9 @@
 	
 	// Search mode options
 	const searchModeOptions = [
-
 		{ value: 'buildings', label: 'Buildings' },
-		{ value: 'properties', label: 'Properties' }
+		{ value: 'units', label: 'Units' },
+		{ value: 'all', label: 'All' }
 	];
 	
 	const dispatch = createEventDispatcher();
@@ -64,11 +73,18 @@
 		return unsub;
 	});
 	
+	// When bucket selection changes
+	function changeBucket(event: Event) {
+		const select = event.target as HTMLSelectElement;
+		selectedBucket = select.value as 'week' | 'month' | 'year';
+		dispatch('bucketChange', { selectedBucket });
+	}
+	
 	// Update filtered list based on search mode and term
 	function updateFilteredList() {
 		let namesToFilter = 
 			searchMode === 'buildings' ? buildingNames : 
-			searchMode === 'properties' ? listingNames : 
+			searchMode === 'units' ? listingNames : 
 			allNames;
 			
 		if (searchTerm.trim() === '') {
@@ -103,22 +119,7 @@
 		
 		// Dispatch event to parent component
 		dispatch('selectionChange', { selectedNames });
-		
-		// If newly selected, fetch data for this property
-		if (selectedNames.includes(name)) {
-			propertyStore.getDataFor(
-				fetch, 
-				name, 
-				dateStart || undefined, 
-				dateEnd || undefined, 
-				selectedBeds || undefined, 
-				selectedPropertyType || undefined
-			).then(() => {
-				dispatch('dataUpdated');
-			});
-		} else {
-			dispatch('dataUpdated');
-		}
+		applyFilters()
 	}
 	
 	// Clear search term
@@ -128,26 +129,12 @@
 	
 	// Handle filter changes
 	function applyFilters() {
-		// Re-fetch data for all selected properties with new filters
-		const promises = selectedNames.map(name => 
-			propertyStore.getDataFor(
-				fetch, 
-				name, 
-				dateStart || undefined, 
-				dateEnd || undefined, 
-				selectedBeds || undefined, 
-				selectedPropertyType || undefined
-			)
-		);
-		
-		Promise.all(promises).then(() => {
-			dispatch('filtersApplied', {
-				dateStart,
-				dateEnd,
-				selectedBeds,
-				selectedPropertyType
-			});
-			dispatch('dataUpdated');
+		// Dispatch event with all filter values
+		dispatch('filtersApplied', {
+			dateStart,
+			dateEnd,
+			selectedBeds,
+			selectedPropertyType
 		});
 	}
 	
@@ -166,7 +153,11 @@
 	function clearAllProperties() {
 		selectedNames = [];
 		dispatch('selectionChange', { selectedNames });
-		dispatch('dataUpdated');
+	}
+	
+	// Toggle advanced filters display
+	function toggleAdvancedFilters() {
+		showAdvancedFilters = !showAdvancedFilters;
 	}
 </script>
 
@@ -196,37 +187,29 @@
 			</div>
 		</div>
 
-		<!-- Property Filters -->
-		<div class="filter-group property-filters">
-			<div class="property-filter-inputs">
-				<div class="select-wrapper">
-					<label for="property-type" class="filter-label">Type</label>
-					<select
-						id="property-type"
-						class="filter-select"
-						bind:value={selectedPropertyType}
-					>
-						{#each propertyTypes as option}
-							<option value={option.value}>{option.label}</option>
-						{/each}
-					</select>
-					<span class="select-icon">▼</span>
-				</div>
-				
-				<div class="select-wrapper">
-					<label for="beds" class="filter-label">Beds</label>
-					<select
-						id="beds"
-						class="filter-select"
-						bind:value={selectedBeds}
-					>
-						{#each bedOptions as option}
-							<option value={option.value}>{option.label}</option>
-						{/each}
-					</select>
-					<span class="select-icon">▼</span>
-				</div>
+		<!-- Time Bucket Selector -->
+		<div class="filter-group bucket-select">
+			<label for="time-bucket" class="filter-label">Time Period</label>
+			<div class="select-wrapper">
+				<select
+					id="time-bucket"
+					class="filter-select"
+					value={selectedBucket}
+					on:change={changeBucket}
+				>
+					{#each bucketOptions as option}
+						<option value={option.value}>{option.label}</option>
+					{/each}
+				</select>
+				<span class="select-icon">▼</span>
 			</div>
+		</div>
+
+		<!-- Advanced Filters Toggle -->
+		<div class="filter-group advanced-toggle">
+			<button class="toggle-button" on:click={toggleAdvancedFilters}>
+				{showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
+			</button>
 		</div>
 
 		<!-- Action Buttons -->
@@ -240,13 +223,57 @@
 		</div>
 	</div>
 
+	<!-- Advanced Filters Row -->
+	{#if showAdvancedFilters}
+		<div class="advanced-filters-row">
+			<!-- Property Type -->
+			<div class="filter-group">
+				<label for="property-type" class="filter-label">Property Type</label>
+				<div class="select-wrapper">
+					<select
+						id="property-type"
+						class="filter-select"
+						bind:value={selectedPropertyType}
+					>
+						{#each propertyTypes as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
+					</select>
+					<span class="select-icon">▼</span>
+				</div>
+			</div>
+			
+			<!-- Beds -->
+			<div class="filter-group">
+				<label for="beds" class="filter-label">Number of Beds</label>
+				<div class="select-wrapper">
+					<select 
+						id="beds"
+						class="filter-select"
+						bind:value={selectedBeds}
+					>
+						{#each bedOptions as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
+					</select>
+					<span class="select-icon">▼</span>
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<!-- Properties Section -->
 	<div class="properties-section">
 		<div class="properties-header">
-			<label>Properties</label>
+			<div class="properties-title">
+				<label>Properties</label>
+				{#if selectedNames.length > 0}
+					<span class="selected-count">({selectedNames.length} selected)</span>
+				{/if}
+			</div>
 			{#if selectedNames.length > 0}
 				<button class="clear-button" on:click={clearAllProperties}>
-					Clear All ({selectedNames.length})
+					Clear All
 				</button>
 			{/if}
 		</div>
@@ -285,9 +312,9 @@
 		</div>
 
 		<div class="chips-container">
-			{#if (searchMode === 'buildings' ? buildingNames : listingNames).length === 0 && loading}
+			{#if loading}
 				<div class="chips-loading">Loading properties...</div>
-			{:else if (searchMode === 'buildings' ? buildingNames : listingNames).length === 0}
+			{:else if filteredListingNames.length === 0}
 				<div class="chips-empty">No properties available</div>
 			{:else}
 				{#each filteredListingNames as name}
@@ -296,12 +323,8 @@
 						on:click={() => toggleProperty(name)}
 					>
 						{name}
-						{#if buildingNames.includes(name) && listingNames.includes(name)}
-							<span class="chip-badge">B&P</span>
-						{:else if buildingNames.includes(name)}
-							<span class="chip-badge">B</span>
-						{:else if listingNames.includes(name)}
-							<span class="chip-badge">P</span>
+						{#if selectedNames.includes(name)}
+							<span class="chip-check">✓</span>
 						{/if}
 					</button>
 				{/each}
@@ -319,7 +342,7 @@
 		font-family: var(--font-family);
 	}
 	
-	.filters-row {
+	.filters-row, .advanced-filters-row {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
@@ -328,12 +351,24 @@
 		width: 100%;
 	}
 	
+	.advanced-filters-row {
+		background-color: #f9f9f9;
+		padding: 1rem;
+		border-radius: 8px;
+		border: 1px solid #eee;
+	}
+	
 	.filter-group {
 		margin-bottom: 0;
+		flex: 1;
 	}
 	
 	.date-filters {
 		flex: 2;
+	}
+	
+	.bucket-select, .advanced-toggle {
+		flex: 1;
 	}
 	
 	.date-inputs {
@@ -372,22 +407,21 @@
 		box-shadow: 0 0 0 3px var(--color-coral-100);
 	}
 	
-	.property-filters {
-		flex: 2;
-	}
-	
-	.property-filter-inputs {
-		display: flex;
-		gap: 0.5rem;
+	.toggle-button {
+		padding: 0.5rem;
+		background-color: #f5f5f7;
+		border: 1px solid #e0e0e0;
+		border-radius: 6px;
+		color: #555;
+		font-size: 0.875rem;
+		cursor: pointer;
+		transition: all 0.2s;
 		width: 100%;
 	}
 	
-	.filter-select {
-		width: 100%;
-	}
-	
-	.property-filters .select-wrapper {
-		flex: 1;
+	.toggle-button:hover {
+		background-color: #efefef;
+		border-color: #d0d0d0;
 	}
 	
 	.filter-actions {
@@ -438,6 +472,18 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
+	}
+	
+	.properties-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	
+	.selected-count {
+		font-size: 0.875rem;
+		color: #666;
+		font-weight: normal;
 	}
 	
 	label {
@@ -646,18 +692,18 @@
 		font-weight: 500;
 	}
 
-	.chip-badge {
+	.chip-check {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--color-coral-500);
+		color: white;
 		font-size: 0.7rem;
-		background: rgba(0,0,0,0.1);
-		border-radius: 4px;
-		padding: 0.1rem 0.3rem;
-		color: #666;
-	}
-
-	.property-chip.selected .chip-badge {
-		background: rgba(var(--color-coral-rgb-500), 0.2);
-		color: var(--color-coral-700);
-	}
+		line-height: 1;
+	}	
 
 	.chips-loading,
 	.chips-empty {
@@ -670,7 +716,7 @@
 	
 	/* Responsive adjustments */
 	@media (max-width: 768px) {
-		.filters-row {
+		.filters-row, .advanced-filters-row {
 			flex-direction: column;
 			align-items: stretch;
 			gap: 0.75rem;
@@ -683,11 +729,6 @@
 	
 	@media (max-width: 640px) {
 		.date-inputs {
-			flex-direction: column;
-			gap: 0.5rem;
-		}
-		
-		.property-filter-inputs {
 			flex-direction: column;
 			gap: 0.5rem;
 		}

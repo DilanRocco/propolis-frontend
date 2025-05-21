@@ -14,11 +14,12 @@
 	import { propertyStore, type ListingData } from '$lib/stores/propertyStore';
 	import type { PropertyState } from '$lib/stores/propertyStore';
 	
-	// Import the new PropertyFilters component
+	// Import the PropertyFilters component
 	import PropertyFilters from '$lib/components/Filter.svelte';
 
 	use([BarChart, GridComponent, TitleComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
+	// This now reflects the store structure as a dictionary
 	let listingData: Record<string, ListingData[]> = {};
 	let loading = false;
 	let error: string | null = null;
@@ -32,6 +33,8 @@
 	// Filter state
 	let dateStart: string | null = null;
 	let dateEnd: string | null = null;
+	let selectedBeds: number | null = null;
+	let selectedPropertyType: string | null = null;
 
 	// Responsive chart height and settings
 	$: {
@@ -91,13 +94,18 @@
 			containLabel: true
 		},
 		series: [],
-		color: ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
+		color: ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#0ea5e9']
 	};
 
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
-		listingData = s.listingData;
+		listingData = s.listingData; // Now getting a dictionary
 		loading = s.loading;
 		error = s.error;
+		
+		// Rebuild chart when data changes
+		if (!loading && !error) {
+			rebuildChart();
+		}
 	});
 
 	onMount(() => {
@@ -107,7 +115,33 @@
 
 	// Event handlers for the PropertyFilters component
 	function handleSelectionChange(event: CustomEvent) {
-		selectedNames = event.detail.selectedNames;
+		const newSelectedNames = event.detail.selectedNames;
+		
+		// Get properties to remove (ones that were deselected)
+		const removedProperties = selectedNames.filter(name => !newSelectedNames.includes(name));
+		
+		// Get properties to add (ones that were just selected)
+		const addedProperties = newSelectedNames.filter(name => !selectedNames.includes(name));
+		
+		// Update the selected names
+		selectedNames = newSelectedNames;
+		
+		// Remove data for deselected properties
+		if (removedProperties.length > 0) {
+			propertyStore.clearProperties(removedProperties);
+		}
+		
+		// Fetch data for newly selected properties
+		if (addedProperties.length > 0) {
+			propertyStore.getDataFor(
+				fetch, 
+				addedProperties, 
+				dateStart || undefined, 
+				dateEnd || undefined, 
+				selectedBeds || undefined, 
+				selectedPropertyType || undefined
+			);
+		}
 	}
 	
 	function handleBucketChange(event: CustomEvent) {
@@ -122,7 +156,20 @@
 	function handleFiltersApplied(event: CustomEvent) {
 		dateStart = event.detail.dateStart;
 		dateEnd = event.detail.dateEnd;
-		rebuildChart();
+		selectedBeds = event.detail.selectedBeds;
+		selectedPropertyType = event.detail.selectedPropertyType;
+		
+		// Fetch updated data for all selected properties
+		if (selectedNames.length > 0) {
+			propertyStore.getDataFor(
+				fetch, 
+				selectedNames, 
+				dateStart || undefined, 
+				dateEnd || undefined, 
+				selectedBeds || undefined, 
+				selectedPropertyType || undefined
+			);
+		}
 	}
 
 	// utility to floor a date to bucket start
@@ -192,17 +239,17 @@
 			return;
 		}
 
-		// collect all raw data, tag by property
-		interface Tagged {
-			name: string;
-			rec: ListingData;
-		}
-		const all: Tagged[] = [];
+		// Collect all data for selected properties
+		const allPropertyData: Array<{name: string, rec: ListingData}> = [];
+		
 		for (const name of selectedNames) {
-			const arr = listingData[name] ?? [];
-			for (const rec of arr) all.push({ name, rec });
+			const propertyData = listingData[name] || [];
+			for (const rec of propertyData) {
+				allPropertyData.push({ name, rec });
+			}
 		}
-		if (!all.length) {
+		
+		if (!allPropertyData.length) {
 			options = {
 				...options,
 				xAxis: { ...options.xAxis, data: [] },
@@ -212,15 +259,16 @@
 			return;
 		}
 
-		// find global date range
-		all.sort(
+		// Find global date range for all selected properties
+		allPropertyData.sort(
 			(a, b) =>
 				new Date(a.rec.guesty_created_at).getTime() - new Date(b.rec.guesty_created_at).getTime()
 		);
-		const start = floorToBucket(new Date(all[0].rec.guesty_created_at));
-		const end = new Date(all[all.length - 1].rec.guesty_created_at);
+		
+		const start = floorToBucket(new Date(allPropertyData[0].rec.guesty_created_at));
+		const end = new Date(allPropertyData[allPropertyData.length - 1].rec.guesty_created_at);
 
-		// build full categories
+		// Build full categories (time buckets)
 		const cats: string[] = [];
 		let cur = start;
 		while (cur.getTime() <= end.getTime()) {
@@ -228,10 +276,11 @@
 			cur = advanceBucket(cur);
 		}
 
-		// per-listing sums map
+		// Per-listing sums map by time bucket
 		const sums: Record<string, Map<string, number>> = {};
 		for (const name of selectedNames) sums[name] = new Map();
-		all.forEach(({ name, rec }) => {
+		
+		allPropertyData.forEach(({ name, rec }) => {
 			const dt = new Date(rec.guesty_created_at);
 			const floored = floorToBucket(dt);
 			const lbl = formatBucket(floored);
@@ -239,8 +288,8 @@
 			m.set(lbl, (m.get(lbl) || 0) + rec.total_paid);
 		});
 
-		// build series for each property
-		const series = selectedNames.map((name) => ({
+		// Build series for each property
+		const series = selectedNames.map((name, index) => ({
 			name,
 			type: 'bar',
 			data: cats.map((c) => +(sums[name].get(c) || 0).toFixed(2)),
@@ -265,25 +314,32 @@
 		const gridBottom = windowWidth <= 640 ? '15%' : '10%';
 		const gridTop = windowWidth <= 640 ? '15%' : '10%';
 		
-		// Generate title with date range info if present
+		// Generate title with date range and filter info
 		let chartTitle = `Reservations — ${selectedBucket}`;
+		
+		// Add date range to title if present
 		if (dateStart && dateEnd) {
-			const formatDate = (date: Date) => {
-				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-			};
 			chartTitle += ` (${dateStart} - ${dateEnd})`;
 		} else if (dateStart) {
-			const formatDate = (date: Date) => {
-				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-			};
 			chartTitle += ` (From ${dateStart})`;
 		} else if (dateEnd) {
-			const formatDate = (date: Date) => {
-				return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-			};
 			chartTitle += ` (Until ${dateEnd})`;
 		}
+		
+		// Add beds/property type to title if filters are active
+		const filterParts = [];
+		if (selectedBeds) {
+			filterParts.push(`${selectedBeds} Beds`);
+		}
+		if (selectedPropertyType) {
+			filterParts.push(selectedPropertyType);
+		}
+		
+		if (filterParts.length > 0) {
+			chartTitle += ` | ${filterParts.join(', ')}`;
+		}
 
+		// Update chart options
 		options = {
 			title: {
 				text: chartTitle,
@@ -300,15 +356,31 @@
 				},
 				formatter: function (params: any) {
 					let result = `<div style="font-weight:bold;margin-bottom:5px;">${params[0].axisValue}</div>`;
+					
+					// Sort bars by value in descending order for better readability
+					params.sort((a: any, b: any) => b.value - a.value);
+					
 					params.forEach((item: any) => {
 						result += `<div style="display:flex;justify-content:space-between;margin:3px 0;">
-              <span style="display:inline-block;margin-right:10px;">
-                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
-                ${item.seriesName}:
-              </span>
-              <span style="font-weight:bold;">${formatCurrency(item.value)}</span>
-            </div>`;
+							<span style="display:inline-block;margin-right:10px;">
+								<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
+								${item.seriesName}:
+							</span>
+							<span style="font-weight:bold;">${formatCurrency(item.value)}</span>
+						</div>`;
 					});
+					
+					// Add a total if there's more than one property
+					if (params.length > 1) {
+						const total = params.reduce((sum: number, item: any) => sum + item.value, 0);
+						result += `<div style="margin-top:5px;padding-top:5px;border-top:1px solid #eee;">
+							<div style="display:flex;justify-content:space-between;">
+								<span style="font-weight:bold;">Total:</span>
+								<span style="font-weight:bold;">${formatCurrency(total)}</span>
+							</div>
+						</div>`;
+					}
+					
 					return result;
 				}
 			},
@@ -364,7 +436,7 @@
 				containLabel: true
 			},
 			series,
-			color: ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']
+			color: ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f43f5e', '#0ea5e9']
 		};
 	}
 </script>
@@ -375,12 +447,14 @@
 	<div class="card">
 		<h2 class="card-title">Property Revenue Comparison</h2>
 
-		<!-- Use the new PropertyFilters component -->
+		<!-- Use the PropertyFilters component -->
 		<PropertyFilters 
 			bind:selectedNames={selectedNames}
 			bind:selectedBucket={selectedBucket}
 			initialDateStart={dateStart}
 			initialDateEnd={dateEnd}
+			bind:selectedBeds={selectedBeds}
+			bind:selectedPropertyType={selectedPropertyType}
 			on:selectionChange={handleSelectionChange}
 			on:bucketChange={handleBucketChange}
 			on:dataUpdated={handleDataUpdated}
