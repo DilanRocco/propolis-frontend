@@ -82,6 +82,7 @@
 	
 	// Update filtered list based on search mode and term
 	function updateFilteredList() {
+		// Select which list of names to filter based on current search mode
 		let namesToFilter = 
 			searchMode === 'buildings' ? buildingNames : 
 			searchMode === 'units' ? listingNames : 
@@ -91,21 +92,94 @@
 			filteredListingNames = [...namesToFilter]; // Show all if search is empty
 		} else {
 			const term = searchTerm.toLowerCase().trim();
-			filteredListingNames = namesToFilter.filter(name => 
-				name.toLowerCase().includes(term)
-			);
+			
+			// Enhanced search with word boundary detection and partial matching
+			filteredListingNames = namesToFilter.filter(name => {
+				const nameLower = name.toLowerCase();
+				
+				// Exact match has highest priority
+				if (nameLower === term) {
+					return true;
+				}
+				
+				// Check if it's a word boundary match (starts with the term)
+				if (nameLower.startsWith(term)) {
+					return true;
+				}
+				
+				// Check if it contains the term as a whole word
+				if (nameLower.includes(` ${term}`) || nameLower.includes(`${term} `)) {
+					return true;
+				}
+				
+				// Fall back to simple inclusion for shorter terms (less than 3 chars)
+				if (term.length < 3) {
+					return nameLower.includes(term);
+				}
+				
+				// For longer search terms, split the term and check if all words are included
+				const searchWords = term.split(/\s+/);
+				return searchWords.every(word => nameLower.includes(word));
+			});
+			
+			// Sort results to prioritize items that start with the search term
+			filteredListingNames.sort((a, b) => {
+				const aLower = a.toLowerCase();
+				const bLower = b.toLowerCase();
+				
+				// Items that start with the term come first
+				const aStarts = aLower.startsWith(term);
+				const bStarts = bLower.startsWith(term);
+				
+				if (aStarts && !bStarts) return -1;
+				if (!aStarts && bStarts) return 1;
+				
+				// Then sort alphabetically
+				return a.localeCompare(b);
+			});
 		}
 	}
 	
+	// Debounce function to limit how often search updates are performed
+	function debounce(func: Function, wait: number) {
+		let timeout: ReturnType<typeof setTimeout>;
+		return function executedFunction(...args: any[]) {
+			const later = () => {
+				clearTimeout(timeout);
+				func(...args);
+			};
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+		};
+	}
+	
+	// Create a debounced version of updateFilteredList
+	const debouncedUpdateFilteredList = debounce(updateFilteredList, 300);
+	
 	// Filter properties based on search term and mode
 	$: {
-		updateFilteredList();
+		if (searchTerm !== undefined) {
+			debouncedUpdateFilteredList();
+		}
 	}
 	
 	// When search mode changes, update filtered list
 	$: {
 		if (searchMode) {
 			updateFilteredList();
+		}
+	}
+	
+	// Handle keyboard events in search input
+	function handleKeydown(event: KeyboardEvent) {
+		// Clear search on Escape key
+		if (event.key === 'Escape') {
+			clearSearch();
+		}
+		
+		// If user presses Enter and we have filtered results, select the first one
+		if (event.key === 'Enter' && filteredListingNames.length > 0 && !selectedNames.includes(filteredListingNames[0])) {
+			toggleProperty(filteredListingNames[0]);
 		}
 	}
 	
@@ -119,7 +193,7 @@
 		
 		// Dispatch event to parent component
 		dispatch('selectionChange', { selectedNames });
-		applyFilters()
+		applyFilters();
 	}
 	
 	// Clear search term
@@ -158,6 +232,23 @@
 	// Toggle advanced filters display
 	function toggleAdvancedFilters() {
 		showAdvancedFilters = !showAdvancedFilters;
+	}
+	
+	// Highlight matching text in search results
+	function highlightMatch(text: string, term: string) {
+		if (!term || term.trim() === '') return text;
+		
+		const termLower = term.toLowerCase().trim();
+		const textLower = text.toLowerCase();
+		const index = textLower.indexOf(termLower);
+		
+		if (index === -1) return text;
+		
+		const before = text.substring(0, index);
+		const match = text.substring(index, index + termLower.length);
+		const after = text.substring(index + termLower.length);
+		
+		return `${before}<span class="highlight">${match}</span>${after}`;
 	}
 </script>
 
@@ -287,9 +378,11 @@
 						placeholder="Search properties..." 
 						bind:value={searchTerm}
 						class="search-input"
+						on:keydown={handleKeydown}
+						aria-label="Search properties"
 					/>
 					{#if searchTerm}
-						<button class="search-clear-button" on:click={clearSearch}>×</button>
+						<button class="search-clear-button" on:click={clearSearch} aria-label="Clear search">×</button>
 					{/if}
 					<span class="search-icon">🔍</span>
 				</div>
@@ -314,7 +407,7 @@
 		<div class="chips-container">
 			{#if loading}
 				<div class="chips-loading">Loading properties...</div>
-			{:else if filteredListingNames.length === 0}
+			{:else if filteredListingNames.length === 0 && !searchTerm}
 				<div class="chips-empty">No properties available</div>
 			{:else}
 				{#each filteredListingNames as name}
@@ -322,7 +415,7 @@
 						class="property-chip {selectedNames.includes(name) ? 'selected' : ''}"
 						on:click={() => toggleProperty(name)}
 					>
-						{name}
+							{name}
 						{#if selectedNames.includes(name)}
 							<span class="chip-check">✓</span>
 						{/if}
@@ -713,6 +806,8 @@
 		color: #777;
 		font-style: italic;
 	}
+	
+
 	
 	/* Responsive adjustments */
 	@media (max-width: 768px) {
