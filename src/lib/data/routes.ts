@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Building, Book, CreditCard, BarChart2, Settings, Users, Bell, Shield, HelpCircle, GitGraph } from 'lucide-svelte';
+import { Home, MessageCircle, Building, Book, Users, GitGraph } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -56,7 +56,7 @@ export const hiddenRoutes = [
 
 
 //Utility function to get route by path
-export function getRouteByPath(path: any) {
+export function getRouteByPath(path: string) {
   // Handle the root path
   if (path === '/') {
     return routes.find(route => route.path === '/');
@@ -83,7 +83,7 @@ export function getRouteByPath(path: any) {
 }
 
 // Utility function to check if a route is active
-export function isActiveRoute(currentPath:any, routePath:any) {
+export function isActiveRoute(currentPath:string, routePath:string) {
   if (routePath === '/') {
     return currentPath === '/';
   }

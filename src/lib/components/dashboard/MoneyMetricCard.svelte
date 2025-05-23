@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { Clock } from 'lucide-svelte';
-    import CardWidget from './CardWidget.svelte';
+  import CardWidget from './CardWidget.svelte';
 	import type { MoneyMetric } from '$lib/types/dashboard';
     
     // Props with defaults

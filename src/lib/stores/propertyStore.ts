@@ -71,6 +71,7 @@ function createPropertyStore() {
     if (date_start) url.searchParams.set('date_start', date_start);
     if (date_end) url.searchParams.set('date_end', date_end);
     
+    // eslint-disable-next-line no-console
     console.log(`Fetching data for ${propertyName}:`, url.toString());
     const res = await fetchFn(url.toString());
     
@@ -175,6 +176,7 @@ function createPropertyStore() {
           if (date_start) url.searchParams.set('date_start', date_start);
           if (date_end) url.searchParams.set('date_end', date_end);
           
+          // eslint-disable-next-line no-console
           console.log("Fetching with filters only:", url.toString());
           const res = await fetchFn(url.toString());
           if (!res.ok) throw new Error(res.statusText);
@@ -205,9 +207,9 @@ function createPropertyStore() {
           
           return groupedData;
         }
-      } catch (err: any) {
-        update(s => ({ ...s, loading: false, error: err.message }));
-        console.error(err);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        update(s => ({ ...s, loading: false, error: errorMessage }));
         throw err;
       }
     },
@@ -233,13 +235,13 @@ function createPropertyStore() {
         }));
 
         loadedNames = true;
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error fetching names';
         update(state => ({
           ...state,
           loading: false,
-          error: err.message || 'Error fetching names',
+          error: errorMessage,
         }));
-        console.error('loadListingNames failed:', err);
       }
     },
 
@@ -259,13 +261,13 @@ function createPropertyStore() {
           error: null,
         }));
         loadedListings = true;
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error fetching listings';
         update(state => ({
           ...state,
           loading: false,
-          error: err.message || 'Error fetching listings',
+          error: errorMessage,
         }));
-        console.error('loadListings failed:', err);
       }
     },
 

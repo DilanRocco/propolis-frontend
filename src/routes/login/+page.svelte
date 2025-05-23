@@ -5,7 +5,6 @@
   
   let email = '';
   let password = '';
-  let remember = false;
   
   onMount(() => {
     // Redirect to dashboard if already logged in

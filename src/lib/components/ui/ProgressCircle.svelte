@@ -7,7 +7,6 @@
   
   // Calculate the circle properties
   $: circumference = 2 * Math.PI * radius;
-  $: strokeDashoffset = circumference - (percentage / 100) * circumference;
   $: strokeWidth = radius * 0.15;
   
   // Animation spring for the progress

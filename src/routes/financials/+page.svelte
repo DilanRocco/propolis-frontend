@@ -1,7 +1,7 @@
 <script>
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
 
-	export let data;
+	//export let data;
 </script>
 
 <ProtectedRoute>

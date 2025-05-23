@@ -15,12 +15,10 @@
     // Functions
     function changeTimeFrame() {
       //TODO: Implement time frame change
-      console.log('Time frame changed');
     }
     
     function viewChartMode() {
       //TODO: Implement chart view
-      console.log('View chart mode clicked');
     }
   
     // Responsive handling

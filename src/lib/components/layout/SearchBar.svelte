@@ -6,7 +6,6 @@
     
     function handleSearch() {
       // Handle search logic here
-      console.log('Searching for:', searchQuery);
     }
   </script>
   

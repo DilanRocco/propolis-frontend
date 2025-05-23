@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Revenue }  from "../../types/dashboard"
-    import { RefreshCw, Eye } from 'lucide-svelte';
+    import { Eye } from 'lucide-svelte';
     import CardWidget from './CardWidget.svelte';
     
     // Props with defaults
@@ -14,7 +14,6 @@
     function viewChartMode() {
       //TODO
       // Handle view chart mode
-      console.log('View chart mode clicked');
     }
   </script>
   

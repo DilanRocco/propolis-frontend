@@ -52,7 +52,7 @@
 		{ value: 'buildings', label: 'Buildings' },
 		{ value: 'units', label: 'Units' },
 		{ value: 'all', label: 'All' }
-	];
+	] as const
 	
 	const dispatch = createEventDispatcher();
 	
@@ -357,7 +357,7 @@
 	<div class="properties-section">
 		<div class="properties-header">
 			<div class="properties-title">
-				<label>Properties</label>
+				<div>Properties</div>
 				{#if selectedNames.length > 0}
 					<span class="selected-count">({selectedNames.length} selected)</span>
 				{/if}

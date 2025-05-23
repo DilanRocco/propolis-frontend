@@ -5,10 +5,6 @@
 
 	// Calculate the circle properties
 	
-	$: circumference = 2 * Math.PI * radius;
-	$: strokeDashoffset = circumference - (percentage / 100) * circumference;
-	let x = 100;
-	let y = 100;
 	// Responsive handling
 	let containerWidth: number;
 	$: isLargeScreen = containerWidth > 500;

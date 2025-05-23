@@ -1,6 +1,5 @@
 <script>
 	import '../app.css';
-	import { goto } from '$app/navigation'
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import Header from '../lib/components/layout/Header.svelte';
@@ -10,7 +9,6 @@
 	let isDesktop = true;
 	function toggleSidebar() {
 		isSidebarOpen = !isSidebarOpen;
-		console.log('Sidebar toggled:', isSidebarOpen);
 	}
 	onMount(() => {
 		auth.checkAuth();
@@ -37,7 +35,7 @@
 
 	<!-- Overlay for mobile when sidebar is open -->
 	{#if !isDesktop && isSidebarOpen}
-		<button class="bg-opacity-30 fixed inset-0 z-10 bg-black" on:click={toggleSidebar}></button>
+		<button class="bg-opacity-30 fixed inset-0 z-10 bg-black" on:click={toggleSidebar} aria-label="Toggle Sidebar"></button>
 	{/if}
 	<!-- Main Content - Adjusts margin based on sidebar state -->
 	<div

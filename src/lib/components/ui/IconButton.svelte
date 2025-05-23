@@ -1,5 +1,7 @@
 <script lang="ts">
-	export let icon: any = null; // Using any to avoid type compatibility issues
+	import type { ComponentType } from 'svelte';
+	
+	export let icon: ComponentType | null = null;
 	export let size: 'sm' | 'md' | 'lg' = 'md';
 	export let color: 'gray' | 'coral' | 'white' | 'black' = 'gray';
 	export let bgColor: 'transparent' | 'white' | 'coral' | 'gray' = 'transparent';

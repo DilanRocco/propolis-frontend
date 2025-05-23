@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { FilterOptions, Listing } from '$lib/types/properties';
-	import { createEventDispatcher } from 'svelte';
 
 	export let properties: Listing[] = [];
+	// eslint-disable-next-line no-unused-vars
 	export let selectProperty: (property: Listing) => void;
 
 	// Internal state for filtered properties
@@ -42,12 +42,16 @@
 		filteredProperties = filtered;
 	}
 
-    function handleFilterChange(event: any) {
-		filters = event.detail;
+	function handleFilterChange(event: Event) {
+		const target = event.target as HTMLInputElement | HTMLSelectElement;
+		const filterType = target.dataset.filterType || 'search';
+		
+		filters = {
+			...filters,
+			[filterType]: target.value || undefined
+		};
 		applyFilters();
 	}
-
-
 </script>
 
 <div>
@@ -72,7 +76,8 @@
 					type="text"
 					placeholder="Search properties..."
 					class="w-full rounded-md border border-gray-200 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:input={(e) => handleFilterChange(e)}
+					data-filter-type="search"
+					on:input={handleFilterChange}
 				/>
 			</div>
 		</div>
@@ -81,7 +86,8 @@
 			<div class="relative">
 				<select
 					class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:change={(e) => handleFilterChange(e)}
+					data-filter-type="propertyType"
+					on:change={handleFilterChange}
 				>
 					<option value="">Property Type</option>
 					<option value="Apartment">Apartment</option>
@@ -107,7 +113,8 @@
 			<div class="relative">
 				<select
 					class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:change={(e) => handleFilterChange(e)}
+					data-filter-type="location"
+					on:change={handleFilterChange}
 				>
 					<option value="">Location</option>
 					<option value="Miami">Miami</option>
@@ -132,7 +139,8 @@
 			<div class="relative">
 				<select
 					class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					on:change={(e) => handleFilterChange(e)}
+					data-filter-type="status"
+					on:change={handleFilterChange}
 				>
 					<option value="">Status</option>
 					<option value="active">Active</option>
@@ -157,7 +165,7 @@
 
 	<!-- Property Cards -->
 	<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		{#each filteredProperties as property}
+		{#each filteredProperties as property (property.id)}
 			<button
 				class="cursor-pointer overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md"
 				on:click={() => selectProperty(property)}

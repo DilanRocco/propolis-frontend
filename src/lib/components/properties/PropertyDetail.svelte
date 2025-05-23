@@ -387,7 +387,7 @@
 					<h3 class="text-lg font-medium">Amenities</h3>
 				</div>
 				<div class="grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-3 lg:grid-cols-4">
-					{#each showAll ? property.amenities : property.amenities.slice(0, 20) as amenity, i}
+					{#each showAll ? property.amenities : property.amenities.slice(0, 20) as amenity (amenity)}
 						<div class="flex items-center">
 							<div class="mr-2 h-2 w-2 rounded-full bg-blue-500"></div>
 							<span class="text-gray-700">{amenity}</span>

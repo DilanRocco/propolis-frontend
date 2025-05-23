@@ -1,5 +1,5 @@
 <script>
-	import { ArrowRight, Calendar, Mic } from 'lucide-svelte';
+	import {  Mic } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
 	let day = 19;
@@ -18,12 +18,8 @@
 	let isRecording = false;
 	function toggleMic() {
 		isRecording = !isRecording;
-		console.log('Mic clicked:', isRecording);
 	}
 
-	function showTasks() {
-		console.log('Show tasks clicked');
-	}
 </script>
 
 <!-- Outer Container -->

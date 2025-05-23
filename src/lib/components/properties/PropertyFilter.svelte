@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FilterOptions, Listing } from '$lib/types/properties';
+	import type { FilterOptions} from '$lib/types/properties';
 	import { createEventDispatcher } from 'svelte';
 	
 	const dispatch = createEventDispatcher<{
@@ -37,7 +37,7 @@
 				placeholder="Search properties..."
 				class="w-full rounded-md border border-gray-200 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				value={filters.search || ''}
-				on:input={(e) => handleFilterChange({ search: e.target.value })}
+				on:input={(e) => handleFilterChange({ search: (e.target as HTMLSelectElement).value })}
 			/>
 		</div>
 	</div>
@@ -47,7 +47,8 @@
 			<select
 				class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				value={filters.propertyType || ''}
-				on:change={(e) => handleFilterChange({ propertyType: e.target.value })}
+				on:change={(e) => handleFilterChange({ status: (e.target as HTMLSelectElement).value as 'active' | 'inactive' | '' })}
+
 			>
 				<option value="">Property Type</option>
 				<option value="Apartment">Apartment</option>
@@ -74,7 +75,7 @@
 			<select
 				class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				value={filters.location || ''}
-				on:change={(e) => handleFilterChange({ location: e.target.value })}
+				on:change={(e) => handleFilterChange({ location: (e.target as HTMLSelectElement).value })}
 			>
 				<option value="">Location</option>
 				<option value="Miami">Miami</option>
@@ -100,7 +101,7 @@
 			<select
 				class="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				value={filters.status || ''}
-				on:change={(e) => handleFilterChange({ status: e.target.value as 'active' | 'inactive' | '' })}
+				on:change={(e) => handleFilterChange({ status:(e.target as HTMLSelectElement).value as 'active' | 'inactive' | '' })}
 			>
 				<option value="">Status</option>
 				<option value="active">Active</option>

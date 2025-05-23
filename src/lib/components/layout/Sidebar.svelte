@@ -1,6 +1,6 @@
 <script>
 	import { routes, isActiveRoute } from '../../data/routes';
-	import { Menu, ChevronLeft } from 'lucide-svelte';
+	import { Menu } from 'lucide-svelte';
 
 	// Props
 	export let currentPath = '/';
@@ -35,7 +35,7 @@
 	<!-- Navigation Links -->
 	<nav class="flex-1 px-4">
 		<ul class="space-y-1">
-			{#each routes as route}
+			{#each routes as route (route.path)}
 				<li>
 					<a
 						href={route.path}

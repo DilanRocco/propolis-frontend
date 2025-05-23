@@ -1,5 +1,12 @@
 // chartUtils.ts - Utility functions for chart operations
 
+interface TooltipParam {
+  axisValue: string;
+  seriesName: string;
+  value: number;
+  color: string;
+}
+
 export const chartUtils = {
   // Floor a date to bucket start (week, month, year)
   floorToBucket(dt: Date, bucketType: 'week' | 'month' | 'year'): Date {
@@ -59,29 +66,29 @@ export const chartUtils = {
   },
 
   // Custom tooltip formatter for the chart
-  tooltipFormatter(params: any): string {
+  tooltipFormatter(params: TooltipParam[]): string {
     let result = `<div style="font-weight:bold;margin-bottom:5px;">${params[0].axisValue}</div>`;
-
+    
     // Sort bars by value in descending order for better readability
-    params.sort((a: any, b: any) => b.value - a.value);
-
-    params.forEach((item: any) => {
+    const sortedParams = [...params].sort((a, b) => b.value - a.value);
+    
+    sortedParams.forEach((item) => {
       result += `<div style="display:flex;justify-content:space-between;margin:3px 0;">
         <span style="display:inline-block;margin-right:10px;">
           <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${item.color};margin-right:5px;"></span>
           ${item.seriesName}:
         </span>
-        <span style="font-weight:bold;">${this.formatCurrency(item.value)}</span>
+        <span style="font-weight:bold;">${chartUtils.formatCurrency(item.value)}</span>
       </div>`;
     });
 
     // Add a total if there's more than one property
-    if (params.length > 1) {
-      const total = params.reduce((sum: number, item: any) => sum + item.value, 0);
+    if (sortedParams.length > 1) {
+      const total = sortedParams.reduce((sum, item) => sum + item.value, 0);
       result += `<div style="margin-top:5px;padding-top:5px;border-top:1px solid #eee;">
         <div style="display:flex;justify-content:space-between;">
           <span style="font-weight:bold;">Total:</span>
-          <span style="font-weight:bold;">${this.formatCurrency(total)}</span>
+          <span style="font-weight:bold;">${chartUtils.formatCurrency(total)}</span>
         </div>
       </div>`;
     }

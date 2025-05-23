@@ -2,12 +2,12 @@
     import type { Listing } from '$lib/types/properties';
     
     export let property: Listing;
-    export let onClick: (property: Listing) => void;
+    //export let onClick: (property) => void;
   </script>
   
   <button
     class="cursor-pointer overflow-hidden rounded-lg bg-white shadow-sm transition-shadow hover:shadow-md"
-    on:click={() => onClick(property)}
+    on:click={() => {}}
   >
     <div class="relative h-48">
       <img

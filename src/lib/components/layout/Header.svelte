@@ -4,8 +4,6 @@
 	import { getRouteByPath } from '../../data/routes';
 
 	import ProfileInfo from './ProfileInfo.svelte';
-	import SearchBar from './SearchBar.svelte';
-	import IconButton from '../ui/IconButton.svelte';
 
 	// Event dispatcher for sidebar toggle
 	const dispatch = createEventDispatcher<{
@@ -26,11 +24,10 @@
 
 	// Handle sidebar toggle
 	function toggleSidebar(): void {
-		console.log("TEST")
 		dispatch('toggleSidebar');
 	}
 
-	let notificationCount: number = 3;
+	
 </script>
 
 <header class="bg-gray-50s px-6 py-4">

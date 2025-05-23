@@ -2,13 +2,14 @@
 	import { onMount } from 'svelte';
 	import { propertyStore, type ListingData } from '$lib/stores/propertyStore';
 	import type { PropertyState } from '$lib/stores/propertyStore';
-	
+
 	// Import components
-	import Filter  from '$lib/components/Filter.svelte';
+	import Filter from '$lib/components/Filter.svelte';
 	import RevenueChart from '$lib/components/graph/RevenueChart.svelte';
 	import LoadingSpinner from '$lib/components/graph/LoadingSpinner.svelte';
 	import ErrorDisplay from '$lib/components/graph/ErrorDisplay.svelte';
 	import EmptyState from '$lib/components/graph/EmptyState.svelte';
+
 
 	// State variables
 	let listingData: Record<string, ListingData[]> = {};
@@ -38,7 +39,8 @@
 
 	// Event handlers
 	function handleSelectionChange(event: CustomEvent) {
-		const newSelectedNames = event.detail.selectedNames;
+
+		const newSelectedNames = event.detail.selectedNames as string[];
 
 		// Get properties to remove (ones that were deselected)
 		const removedProperties = selectedNames.filter((name) => !newSelectedNames.includes(name));
@@ -113,10 +115,7 @@
 		{#if loading}
 			<LoadingSpinner />
 		{:else if error}
-			<ErrorDisplay 
-				{error} 
-				onRetry={() => propertyStore.loadListingNames(fetch)} 
-			/>
+			<ErrorDisplay {error} onRetry={() => propertyStore.loadListingNames(fetch)} />
 		{:else if selectedNames.length === 0}
 			<EmptyState message="Select one or more properties to view their reservation data" />
 		{:else}
@@ -142,7 +141,7 @@
 
 <style>
 	/* Theme variables - moved to app.css or _variables.css */
-	
+
 	.dashboard-container {
 		font-family: var(--font-family);
 		max-width: 100%;

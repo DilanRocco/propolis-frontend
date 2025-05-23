@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Clock } from 'lucide-svelte';
     import CardWidget from './CardWidget.svelte';
 	  import type { TimeTracker } from '$lib/types/dashboard';
     

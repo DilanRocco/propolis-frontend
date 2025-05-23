@@ -1,15 +1,16 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { createEventDispatcher } from 'svelte';
+  import type { ComponentType } from 'svelte';
   
   // Props with proper TypeScript types
   export let to: string = "";
-  export let icon: any = null; // Using any for icon type to avoid TypeScript errors
+  export let icon: ComponentType | null = null;
   export let active: boolean = false;
   export let text: string = "";
   export let badge: string | number | null = null;
   export let external: boolean = false;
   
-  import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher<{
     click: void;
   }>();
