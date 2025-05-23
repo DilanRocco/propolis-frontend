@@ -14,7 +14,7 @@ To create a production version of your app:
 npm run build
 ```
 
-To Build you must pass all svelte errors
+To build you must pass all svelte errors.
 
 You can preview the production build with `npm run preview`.
 
