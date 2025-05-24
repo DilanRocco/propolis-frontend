@@ -2,7 +2,7 @@ import { writable, derived, get as getStoreValue } from 'svelte/store';
 import { goto } from '$app/navigation';
 import { browser } from '$app/environment';
 import { jwtDecode } from 'jwt-decode';
-
+import { PUBLIC_API_URL } from '$env/static/public';
 // Types
 interface User {
   email: string;
@@ -45,7 +45,7 @@ const createAuthStore = () => {
       update((state) => ({ ...state, loading: true, error: null }));
 
       try {
-        const response = await fetch('http://localhost:8000/api/auth/login', {
+        const response = await fetch(`${PUBLIC_API_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
@@ -96,7 +96,7 @@ const createAuthStore = () => {
       update((state) => ({ ...state, loading: true }));
 
       try {
-        const response = await fetch('http://localhost:8000/api/auth/me', {
+        const response = await fetch(`${PUBLIC_API_URL}/api/auth/me`, {
           headers: {
             Authorization: `Bearer ${currentState.token}`
           }
