@@ -1,7 +1,9 @@
 <script>
     // You can add reactive props for user data
-    export let userName = "Misha Gurevich";
-    export let userRole = "Admin";
+  import { user } from '../../api/auth';
+  
+  $: userName = $user?.full_name || 'Guest';
+  $: userRole = $user?.role || 'User';
   </script>
   
   <div class="flex items-center gap-2">

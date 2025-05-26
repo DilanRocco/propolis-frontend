@@ -9,6 +9,7 @@
 	import LoadingSpinner from '$lib/components/graph/LoadingSpinner.svelte';
 	import ErrorDisplay from '$lib/components/graph/ErrorDisplay.svelte';
 	import EmptyState from '$lib/components/graph/EmptyState.svelte';
+	import ProtectedRoute from '$lib/protectedRoute.svelte';
 
 	// State variables
 	let listingData: Record<string, ListingData[]> = {};
@@ -120,7 +121,7 @@
 
 <!-- HTML template stays the same -->
 <svelte:window bind:innerWidth={windowWidth} />
-
+<ProtectedRoute>
 <div class="dashboard-container">
 	<div class="card">
 		<h2 class="card-title">Property Revenue Comparison</h2>
@@ -167,6 +168,7 @@
 		{/if}
 	</div>
 </div>
+</ProtectedRoute>
 
 <style>
 	/* Theme variables - moved to app.css or _variables.css */

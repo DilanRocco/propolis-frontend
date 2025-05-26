@@ -1,7 +1,10 @@
 <script>
 	import { routes, isActiveRoute } from '../../data/routes';
 	import { Menu } from 'lucide-svelte';
-
+	import { user } from '../../api/auth';
+  
+  	$: userName = $user?.full_name || 'Guest';
+  	$: userRole = $user?.role || 'User';
 	// Props
 	export let currentPath = '/';
 	export let isSidebarOpen = true;
@@ -69,8 +72,8 @@
 			</div>
 			{#if isSidebarOpen}
 				<div>
-					<div class="font-medium">Misha Gurevich</div>
-					<div class="text-xs text-gray-500">ADMIN</div>
+					<div class="font-medium">{userName}</div>
+					<div class="text-xs text-gray-500">{userRole}</div>
 				</div>
 			{/if}
 		</div>
