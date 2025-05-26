@@ -28,6 +28,7 @@
 	// Props
 	export let listingData: Record<string, ListingData[]> = {};
 	export let selectedNames: string[] = [];
+	export let selectedNameTypes: Record<string, 'building' | 'unit'> = {}; // NEW PROP
 	export let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	export let dateStart: string | null = null;
 	export let dateEnd: string | null = null;
@@ -98,6 +99,8 @@
 
 	// Reactive chart rebuild
 	$: if (listingData && selectedNames && selectedBucket) {
+		console.log('Chart data:', listingData);
+		console.log('Selected name types:', selectedNameTypes);
 		rebuildChart();
 	}
 
@@ -128,22 +131,97 @@
 		};
 	}
 
+	// Helper function to format legend name with type indicator
+	function formatLegendName(name: string): string {
+		const type = selectedNameTypes[name];
+		if (type === 'building') {
+			return `🏢 ${name}`;
+		} else if (type === 'unit') {
+			return `🏠 ${name}`;
+		}
+		return name; // fallback if type not found
+	}
+
+	// Helper function to get color for property based on type
+	function getPropertyColor(name: string, index: number): string {
+		const type = selectedNameTypes[name];
+		const baseColors = [
+			'#6366f1',
+			'#10b981',
+			'#f59e0b',
+			'#8b5cf6',
+			'#ec4899',
+			'#14b8a6',
+			'#f43f5e',
+			'#0ea5e9'
+		];
+
+		const buildingColors = [
+			'#dc2626',
+			'#ea580c',
+			'#d97706',
+			'#ca8a04',
+			'#65a30d',
+			'#16a34a',
+			'#059669',
+			'#0891b2'
+		];
+
+		if (type === 'building') {
+			return buildingColors[index % buildingColors.length];
+		}
+		return baseColors[index % baseColors.length];
+	}
+
 	function rebuildChart() {
 		// Set up the "no data" state if needed
+		console.log("DATA")
+		console.log(listingData)
 		if (Object.keys(listingData).length === 0) {
+			console.log("DATA2")
 			setNoDataState('Please select at least one property to display data.');
 			return;
 		}
 
-		// Collect all data for selected properties
-		const allPropertyData: Array<{ name: string; rec: ListingData }> = [];
+		// Process data differently for buildings vs units
+		const processedData: Record<string, ListingData[]> = {};
 
-		for (const name of selectedNames) {
-			const propertyData = listingData[name] || [];
-			for (const rec of propertyData) {
+		console.log(selectedNames)
+		console.log(selectedNameTypes)
+		for (const selectedName of selectedNames) {
+
+			const nameType = selectedNameTypes[selectedName];
+
+			console.log(nameType)
+			if (nameType === 'building') {
+				// For buildings, aggregate all units within that building
+				const buildingData: ListingData[] = [];
+				console.log("HERE1")
+				// Find all units that belong to this building
+				for (const [propertyName, propertyReservations] of Object.entries(listingData)) {
+					// Check if this property belongs to the selected building
+					if (propertyName.startsWith(selectedName)) {
+						buildingData.push(...propertyReservations);
+					}
+				}
+
+				processedData[selectedName] = buildingData;
+			} else {
+				// For individual units, use data as-is
+				processedData[selectedName] = listingData[selectedName] || [];
+			}
+		}
+
+		// Collect all data for date range calculation
+		const allPropertyData: Array<{ name: string; rec: ListingData }> = [];
+		
+		for (const [name, records] of Object.entries(processedData)) {
+			for (const rec of records) {
 				allPropertyData.push({ name, rec });
 			}
 		}
+		console.log(allPropertyData)
+		console.log("ALL PROPERTY DATA")
 
 		if (!allPropertyData.length) {
 			// Create a helpful message based on what filters are active
@@ -191,25 +269,29 @@
 			cur = chartUtils.advanceBucket(cur, selectedBucket);
 		}
 
-		// Per-listing sums map by time bucket
+		// Per-listing sums map by time bucket (now using processed data)
 		const sums: Record<string, Map<string, number>> = {};
 		for (const name of selectedNames) sums[name] = new Map();
 
-		allPropertyData.forEach(({ name, rec }) => {
-			const dt = new Date(rec.guesty_created_at);
-			const floored = chartUtils.floorToBucket(dt, selectedBucket);
-			const lbl = chartUtils.formatBucket(floored, selectedBucket);
-			const m = sums[name];
-			m.set(lbl, (m.get(lbl) || 0) + rec.total_paid);
-		});
+		// Use processed data for calculations
+		for (const [name, records] of Object.entries(processedData)) {
+			records.forEach((rec) => {
+				const dt = new Date(rec.guesty_created_at);
+				const floored = chartUtils.floorToBucket(dt, selectedBucket);
+				const lbl = chartUtils.formatBucket(floored, selectedBucket);
+				const m = sums[name];
+				m.set(lbl, (m.get(lbl) || 0) + rec.total_paid);
+			});
+		}
 
-		// Build series for each property
-		const series = selectedNames.map((name) => ({
-			name,
+		// Build series for each property with type-based styling
+		const series = selectedNames.map((name, index) => ({
+			name: formatLegendName(name),
 			type: 'bar',
 			data: cats.map((c) => +(sums[name].get(c) || 0).toFixed(2)),
 			itemStyle: {
-				borderRadius: 4
+				borderRadius: 4,
+				color: getPropertyColor(name, index)
 			},
 			emphasis: {
 				focus: 'series',
@@ -225,13 +307,25 @@
 		// Generate title with date range and filter info
 		let chartTitle = `Reservations — ${selectedBucket}`;
 
+		// Add property type breakdown to title
+		const buildingCount = Object.values(selectedNameTypes).filter((t) => t === 'building').length;
+		const unitCount = Object.values(selectedNameTypes).filter((t) => t === 'unit').length;
+
+		if (buildingCount > 0 && unitCount > 0) {
+			chartTitle += ` (${buildingCount} Buildings, ${unitCount} Units)`;
+		} else if (buildingCount > 0) {
+			chartTitle += ` (${buildingCount} Buildings)`;
+		} else if (unitCount > 0) {
+			chartTitle += ` (${unitCount} Units)`;
+		}
+
 		// Add date range to title if present
 		if (dateStart && dateEnd) {
-			chartTitle += ` (${dateStart} - ${dateEnd})`;
+			chartTitle += ` | ${dateStart} - ${dateEnd}`;
 		} else if (dateStart) {
-			chartTitle += ` (From ${dateStart})`;
+			chartTitle += ` | From ${dateStart}`;
 		} else if (dateEnd) {
-			chartTitle += ` (Until ${dateEnd})`;
+			chartTitle += ` | Until ${dateEnd}`;
 		}
 
 		// Add beds/property type to title if filters are active
@@ -247,12 +341,16 @@
 			chartTitle += ` | ${filterParts.join(', ')}`;
 		}
 
+		// Create formatted legend data
+		const legendData = selectedNames.map((name) => formatLegendName(name));
+
 		// Update chart options
 		options = {
 			title: {
 				text: chartTitle,
 				textStyle: {
-					color: '#333'
+					color: '#333',
+					fontSize: windowWidth <= 640 ? 14 : 16
 				}
 			},
 			tooltip: {
@@ -262,10 +360,28 @@
 				textStyle: {
 					color: '#333'
 				},
-				formatter: chartUtils.tooltipFormatter
+				formatter: function (params: any) {
+					let result = `<strong>${params[0].name}</strong><br/>`;
+					params.forEach((param: any) => {
+						const propertyName = param.seriesName.replace(/^[🏢🏠]\s/, ''); // Remove icon from tooltip
+						const type = selectedNameTypes[propertyName] === 'building' ? 'Building' : 'Unit';
+
+						// For buildings, show aggregated unit count
+						let unitInfo = '';
+						if (selectedNameTypes[propertyName] === 'building') {
+							const unitCount = Object.keys(listingData).filter((name) =>
+								name.startsWith(propertyName)
+							).length;
+							unitInfo = ` (${unitCount} units)`;
+						}
+
+						result += `${param.marker} ${param.seriesName} (${type}${unitInfo}): $${param.value.toLocaleString()}<br/>`;
+					});
+					return result;
+				}
 			},
 			legend: {
-				data: selectedNames,
+				data: legendData,
 				textStyle: {
 					color: '#333'
 				},
@@ -312,27 +428,17 @@
 				left: '3%',
 				right: '4%',
 				bottom: windowWidth <= 640 ? '15%' : '10%',
-				top: windowWidth <= 640 ? '15%' : '10%',
+				top: windowWidth <= 640 ? '20%' : '15%', // More space for longer title
 				containLabel: true
 			},
-			series,
-			color: [
-				'#6366f1',
-				'#10b981',
-				'#f59e0b',
-				'#8b5cf6',
-				'#ec4899',
-				'#14b8a6',
-				'#f43f5e',
-				'#0ea5e9'
-			]
+			series
 		};
 	}
 
 	function setNoDataState(message: string) {
 		options = {
 			title: {
-				text: "No Reservations Found",
+				text: 'No Reservations Found',
 				textStyle: {
 					color: '#333'
 				}

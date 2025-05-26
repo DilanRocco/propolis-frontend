@@ -10,7 +10,6 @@
 	import ErrorDisplay from '$lib/components/graph/ErrorDisplay.svelte';
 	import EmptyState from '$lib/components/graph/EmptyState.svelte';
 
-
 	// State variables
 	let listingData: Record<string, ListingData[]> = {};
 	let loading = false;
@@ -18,6 +17,7 @@
 
 	// Selected properties and filter state
 	let selectedNames: string[] = [];
+	let selectedNameTypes: Record<string, 'building' | 'unit'> = {};
 	let selectedBucket: 'week' | 'month' | 'year' = 'month';
 	let windowWidth: number = 0;
 	let dateStart: string | null = null;
@@ -37,10 +37,28 @@
 		return unsub;
 	});
 
+	// Helper function to separate names by type
+	function separateNamesByType(names: string[], nameTypes: Record<string, 'building' | 'unit'>) {
+		const unitNames: string[] = [];
+		const buildingNames: string[] = [];
+		
+		names.forEach(name => {
+			if (nameTypes[name] === 'building') {
+				buildingNames.push(name);
+			} else {
+				unitNames.push(name);
+			}
+		});
+
+
+		
+		return { unitNames, buildingNames };
+	}
+
 	// Event handlers
 	function handleSelectionChange(event: CustomEvent) {
-
 		const newSelectedNames = event.detail.selectedNames as string[];
+		const newSelectedNameTypes = event.detail.selectedNameTypes as Record<string, 'building' | 'unit'>;
 
 		// Get properties to remove (ones that were deselected)
 		const removedProperties = selectedNames.filter((name) => !newSelectedNames.includes(name));
@@ -48,8 +66,9 @@
 		// Get properties to add (ones that were just selected)
 		const addedProperties = newSelectedNames.filter((name) => !selectedNames.includes(name));
 
-		// Update the selected names
+		// Update the selected names and types
 		selectedNames = newSelectedNames;
+		selectedNameTypes = newSelectedNameTypes;
 
 		// Remove data for deselected properties
 		if (removedProperties.length > 0) {
@@ -58,9 +77,12 @@
 
 		// Fetch data for newly selected properties
 		if (addedProperties.length > 0) {
+			const { unitNames, buildingNames } = separateNamesByType(addedProperties, selectedNameTypes);
+			
 			propertyStore.getDataFor(
 				fetch,
-				addedProperties,
+				unitNames.length > 0 ? unitNames : undefined,
+				buildingNames.length > 0 ? buildingNames : undefined,
 				dateStart || undefined,
 				dateEnd || undefined,
 				selectedBeds || undefined,
@@ -81,9 +103,12 @@
 
 		// Fetch updated data for all selected properties
 		if (selectedNames.length > 0) {
+			const { unitNames, buildingNames } = separateNamesByType(selectedNames, selectedNameTypes);
+			
 			propertyStore.getDataFor(
 				fetch,
-				selectedNames,
+				unitNames.length > 0 ? unitNames : undefined,
+				buildingNames.length > 0 ? buildingNames : undefined,
 				dateStart || undefined,
 				dateEnd || undefined,
 				selectedBeds || undefined,
@@ -93,6 +118,7 @@
 	}
 </script>
 
+<!-- HTML template stays the same -->
 <svelte:window bind:innerWidth={windowWidth} />
 
 <div class="dashboard-container">
@@ -121,6 +147,7 @@
 		{:else}
 			<RevenueChart
 				{listingData}
+				{selectedNameTypes}
 				{selectedNames}
 				{selectedBucket}
 				{dateStart}
@@ -133,6 +160,8 @@
 				<p>
 					Comparing {selectedNames.length}
 					{selectedNames.length === 1 ? 'property' : 'properties'}
+					({Object.values(selectedNameTypes).filter(t => t === 'building').length} buildings, 
+					 {Object.values(selectedNameTypes).filter(t => t === 'unit').length} units)
 				</p>
 			</div>
 		{/if}

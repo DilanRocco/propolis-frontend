@@ -41,7 +41,7 @@ function createPropertyStore() {
   let loadedNames = false;
 
   // Helper function to fetch data for a single property - defined OUTSIDE the getDataFor method
- 
+
 
   return {
     subscribe,
@@ -54,7 +54,8 @@ function createPropertyStore() {
  * Fetch reservations for properties and store under listingData
  */
     async getDataFor(fetchFn: typeof fetch,
-      names?: string | string[],
+      unit_names?: string | string[],
+      building_names?: string[],
       date_start?: string,
       date_end?: string,
       beds?: number,
@@ -72,8 +73,13 @@ function createPropertyStore() {
         if (date_end) url.searchParams.set('date_end', date_end);
 
         // Handle property names - always send as array
-        if (names) {
-          const nameArray = Array.isArray(names) ? names : [names];
+        if (building_names && building_names.length > 0) {
+          building_names.forEach(name => {
+            url.searchParams.append('building_names', name);
+          });
+        }
+        if (unit_names) {
+          const nameArray = Array.isArray(unit_names) ? unit_names : [unit_names];
           nameArray.forEach(name => {
             url.searchParams.append('property_full_names', name);
           });

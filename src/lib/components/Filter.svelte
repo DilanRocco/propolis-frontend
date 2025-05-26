@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
 	import { propertyStore, type PropertyState } from '$lib/stores/propertyStore';
-	
+
 	// Props
 	export let selectedNames: string[] = [];
 	export let selectedBucket: 'week' | 'month' | 'year' = 'month';
@@ -9,7 +9,7 @@
 	export let initialDateEnd: string | null = null;
 	export let selectedBeds: number | null = null;
 	export let selectedPropertyType: string | null = null;
-	
+
 	// State
 	let listingNames: string[] = [];
 	let buildingNames: string[] = [];
@@ -22,21 +22,24 @@
 	let dateEnd: string | null = initialDateEnd;
 	let searchMode: 'buildings' | 'units' | 'all' = 'buildings';
 	let showAdvancedFilters = false;
-	
+
+	// Keep track of what type each selected name is
+	let selectedNameTypes: Record<string, 'building' | 'unit'> = {};
+
 	// Time bucket options
 	const bucketOptions = [
 		{ value: 'week', label: 'Weekly' },
 		{ value: 'month', label: 'Monthly' },
 		{ value: 'year', label: 'Yearly' }
 	];
-	
+
 	// Property types options
 	const propertyTypes = [
 		{ value: null, label: 'All Property Types' },
 		{ value: 'Dorm', label: 'Co-Living' },
 		{ value: 'Apartment', label: 'Apartment' }
 	];
-	
+
 	// Bed options
 	const bedOptions = [
 		{ value: null, label: 'Any Beds' },
@@ -46,16 +49,16 @@
 		{ value: 4, label: '4 Beds' },
 		{ value: 5, label: '5+ Beds' }
 	];
-	
+
 	// Search mode options
 	const searchModeOptions = [
 		{ value: 'buildings', label: 'Buildings' },
 		{ value: 'units', label: 'Units' },
 		{ value: 'all', label: 'All' }
-	] as const
-	
+	] as const;
+
 	const dispatch = createEventDispatcher();
-	
+
 	// Subscribe to property store
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
 		// Sort names alphabetically
@@ -68,78 +71,76 @@
 		loading = s.loading;
 		error = s.error;
 	});
-	
+
 	onMount(() => {
 		return unsub;
 	});
-	
+
 	// When bucket selection changes
 	function changeBucket(event: Event) {
 		const select = event.target as HTMLSelectElement;
 		selectedBucket = select.value as 'week' | 'month' | 'year';
 		dispatch('bucketChange', { selectedBucket });
 	}
-	
+
 	// Update filtered list based on search mode and term
 	function updateFilteredList() {
 		// Select which list of names to filter based on current search mode
-		let namesToFilter = 
-			searchMode === 'buildings' ? buildingNames : 
-			searchMode === 'units' ? listingNames : 
-			allNames;
-			
+		let namesToFilter =
+			searchMode === 'buildings' ? buildingNames : searchMode === 'units' ? listingNames : allNames;
+
 		if (searchTerm.trim() === '') {
 			filteredListingNames = [...namesToFilter]; // Show all if search is empty
 		} else {
 			const term = searchTerm.toLowerCase().trim();
-			
+
 			// Enhanced search with word boundary detection and partial matching
-			filteredListingNames = namesToFilter.filter(name => {
+			filteredListingNames = namesToFilter.filter((name) => {
 				const nameLower = name.toLowerCase();
-				
+
 				// Exact match has highest priority
 				if (nameLower === term) {
 					return true;
 				}
-				
+
 				// Check if it's a word boundary match (starts with the term)
 				if (nameLower.startsWith(term)) {
 					return true;
 				}
-				
+
 				// Check if it contains the term as a whole word
 				if (nameLower.includes(` ${term}`) || nameLower.includes(`${term} `)) {
 					return true;
 				}
-				
+
 				// Fall back to simple inclusion for shorter terms (less than 3 chars)
 				if (term.length < 3) {
 					return nameLower.includes(term);
 				}
-				
+
 				// For longer search terms, split the term and check if all words are included
 				const searchWords = term.split(/\s+/);
-				return searchWords.every(word => nameLower.includes(word));
+				return searchWords.every((word) => nameLower.includes(word));
 			});
-			
+
 			// Sort results to prioritize items that start with the search term
 			filteredListingNames.sort((a, b) => {
 				const aLower = a.toLowerCase();
 				const bLower = b.toLowerCase();
-				
+
 				// Items that start with the term come first
 				const aStarts = aLower.startsWith(term);
 				const bStarts = bLower.startsWith(term);
-				
+
 				if (aStarts && !bStarts) return -1;
 				if (!aStarts && bStarts) return 1;
-				
+
 				// Then sort alphabetically
 				return a.localeCompare(b);
 			});
 		}
 	}
-	
+
 	// Debounce function to limit how often search updates are performed
 	function debounce(func: Function, wait: number) {
 		let timeout: ReturnType<typeof setTimeout>;
@@ -152,55 +153,75 @@
 			timeout = setTimeout(later, wait);
 		};
 	}
-	
+
 	// Create a debounced version of updateFilteredList
 	const debouncedUpdateFilteredList = debounce(updateFilteredList, 300);
-	
+
 	// Filter properties based on search term and mode
 	$: {
 		if (searchTerm !== undefined) {
 			debouncedUpdateFilteredList();
 		}
 	}
-	
+
 	// When search mode changes, update filtered list
 	$: {
 		if (searchMode) {
 			updateFilteredList();
 		}
 	}
-	
+
 	// Handle keyboard events in search input
 	function handleKeydown(event: KeyboardEvent) {
 		// Clear search on Escape key
 		if (event.key === 'Escape') {
 			clearSearch();
 		}
-		
+
 		// If user presses Enter and we have filtered results, select the first one
-		if (event.key === 'Enter' && filteredListingNames.length > 0 && !selectedNames.includes(filteredListingNames[0])) {
+		if (
+			event.key === 'Enter' &&
+			filteredListingNames.length > 0 &&
+			!selectedNames.includes(filteredListingNames[0])
+		) {
 			toggleProperty(filteredListingNames[0]);
 		}
 	}
-	
+
+	// Helper function to determine if a name is a building or unit
+	function getNameType(name: string): 'building' | 'unit' {
+		if (buildingNames.includes(name)) {
+			return 'building';
+		} else if (listingNames.includes(name)) {
+			return 'unit';
+		}
+		// Default to unit if we can't determine (shouldn't happen)
+		return 'unit';
+	}
+
 	// Toggle property selection
 	function toggleProperty(name: string) {
 		if (selectedNames.includes(name)) {
 			selectedNames = selectedNames.filter((n) => n !== name);
+			delete selectedNameTypes[name];
 		} else {
 			selectedNames = [...selectedNames, name];
+			selectedNameTypes[name] = getNameType(name);
 		}
-		
-		// Dispatch event to parent component
-		dispatch('selectionChange', { selectedNames });
+
+		// Dispatch event to parent component with type information
+		dispatch('selectionChange', {
+			selectedNames,
+			selectedNameTypes: { ...selectedNameTypes }
+		});
 		applyFilters();
 	}
-	
+
 	// Clear search term
 	function clearSearch() {
 		searchTerm = '';
 	}
-	
+
 	// Handle filter changes
 	function applyFilters() {
 		// Dispatch event with all filter values
@@ -211,47 +232,42 @@
 			selectedPropertyType
 		});
 	}
-	
+
 	// Reset all filters
 	function resetFilters() {
 		dateStart = null;
 		dateEnd = null;
 		selectedBeds = null;
 		selectedPropertyType = null;
-		
+
 		// Apply the reset filters
 		applyFilters();
 	}
-	
+
 	// Clear all selected properties
 	function clearAllProperties() {
 		selectedNames = [];
-		dispatch('selectionChange', { selectedNames });
+		selectedNameTypes = {};
+		dispatch('selectionChange', {
+			selectedNames,
+			selectedNameTypes: {}
+		});
 	}
-	
+
 	// Toggle advanced filters display
 	function toggleAdvancedFilters() {
 		showAdvancedFilters = !showAdvancedFilters;
 	}
-	
-	// Highlight matching text in search results
-	function highlightMatch(text: string, term: string) {
-		if (!term || term.trim() === '') return text;
-		
-		const termLower = term.toLowerCase().trim();
-		const textLower = text.toLowerCase();
-		const index = textLower.indexOf(termLower);
-		
-		if (index === -1) return text;
-		
-		const before = text.substring(0, index);
-		const match = text.substring(index, index + termLower.length);
-		const after = text.substring(index + termLower.length);
-		
-		return `${before}<span class="highlight">${match}</span>${after}`;
+
+	// Get display label for property chip
+	function getChipLabel(name: string): string {
+		const type = selectedNameTypes[name] || getNameType(name);
+		const typeLabel = type === 'building' ? '🏢' : '🏠';
+		return `${typeLabel} ${name}`;
 	}
 </script>
 
+<!-- HTML template stays mostly the same, but update the property chip display -->
 <div class="filters-container">
 	<div class="filters-row">
 		<!-- Date Range -->
@@ -259,21 +275,11 @@
 			<div class="date-inputs">
 				<div class="date-input-wrapper">
 					<label for="date-start" class="filter-label">From</label>
-					<input 
-						type="date" 
-						id="date-start" 
-						class="date-input" 
-						bind:value={dateStart}
-					/>
+					<input type="date" id="date-start" class="date-input" bind:value={dateStart} />
 				</div>
 				<div class="date-input-wrapper">
 					<label for="date-end" class="filter-label">To</label>
-					<input 
-						type="date" 
-						id="date-end" 
-						class="date-input" 
-						bind:value={dateEnd}
-					/>
+					<input type="date" id="date-end" class="date-input" bind:value={dateEnd} />
 				</div>
 			</div>
 		</div>
@@ -305,12 +311,8 @@
 
 		<!-- Action Buttons -->
 		<div class="filter-actions">
-			<button class="apply-button" on:click={applyFilters}>
-				Apply
-			</button>
-			<button class="reset-button" on:click={resetFilters}>
-				Reset
-			</button>
+			<button class="apply-button" on:click={applyFilters}> Apply </button>
+			<button class="reset-button" on:click={resetFilters}> Reset </button>
 		</div>
 	</div>
 	<div></div>
@@ -322,11 +324,7 @@
 			<div class="filter-group">
 				<label for="property-type" class="filter-label">Property Type</label>
 				<div class="select-wrapper">
-					<select
-						id="property-type"
-						class="filter-select"
-						bind:value={selectedPropertyType}
-					>
+					<select id="property-type" class="filter-select" bind:value={selectedPropertyType}>
 						{#each propertyTypes as option}
 							<option value={option.value}>{option.label}</option>
 						{/each}
@@ -334,16 +332,12 @@
 					<span class="select-icon">▼</span>
 				</div>
 			</div>
-			
+
 			<!-- Beds -->
 			<div class="filter-group">
 				<label for="beds" class="filter-label">Number of Beds</label>
 				<div class="select-wrapper">
-					<select 
-						id="beds"
-						class="filter-select"
-						bind:value={selectedBeds}
-					>
+					<select id="beds" class="filter-select" bind:value={selectedBeds}>
 						{#each bedOptions as option}
 							<option value={option.value}>{option.label}</option>
 						{/each}
@@ -364,42 +358,42 @@
 				{/if}
 			</div>
 			{#if selectedNames.length > 0}
-				<button class="clear-button" on:click={clearAllProperties}>
-					Clear All
-				</button>
+				<button class="clear-button" on:click={clearAllProperties}> Clear All </button>
 			{/if}
 		</div>
-		
+
 		<!-- Search bar for properties with mode selection -->
 		<div class="search-container">
 			<div class="search-mode-wrapper">
 				<div class="search-input-wrapper">
-					<input 
-						type="text" 
-						placeholder="Search properties..." 
+					<input
+						type="text"
+						placeholder="Search properties..."
 						bind:value={searchTerm}
 						class="search-input"
 						on:keydown={handleKeydown}
 						aria-label="Search properties"
 					/>
 					{#if searchTerm}
-						<button class="search-clear-button" on:click={clearSearch} aria-label="Clear search">×</button>
+						<button class="search-clear-button" on:click={clearSearch} aria-label="Clear search"
+							>×</button
+						>
 					{/if}
 					<span class="search-icon">🔍</span>
 				</div>
-				
+
 				<div class="search-mode-selector">
 					{#each searchModeOptions as mode}
-						<button 
-							class="mode-button {searchMode === mode.value ? 'active' : ''}" 
-							on:click={() => searchMode = mode.value}
+						<button
+							class="mode-button {searchMode === mode.value ? 'active' : ''}"
+							on:click={() => (searchMode = mode.value)}
 						>
 							{mode.label}
 						</button>
 					{/each}
 				</div>
 			</div>
-			
+
 			{#if searchTerm && filteredListingNames.length === 0}
 				<p class="search-no-results">No properties match your search</p>
 			{/if}
@@ -412,12 +406,17 @@
 				<div class="chips-empty">No properties available</div>
 			{:else}
 				{#each filteredListingNames as name}
+					{@const isBuilding = buildingNames.includes(name)}
+					{@const isSelected = selectedNames.includes(name)}
 					<button
-						class="property-chip {selectedNames.includes(name) ? 'selected' : ''}"
+						class="property-chip {isSelected ? 'selected' : ''} {isBuilding
+							? 'building-chip'
+							: 'unit-chip'}"
 						on:click={() => toggleProperty(name)}
 					>
-							{name}
-						{#if selectedNames.includes(name)}
+						<span class="chip-icon">{isBuilding ? '🏢' : '🏠'}</span>
+						{name}
+						{#if isSelected}
 							<span class="chip-check">✓</span>
 						{/if}
 					</button>
@@ -435,8 +434,9 @@
 		margin-bottom: 1.5rem;
 		font-family: var(--font-family);
 	}
-	
-	.filters-row, .advanced-filters-row {
+
+	.filters-row,
+	.advanced-filters-row {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
@@ -444,37 +444,38 @@
 		align-items: flex-end;
 		width: 100%;
 	}
-	
+
 	.advanced-filters-row {
 		background-color: #f9f9f9;
 		padding: 1rem;
 		border-radius: 8px;
 		border: 1px solid #eee;
 	}
-	
+
 	.filter-group {
 		margin-bottom: 0;
 		flex: 1;
 	}
-	
+
 	.date-filters {
 		flex: 2;
 	}
-	
-	.bucket-select, .advanced-toggle {
+
+	.bucket-select,
+	.advanced-toggle {
 		flex: 1;
 	}
-	
+
 	.date-inputs {
 		display: flex;
 		gap: 0.5rem;
 		width: 100%;
 	}
-	
+
 	.date-input-wrapper {
 		flex: 1;
 	}
-	
+
 	.filter-label {
 		font-size: 0.75rem;
 		color: #666;
@@ -482,7 +483,7 @@
 		font-weight: 500;
 		display: block;
 	}
-	
+
 	.date-input {
 		width: 100%;
 		padding: 0.5rem;
@@ -494,13 +495,13 @@
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 		transition: all 0.2s;
 	}
-	
+
 	.date-input:focus {
 		outline: none;
 		border-color: var(--color-coral-300);
 		box-shadow: 0 0 0 3px var(--color-coral-100);
 	}
-	
+
 	.toggle-button {
 		padding: 0.5rem;
 		background-color: #f5f5f7;
@@ -512,18 +513,18 @@
 		transition: all 0.2s;
 		width: 100%;
 	}
-	
+
 	.toggle-button:hover {
 		background-color: #efefef;
 		border-color: #d0d0d0;
 	}
-	
+
 	.filter-actions {
 		display: flex;
 		gap: 0.5rem;
 		flex: 1;
 	}
-	
+
 	.apply-button {
 		background-color: var(--color-coral-500);
 		color: white;
@@ -538,11 +539,9 @@
 	}
 
 	.apply-button:hover {
-		background-color: var(--color-coral-600)
+		background-color: var(--color-coral-600);
 	}
-	
 
-	
 	.reset-button {
 		background-color: #f5f5f7;
 		color: #555;
@@ -554,41 +553,41 @@
 		cursor: pointer;
 		transition: all 0.2s;
 	}
-	
+
 	.reset-button:hover {
 		background-color: #efefef;
 	}
-	
+
 	.properties-section {
 		width: 100%;
 	}
-	
+
 	.properties-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
 	}
-	
+
 	.properties-title {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 	}
-	
+
 	.selected-count {
 		font-size: 0.875rem;
 		color: #666;
 		font-weight: normal;
 	}
-	
+
 	label {
 		font-size: 0.925rem;
 		font-weight: 600;
 		margin-bottom: 0.5rem;
 		color: #444;
 	}
-	
+
 	.clear-button {
 		background: none;
 		border: none;
@@ -599,7 +598,7 @@
 		padding: 0.25rem 0.5rem;
 		border-radius: 4px;
 	}
-	
+
 	.clear-button:hover {
 		background-color: var(--color-coral-50);
 		color: var(--color-coral-700);
@@ -710,7 +709,7 @@
 	}
 
 	.mode-button:hover {
-		background-color: rgba(0,0,0,0.05);
+		background-color: rgba(0, 0, 0, 0.05);
 	}
 
 	.mode-button.active {
@@ -799,7 +798,7 @@
 		color: white;
 		font-size: 0.7rem;
 		line-height: 1;
-	}	
+	}
 
 	.chips-loading,
 	.chips-empty {
@@ -809,28 +808,27 @@
 		color: #777;
 		font-style: italic;
 	}
-	
 
-	
 	/* Responsive adjustments */
 	@media (max-width: 768px) {
-		.filters-row, .advanced-filters-row {
+		.filters-row,
+		.advanced-filters-row {
 			flex-direction: column;
 			align-items: stretch;
 			gap: 0.75rem;
 		}
-		
+
 		.filter-actions {
 			flex-direction: row;
 		}
 	}
-	
+
 	@media (max-width: 640px) {
 		.date-inputs {
 			flex-direction: column;
 			gap: 0.5rem;
 		}
-		
+
 		.property-chip {
 			padding: 0.375rem 0.75rem;
 			font-size: 0.8125rem;
