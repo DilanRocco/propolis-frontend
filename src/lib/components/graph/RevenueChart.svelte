@@ -177,6 +177,7 @@
 		// Set up the "no data" state if needed
 		console.log("DATA")
 		console.log(listingData)
+
 		if (Object.keys(listingData).length === 0) {
 			console.log("DATA2")
 			setNoDataState('Please select at least one property to display data.');
@@ -187,6 +188,7 @@
 		const processedData: Record<string, ListingData[]> = {};
 
 		console.log(selectedNames)
+		console.log('selectedName')
 		console.log(selectedNameTypes)
 		for (const selectedName of selectedNames) {
 

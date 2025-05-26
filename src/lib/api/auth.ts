@@ -156,7 +156,7 @@ const createAuthStore = () => {
         if (!response.ok) throw new Error('Session expired');
         
         const userData = await response.json();
-        console.log(userData)
+        
         const user: User = {
           email: userData.email || userData.sub || '',
           full_name: userData.full_name || '',
