@@ -536,6 +536,10 @@
 		transition: background-color 0.2s;
 		flex: 1;
 	}
+
+	.apply-button:hover {
+		background-color: var(--color-coral-600)
+	}
 	
 
 	
