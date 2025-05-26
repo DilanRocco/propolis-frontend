@@ -136,7 +136,7 @@ function createPropertyStore() {
           update(s => ({
             ...s,
             listingData: {
-              allResults
+              ...allResults
             },
             loading: false,
             error: null,
@@ -159,6 +159,7 @@ function createPropertyStore() {
           update(s => ({
             ...s,
             listingData: {
+              ...s.listingData,
               [name]: result
             },
             loading: false,
@@ -197,7 +198,7 @@ function createPropertyStore() {
           update(s => ({
             ...s,
             listingData: {
-              groupedData
+              ...groupedData
             },
             loading: false,
             error: null,

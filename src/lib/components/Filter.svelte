@@ -313,6 +313,7 @@
 			</button>
 		</div>
 	</div>
+	<div></div>
 
 	<!-- Advanced Filters Row -->
 	{#if showAdvancedFilters}
@@ -536,9 +537,7 @@
 		flex: 1;
 	}
 	
-	.apply-button:hover {
-		background-color: var(--color-coral-600);
-	}
+
 	
 	.reset-button {
 		background-color: #f5f5f7;
