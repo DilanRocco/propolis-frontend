@@ -394,7 +394,7 @@
 				</div>
 			{:else}
 				<!-- Buildings Grid - Key added to force re-render with stable transitions -->
-				<div class="space-y-6" key={`buildings-${Object.keys(groupedListings).join('-')}`}>
+				<div class="space-y-6">
 					{#each Object.entries(groupedListings) as [buildingName, buildingListings], i (buildingName)}
 						<div class="group">
 							<!-- Building Card -->
