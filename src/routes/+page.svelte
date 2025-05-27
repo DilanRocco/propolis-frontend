@@ -6,6 +6,7 @@
 	import PercentageCard from '$lib/components/dashboard/PercentageCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
 	import MoneyMetricCard from '$lib/components/dashboard/MoneyMetricCard.svelte';
+	import ChatCard from '$lib/components/dashboard/ChatCard.svelte';
 
 	// Import data from page data loading (if you use it)
 	export let data;
@@ -21,6 +22,7 @@
 <ProtectedRoute>
 	<div class="space-y-8">
 		<WelcomeCard />
+		<ChatCard />
 
 		<!-- Main Content -->
 		<div class="grid grid-cols-12 gap-6">
