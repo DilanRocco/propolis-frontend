@@ -585,18 +585,6 @@
 																>
 																	{listing.active ? 'Active' : 'Inactive'}
 																</span>
-																{#if listing.cleaning_status}
-																	<span
-																		class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium {listing.cleaning_status ===
-																		'clean'
-																			? 'border border-blue-200 bg-blue-100 text-blue-700'
-																			: 'border border-yellow-200 bg-yellow-100 text-yellow-700'}"
-																	>
-																		{listing.cleaning_status === 'clean'
-																			? 'Clean'
-																			: 'Needs Cleaning'}
-																	</span>
-																{/if}
 															</div>
 														</div>
 													</div>
