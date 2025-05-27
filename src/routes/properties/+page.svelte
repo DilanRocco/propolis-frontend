@@ -236,7 +236,7 @@
 					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 						<!-- Search -->
 						<div class="lg:col-span-2">
-							<label class="mb-2 block font-medium text-slate-700">Search Properties</label>
+							<div class="mb-2 block font-medium text-slate-700">Search Properties</div>
 							<div class="relative">
 								<input
 									type="text"
@@ -262,7 +262,7 @@
 
 						<!-- Property Types -->
 						<div>
-							<label class="mb-2 block font-medium text-slate-700">Property Type</label>
+							<div class="mb-2 block font-medium text-slate-700">Property Type</div>
 							<div class="custom-scrollbar max-h-32 space-y-2 overflow-y-auto">
 								{#each propertyTypes as type}
 									<label class="group flex cursor-pointer items-center">
@@ -300,7 +300,7 @@
 
 						<!-- Bedrooms -->
 						<div>
-							<label class="mb-2 block font-medium text-slate-700">Bedrooms</label>
+							<div class="mb-2 block font-medium text-slate-700">Bedrooms</div>
 							<div class="custom-scrollbar max-h-32 space-y-2 overflow-y-auto">
 								{#each bedroomOptions as bedrooms}
 									<label class="group flex cursor-pointer items-center">
@@ -470,6 +470,7 @@
 										</button>
 
 										<button
+										    aria-label = "Expand Click"
 											on:click={(event) => handleExpandClick(buildingName, event)}
 											class="hover:bg-coral-50 ml-4 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 transition-all duration-200 hover:scale-105"
 										>
@@ -655,6 +656,7 @@
 <style>
 	.line-clamp-2 {
 		display: -webkit-box;
+		line-clamp: 2;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;

@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Building, Book, Users, GitGraph } from 'lucide-svelte';
+import { Home, MessageCircle, Building, Book, Users,  } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -24,18 +24,11 @@ export const routes = [
     description: "Message the properties"
   },
   {
-    id: 'finacials',
-    path: '/financials',
-    name: "Financials",
-    icon: GitGraph,
-    description: "Financials of the company"
-  },
-  {
-    id: 'graph',
-    path: '/graph',
-    name: "Graph",
+    id: 'property-comparsion',
+    path: '/property-comparsion',
+    name: "Property Comparsion",
     icon: Book,
-    description: "Graph properties"
+    description: "Compare properties and units"
   }
 
 
