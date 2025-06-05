@@ -1,11 +1,16 @@
-<script>
+<script lang="ts">
 	import { Mic } from 'lucide-svelte';
 	import { onMount } from 'svelte';
+	import { dashboardDateRange, updateDateRange } from '../../stores/simpleDashboardStore';
 	
 	let day = 19;
 	let dayOfWeek = 'Tue';
 	let month = 'December';
 	let year = '2025';
+	
+	// Date range variables
+	let startDate = '';
+	let endDate = '';
 	
 	onMount(() => {
 		const now = new Date();
@@ -13,12 +18,50 @@
 		dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
 		month = now.toLocaleDateString('en-US', { month: 'long' });
 		year = now.toLocaleDateString('en-us', { year: 'numeric' });
+		
+		// Initialize date range from store
+		const unsubscribe = dashboardDateRange.subscribe(dateRange => {
+			startDate = dateRange.startDate;
+			endDate = dateRange.endDate;
+		});
+		unsubscribe();
 	});
 	
 	let isRecording = false;
 	
 	function toggleMic() {
 		isRecording = !isRecording;
+	}
+	
+	// Handle date range changes
+	function handleDateRangeChange() {
+		if (startDate && endDate) {
+			updateDateRange({
+				startDate,
+				endDate
+			});
+		}
+	}
+	
+	// Quick date range presets
+	function setQuickRange(days: number) {
+		const today = new Date();
+		const start = new Date(today);
+		start.setDate(today.getDate() - days);
+		
+		startDate = start.toISOString().split('T')[0];
+		endDate = today.toISOString().split('T')[0];
+		handleDateRangeChange();
+	}
+	
+	function setCurrentMonth() {
+		const now = new Date();
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+		
+		startDate = startOfMonth.toISOString().split('T')[0];
+		endDate = endOfMonth.toISOString().split('T')[0];
+		handleDateRangeChange();
 	}
 </script>
 
@@ -41,12 +84,39 @@
 		<div class="flex gap-2">
 			<input
 				type="date"
+				bind:value={startDate}
+				on:change={handleDateRangeChange}
 				class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2"
+				placeholder="Start Date"
 			/>
 			<input
 				type="date"
+				bind:value={endDate}
+				on:change={handleDateRangeChange}
 				class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2"
+				placeholder="End Date"
 			/>
+		</div>
+		<!-- Quick preset buttons -->
+		<div class="flex gap-1 mt-1">
+			<button
+				on:click={() => setQuickRange(7)}
+				class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+			>
+				7 Days
+			</button>
+			<button
+				on:click={() => setQuickRange(30)}
+				class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+			>
+				30 Days
+			</button>
+			<button
+				on:click={setCurrentMonth}
+				class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded transition-colors"
+			>
+				This Month
+			</button>
 		</div>
 	</div>
 

@@ -1,18 +1,25 @@
-<script>
+<script lang="ts">
+	import { onMount } from 'svelte';
 	import WelcomeCard from '../lib/components/dashboard/WelcomeCard.svelte';
-	import IncomeCard from '../lib/components/dashboard/IncomeCard.svelte';
-	import DurationCard from '../lib/components/dashboard/DurationCard.svelte';
-	import OccupancyRate from '../lib/components/dashboard/OccupancyRate.svelte';
-	import PercentageCard from '$lib/components/dashboard/PercentageCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
-	import MoneyMetricCard from '$lib/components/dashboard/MoneyMetricCard.svelte';
 	import ChatCard from '$lib/components/dashboard/ChatCard.svelte';
+	import DashboardSummary from '../lib/components/DashboardSummary.svelte';
+	import { 
+		dashboardData, 
+		dashboardLoading, 
+		dashboardError, 
+		fetchDashboardData 
+	} from '../lib/stores/simpleDashboardStore';
 
-	// Import data from page data loading (if you use it)
-	export let data;
+	// Reactive dashboard state
+	$: data = $dashboardData;
+	$: loading = $dashboardLoading;
+	$: error = $dashboardError;
 
-	// Destructure data properties or use default values if not provided
-	const dashboardData = data?.dashboardData;
+	onMount(() => {
+		// Load initial data when component mounts
+		fetchDashboardData();
+	});
 
 </script>
 
@@ -22,27 +29,30 @@
 <ProtectedRoute>
 	<div class="space-y-8">
 		<WelcomeCard />
-		<ChatCard />
-
-		<!-- Main Content -->
-		<div class="grid grid-cols-12 gap-6">
-			<div class="col-span-12 lg:col-span-5">
-				<OccupancyRate averageOccupancyTerm={dashboardData.averageOccupancyRate} averageShortTermRate={dashboardData.shortTermOccupancyRate} averageLongTermRate={dashboardData.longTermOccupancyRate} />
+		
+		{#if loading}
+			<div class="flex items-center justify-center py-12">
+				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+				<span class="ml-3 text-gray-600">Loading dashboard data...</span>
 			</div>
-
-			<div class="col-span-12 lg:col-span-4">
-				<IncomeCard shortTermRevenue={dashboardData.shortTermRevenue} longTermRevenue={dashboardData.longTermRevenue} totalRevenue={dashboardData.totalRevenue} />	
-				<MoneyMetricCard title="Revenue Per Available Room" moneyMetric={dashboardData.revenuePerAvailableRoom} />
-				<MoneyMetricCard title="Short Term Average Daily Rate" moneyMetric={dashboardData.shortTermAverageDailyRate} />
+		{:else if error}
+			<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+				<div class="text-red-800 font-medium">Error loading dashboard data</div>
+				<div class="text-red-600 text-sm mt-1">{error}</div>
+				<button 
+					on:click={() => fetchDashboardData()}
+					class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+				>
+					Retry
+				</button>
 			</div>
-
-			<div class="col-span-12 lg:col-span-3">
-				<DurationCard title="Time to Lease" time={dashboardData.timeToLease} />
-				<DurationCard title="Average Lease Tenancy" time={dashboardData.averageLeaseTenancy} />
-				<PercentageCard percentage={dashboardData.tenantTurnover} />
-
-				<MoneyMetricCard title="Lease Balance Over Due" moneyMetric={dashboardData.leaseBalanceOverdue} />
-			</div>
-		</div>
+		{:else if data}
+			<!-- New Comprehensive Dashboard with Real API Data -->
+			<ChatCard />
+			<DashboardSummary dashboardData={data} />
+		{/if}
+		
+		<!-- Interactive Doorloop Occupancy Component -->
+		<!-- <DoorloopOccupancy /> -->
 	</div>
 </ProtectedRoute>

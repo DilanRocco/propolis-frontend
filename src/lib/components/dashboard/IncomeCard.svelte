@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Revenue } from '../../types/dashboard';
 	import { Eye } from 'lucide-svelte';
 	import CardWidget from './CardWidget.svelte';
 

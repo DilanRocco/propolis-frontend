@@ -1,9 +1,8 @@
 <script lang="ts">
   import CardWidget from './CardWidget.svelte';
-	import type { MoneyMetric } from '$lib/types/dashboard';
     
     // Props with defaults
-    export let moneyMetric: MoneyMetric
+    export let moneyMetric: number
     export let title: string
   </script>
   
@@ -14,7 +13,7 @@
     </div>
     
     <div class="mb-4">
-      <div class="text-2xl font-bold"><span class="text-coral-500">$</span> {moneyMetric.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div class="text-2xl font-bold"><span class="text-coral-500">$</span> {moneyMetric.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
     </div>
     
   </CardWidget>
