@@ -129,12 +129,12 @@
     <div class="cards-grid four-column">
       <div class="metric-card small">
         <h3>Avg Lease Tenancy</h3>
-        <div class="card-value">{formatNumber(dashboardData.averageLeaseTenancy)} days</div>
+        <div class="card-value">{dashboardData.averageLeaseTenancy} days</div>
       </div>
       
       <div class="metric-card small">
         <h3>Time to Lease</h3>
-        <div class="card-value">{formatNumber(dashboardData.timeToLease)} days</div>
+        <div class="card-value">{dashboardData.timeToLease} days</div>
       </div>
       
       <div class="metric-card small">
@@ -148,7 +148,7 @@
       </div>
       
       <div class="metric-card small">
-        <h3>RevPAR</h3>
+        <h3>Revenue per Available Room</h3>
         <div class="card-value">{formatCurrency(dashboardData.revenuePerAvailableRoom)}</div>
       </div>
       
@@ -302,10 +302,7 @@
     color: #6b7280;
   }
   
-  .revenue-card .card-subtitle,
-  .occupancy-card .card-subtitle {
-    color: rgba(255, 255, 255, 0.8);
-  }
+ 
   
   .card-breakdown {
     margin-top: 1rem;

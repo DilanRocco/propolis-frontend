@@ -92,12 +92,12 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       longTermOccupancyRate: doorloopOccupancy.occupancy_rate,
       shortTermOccupancyRate: shortTermOccupancy.occupancy_rate,
       averageOccupancyRate: averageOccupancyRate,
-      averageLeaseTenancy: 100, // TODO: Add API endpoint for this
+      averageLeaseTenancy: 360, // TODO: Add API endpoint for this
       timeToLease: 44, // TODO: Add API endpoint for this
       tenantTurnover: 36, // TODO: Add API endpoint for this
-      shortTermAverageDailyRate: 100, // TODO: Calculate from Guesty data
-      revenuePerAvailableRoom: 100, // TODO: Calculate from revenue and units
-      leaseBalanceOverdue: 100 // TODO: Add API endpoint for this
+      shortTermAverageDailyRate: 84.30, // TODO: Calculate from Guesty data
+      revenuePerAvailableRoom: 82.54, // TODO: Calculate from revenue and units
+      leaseBalanceOverdue: 45986.24// TODO: Add API endpoint for this
     };
 
     console.log('Setting dashboard data:', newDashboardData);

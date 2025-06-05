@@ -1,9 +1,9 @@
 <script lang="ts">
     import CardWidget from './CardWidget.svelte';
-	  import type { TimeTracker } from '$lib/types/dashboard';
+	
     
     // Props with defaults
-    export let time: TimeTracker
+    export let time: number
     export let title: string
   </script>
   
@@ -14,7 +14,7 @@
     </div>
     
     <div class="mb-4">
-      <div class="text-2xl">{time.days} Days</div>
+      <div class="text-2xl">{time} Days</div>
     </div>
     
   </CardWidget>
