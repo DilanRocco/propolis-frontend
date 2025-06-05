@@ -4,21 +4,10 @@
 export interface Revenue {
   totalLongTerm: number;
   totalShortTerm: number;
-  totalIncome: number;
+  totalRevenue: number;
   timeframe: string;
 }
 
-
-
-export interface ProfitItem {
-  value: string;
-  label: string;
-}
-
-export interface YearProfit {
-  year: string;
-  profits: ProfitItem[];
-}
 
 export interface MoneyMetric {
   value: number
@@ -69,11 +58,8 @@ export interface Days {
 
 export interface DashboardData {
   revenue: Revenue;
-  annualProfits: YearProfit[];
-  reservationManager: ReservationManager;
   timeTracker: Days;
   tentantTurnover: TenantTurnover;
-  stocks: Stocks;
   occupancyRate: OccupancyTerm
   timeToLease: Days
   moneyMetric: MoneyMetric

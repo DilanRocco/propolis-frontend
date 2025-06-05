@@ -4,7 +4,9 @@
 	import CardWidget from './CardWidget.svelte';
 
 	// Props with defaults
-	export let income: Revenue;
+	export let shortTermRevenue: number;
+	export let longTermRevenue: number;
+	export let totalRevenue: number;
 
 	function changeTimeFrame() {
 		//TODO
@@ -21,7 +23,7 @@
 			<div class="mb-1 text-xs text-gray-500">Total Revenue</div>
 			<div class="text-2xl font-bold">
 				<span class="text-coral-500">$</span>
-				{income.totalIncome.toLocaleString(undefined, {
+				{totalRevenue.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}
@@ -34,7 +36,7 @@
 			<div class="mb-1 text-xs text-gray-500">Total long term</div>
 			<div class="text-2xl font-bold">
 				<span class="text-coral-500">$</span>
-				{income.totalLongTerm.toLocaleString(undefined, {
+				{longTermRevenue.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}
@@ -46,7 +48,7 @@
 			<div class="mb-1 text-xs text-gray-500">Total short term</div>
 			<div class="text-2xl font-bold">
 				<span class="text-coral-500">$</span>
-				{income.totalShortTerm.toLocaleString(undefined, {
+				{shortTermRevenue.toLocaleString(undefined, {
 					minimumFractionDigits: 2,
 					maximumFractionDigits: 2
 				})}

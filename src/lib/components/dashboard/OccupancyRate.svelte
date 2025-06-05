@@ -3,14 +3,12 @@
     import { RefreshCw, Eye } from 'lucide-svelte';
     import ProgressCircle from '../ui/ProgressCircle.svelte';
     import CardWidget from './CardWidget.svelte';
-    import type { OccupancyTerm } from '../../types/dashboard';
+    
     
     // Props with defaults
-    export let occupancyRate: OccupancyTerm = {
-        averageOccupancyTerm: 10,
-        averageShortTermRate: 11,
-        averageLongTermRate: 12,
-    }
+    export let averageOccupancyTerm: number;
+    export let averageShortTermRate: number;
+    export let averageLongTermRate: number;
   
     // Functions
     function changeTimeFrame() {
@@ -50,13 +48,13 @@
           <div class="top-row">
             <ProgressCircle 
               {radius} 
-              percentage={occupancyRate.averageOccupancyTerm} 
+              percentage={averageOccupancyTerm} 
               color="#f97367" 
               label="Average"
             />
             <ProgressCircle 
               {radius} 
-              percentage={occupancyRate.averageLongTermRate} 
+              percentage={averageLongTermRate} 
               color="#f97367" 
               label="Long term rentals"
             />
@@ -64,7 +62,7 @@
           <div class="bottom-row">
             <ProgressCircle 
               {radius} 
-              percentage={occupancyRate.averageShortTermRate} 
+              percentage={averageShortTermRate} 
               color="#f97367" 
               label="Short term rentals"
             />
@@ -75,19 +73,19 @@
         <div class="circles-container small">
           <ProgressCircle 
             {radius} 
-            percentage={occupancyRate.averageOccupancyTerm} 
+            percentage={averageOccupancyTerm} 
             color="#f97367" 
             label="Average"
           />
           <ProgressCircle 
             {radius} 
-            percentage={occupancyRate.averageLongTermRate} 
+            percentage={averageLongTermRate} 
             color="#f97367" 
             label="Long term rentals"
           />
           <ProgressCircle 
             {radius} 
-            percentage={occupancyRate.averageShortTermRate} 
+            percentage={averageShortTermRate} 
             color="#f97367" 
             label="Short term rentals"
           />
