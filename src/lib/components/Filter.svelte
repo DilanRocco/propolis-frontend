@@ -53,11 +53,24 @@
 	// Search mode options
 	const searchModeOptions = [
 		{ value: 'buildings', label: 'Buildings' },
-		{ value: 'units', label: 'Units' },
+		{ value: 'units', label: 'Apartments' },
 		{ value: 'all', label: 'All' }
 	] as const;
 
 	const dispatch = createEventDispatcher();
+
+	// List of buildings to exclude from the chart
+	const excludedBuildings = [
+		'304 NW 32 Downstairs',
+		'304 NW 32 Upstairs',
+		'Olive Balcony City',
+		'Olive Balcony Garden',
+		'Olive Standard',
+		'Plum 12-C',
+		'Plum 13-A',
+		'Pastel Apartments',
+		'Olive Deluxe'
+	];
 
 	// Subscribe to property store
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
@@ -88,6 +101,9 @@
 		// Select which list of names to filter based on current search mode
 		let namesToFilter =
 			searchMode === 'buildings' ? buildingNames : searchMode === 'units' ? listingNames : allNames;
+
+		// Filter out excluded buildings
+		namesToFilter = namesToFilter.filter(name => !excludedBuildings.includes(name));
 
 		if (searchTerm.trim() === '') {
 			filteredListingNames = [...namesToFilter]; // Show all if search is empty
