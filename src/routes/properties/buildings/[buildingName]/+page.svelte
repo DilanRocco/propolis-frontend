@@ -245,9 +245,10 @@
             <div class="p-6 hover:bg-gray-50 transition-colors">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                  {#if listing.pictures && listing.pictures.length > 0}
+                  {console.log(listing)}
+                  {#if listing.thumbnail_url != ""}
                     <img 
-                      src={listing.pictures[0]} 
+                      src={listing.thumbnail_url} 
                       alt={listing.title}
                       class="w-16 h-16 object-cover rounded-lg"
                     />
