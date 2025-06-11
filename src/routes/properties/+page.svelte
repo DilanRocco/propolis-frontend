@@ -66,7 +66,7 @@
 	// Group filtered listings by building name
 	$: groupedListings = filteredListings.reduce(
 		(acc, listing) => {
-			const buildingName = listing.title.split(' - ')[0] || 'Unknown Building';
+			const buildingName = listing.address_building_name || (listing.source === 'doorloop' ? listing.title : "Unknown Building");
 			if (!acc[buildingName]) {
 				acc[buildingName] = [];
 			}

@@ -92,7 +92,9 @@ function createPropertyStore() {
             const url = new URL(`${PUBLIC_API_URL}/api/doorloop/properties`);
             const res = await fetchFn(url.toString());
             if (!res.ok) throw new Error(res.statusText);
+            
             const data: DoorloopResponse = await res.json();
+            console.log(data)
             return data;
           })()
         ]);
@@ -198,21 +200,25 @@ function createPropertyStore() {
 
     /** Once‐only fetch of all listings from both Guesty and Doorloop */
     async loadListings(fetchFn: typeof fetch) {
+
       if (loadedListings) return;
       update(state => ({ ...state, loading: true, error: null }));
       try {
         // Fetch both Guesty and Doorloop listings in parallel
         const [guestyListings, doorloopResponse] = await Promise.all([
           // Fetch Guesty listings
+         
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/properties/listings`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
+           
             return await res.json();
           })(),
           // Fetch Doorloop listings
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/doorloop/properties`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
+          
             return await res.json();
           })()
         ]);
@@ -237,7 +243,7 @@ function createPropertyStore() {
 
         // Combine listings from both sources
         const allListings = [...guestyListings, ...doorloopListings];
-
+        console.log(allListings)
         update(state => ({
           ...state,
           listings: allListings,
