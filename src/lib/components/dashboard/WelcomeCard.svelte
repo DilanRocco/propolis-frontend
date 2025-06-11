@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Mic } from 'lucide-svelte';
+	import { Mic, Sparkles } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { dashboardDateRange, updateDateRange } from '../../stores/simpleDashboardStore';
+	import AIView from './AIView.svelte';
 	
 	let day = 19;
 	let dayOfWeek = 'Tue';
@@ -11,6 +12,9 @@
 	// Date range variables
 	let startDate = '';
 	let endDate = '';
+	
+	// AI View state
+	let isAIViewOpen = false;
 	
 	onMount(() => {
 		const now = new Date();
@@ -27,10 +31,8 @@
 		unsubscribe();
 	});
 	
-	let isRecording = false;
-	
-	function toggleMic() {
-		isRecording = !isRecording;
+	function toggleAIView() {
+		isAIViewOpen = !isAIViewOpen;
 	}
 	
 	// Handle date range changes
@@ -67,15 +69,27 @@
 
 <!-- Date Header Section with Inline Filters -->
 <div class="mb-8 flex flex-wrap items-center gap-6">
-	<!-- Date Section -->
-	<div class="flex items-center gap-4">
-		<div class="flex h-24 w-24 flex-col items-center justify-center rounded-full border border-gray-200">
-			<div class="text-4xl font-semibold">{day}</div>
+	<!-- Date Section with AI Button -->
+	<div class="flex items-center justify-between w-full">
+		<div class="flex items-center gap-4">
+			<div class="flex h-24 w-24 flex-col items-center justify-center rounded-full border border-gray-200">
+				<div class="text-4xl font-semibold">{day}</div>
+			</div>
+			<div>
+				<div class="text-xl font-medium text-gray-600">{dayOfWeek},</div>
+				<div class="text-2xl font-bold text-gray-800">{month} {year}</div>
+			</div>
 		</div>
-		<div>
-			<div class="text-xl font-medium text-gray-600">{dayOfWeek},</div>
-			<div class="text-2xl font-bold text-gray-800">{month} {year}</div>
-		</div>
+		<!-- AI Button -->
+		<button 
+			on:click={() => isAIViewOpen = true}
+			class="relative cursor-pointer hover:scale-105 transition-transform duration-200"
+		>
+			<div class="absolute inset-0 bg-gradient-to-br from-coral-400 to-coral-600 rounded-2xl animate-pulse"></div>
+			<div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-coral-500 to-coral-600 rounded-2xl shadow-lg">
+				<Sparkles class="w-7 h-7 text-white animate-bounce" />
+			</div>
+		</button>
 	</div>
 
 	<!-- Date Range Filter -->
@@ -144,4 +158,7 @@
 		</select>
 	</div>
 </div>
+
+<!-- AI View -->
+<AIView bind:isOpen={isAIViewOpen} />
 

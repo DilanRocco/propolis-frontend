@@ -9,8 +9,6 @@
         id: string;
     }
     
-
-    
     // Props
     export let marginBottom: boolean = true;
     
@@ -18,13 +16,6 @@
     let messages: Message[] = [];
     let isTyping: boolean = false;
     let showWelcome: boolean = true;
-
-
-    
-
-    
- 
-
     
     function handleSendMessage(): void {
         if (!chatInput.trim()) return;
@@ -40,15 +31,7 @@
         };
         
         messages = [...messages, userMessage];
-        
-     
-        // Simulate AI response with more realistic delay
-  
     }
-    
-   
-    
-
     
     function handleKeyPress(event: KeyboardEvent): void {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -68,34 +51,6 @@
 </script>
 
 <div class="bg-gray-50 p-6 rounded-xl {marginBottom ? 'mb-6' : ''}">
-    <!-- Animated Header -->
-    <div class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-coral-500/10 via-blue-500/10 to-purple-500/10 rounded-2xl"></div>
-        <div class="relative flex items-center gap-4 p-6 mb-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg">
-            <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-br from-coral-400 to-coral-600 rounded-2xl animate-pulse"></div>
-                <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-coral-500 to-coral-600 rounded-2xl shadow-lg">
-                    <Sparkles class="w-7 h-7 text-white animate-bounce" />
-                </div>
-            </div>
-            <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <h3 class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                        Property Intelligence
-                    </h3>
-                    <div class="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium text-green-700">Live</span>
-                    </div>
-                </div>
-                <p class="text-sm text-gray-600">AI-powered insights for your real estate empire</p>
-            </div>
-        </div>
-    </div>
-    
-
-
-    
     <!-- Enhanced Input Area -->
     <div class="relative">
         <div class="absolute inset-0 bg-gradient-to-r from-coral-500/20 via-blue-500/20 to-purple-500/20 rounded-xl blur-xl opacity-50"></div>

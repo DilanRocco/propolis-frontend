@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { propertyStore } from '$lib/stores/propertyStore';
+	import { propertyStore, type ListingData } from '$lib/stores/propertyStore';
 	import type { Listing } from '$lib/types/properties';
+	import type { DoorloopProperty } from '$lib/types/doorloop';
 	import { fade, fly, scale } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
-	import { ListFilter } from 'lucide-svelte';
+	import { ListFilter, Search, Grid, List } from 'lucide-svelte';
+	import PropertyDetails from '$lib/components/PropertyDetails.svelte';
 
 	// Subscribe to the store
 	$: ({ listings, loading, error } = $propertyStore);
@@ -17,10 +18,13 @@
 	let showActiveOnly = false;
 	let showFilters = false;
 	let viewMode: 'grid' | 'list' = 'grid';
+	let showPropertyDetails = false;
+	let selectedProperty: DoorloopProperty | null = null;
+	let selectedPropertyData: ListingData[] = [];
 
 	// Get unique property types and bedroom counts from listings
-	$: propertyTypes = [...new Set(listings.map((listing) => listing.property_type))].sort();
-	$: bedroomOptions = [...new Set(listings.map((listing) => listing.bedrooms))].sort(
+	$: propertyTypes = [...new Set(listings.map((listing) => listing.type))].sort();
+	$: bedroomOptions = [...new Set(listings.map((listing) => listing.bedrooms).filter((b): b is number => b !== undefined))].sort(
 		(a, b) => a - b
 	);
 
@@ -30,15 +34,10 @@
 			const query = searchQuery.toLowerCase();
 			const searchableText = [
 				listing.title,
-				listing.nickname,
-				listing.address_full,
-				listing.address_building_name,
-				listing.address_city,
-				listing.address_state,
-				listing.address_neighborhood,
-				listing.property_type,
-				listing.room_type,
-				listing.description_summary
+				listing.description,
+				listing.address.formattedAddress,
+				listing.type,
+				listing.amenities.join(' ')
 			]
 				.join(' ')
 				.toLowerCase();
@@ -50,16 +49,12 @@
 
 		if (
 			selectedPropertyTypes.length > 0 &&
-			!selectedPropertyTypes.includes(listing.property_type)
+			!selectedPropertyTypes.includes(listing.type)
 		) {
 			return false;
 		}
 
-		if (selectedBedrooms.length > 0 && !selectedBedrooms.includes(listing.bedrooms)) {
-			return false;
-		}
-
-		if (showActiveOnly && !listing.active) {
+		if (showActiveOnly && listing.source === 'doorloop' && !listing.active) {
 			return false;
 		}
 
@@ -69,7 +64,7 @@
 	// Group filtered listings by building name
 	$: groupedListings = filteredListings.reduce(
 		(acc, listing) => {
-			const buildingName = listing.address_building_name || 'Unknown Building';
+			const buildingName = listing.address_building_name ?? (listing.source === 'doorloop' ? listing.title : "Unknown Building");
 			if (!acc[buildingName]) {
 				acc[buildingName] = [];
 			}
@@ -91,19 +86,89 @@
 		expandedBuildings = expandedBuildings;
 	}
 
+	async function handlePropertyClick(propertyName: string) {
+		// Find the property in our listings
+		const property = listings.find(p => p.title === propertyName);
+		if (property) {
+			const addressParts = property.address.formattedAddress.split(',');
+			selectedProperty = {
+				active: property.active ?? false,
+				address: {
+					street1: addressParts[0]?.trim() ?? '',
+					city: addressParts[1]?.trim() ?? '',
+					state: addressParts[2]?.trim().split(' ')[0] ?? '',
+					zip: addressParts[2]?.trim().split(' ')[1] ?? '',
+					country: 'US',
+					lat: property.address.location.lat,
+					lng: property.address.location.lng
+				},
+				numActiveUnits: 1,
+				class: 'Standard',
+				settings: {},
+				name: property.title,
+				description: property.description,
+				amenities: property.amenities,
+				pictures: property.pictures.map(url => ({ fileId: '', rank: 0, url })),
+				owners: [],
+				type: property.type,
+				id: property.id,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				createdBy: '',
+				updatedBy: '',
+				boardMembers: []
+			};
+			selectedPropertyData = $propertyStore.listingData[propertyName] || [];
+			showPropertyDetails = true;
+		}
+	}
+
+	function handleCloseDetails() {
+		showPropertyDetails = false;
+		selectedProperty = null;
+	}
+
 	function handleBuildingClick(buildingName: string, buildingListings: Listing[]) {
 		const encodedBuildingName = encodeURIComponent(buildingName);
 		goto(`/properties/buildings/${encodedBuildingName}`);
 	}
 
-	function handleListingClick(listing: Listing, event: Event) {
-		event.stopPropagation();
-		goto(`/properties/listings/${listing.id}`);
+	function handleExpandClick(buildingName: string) {
+		toggleBuilding(buildingName);
 	}
 
-	function handleExpandClick(buildingName: string, event: Event) {
+	function handleListingClick(listing: Listing, event: Event) {
 		event.stopPropagation();
-		toggleBuilding(buildingName);
+		const addressParts = listing.address.formattedAddress.split(',');
+		selectedProperty = {
+			active: listing.active ?? false,
+			address: {
+				street1: addressParts[0]?.trim() ?? '',
+				city: addressParts[1]?.trim() ?? '',
+				state: addressParts[2]?.trim().split(' ')[0] ?? '',
+				zip: addressParts[2]?.trim().split(' ')[1] ?? '',
+				country: 'US',
+				lat: listing.address.location.lat,
+				lng: listing.address.location.lng
+			},
+			numActiveUnits: 1,
+			class: 'Standard',
+			settings: {},
+			name: listing.title,
+			description: listing.description,
+			amenities: listing.amenities,
+			pictures: listing.pictures.map(url => ({ fileId: '', rank: 0, url })),
+			owners: [],
+			type: listing.type,
+			id: listing.id,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			createdBy: '',
+			updatedBy: '',
+			boardMembers: []
+		};
+		selectedPropertyData = $propertyStore.listingData[listing.title] || [];
+		showPropertyDetails = true;
 	}
 
 	function togglePropertyType(type: string) {
@@ -139,13 +204,16 @@
 	}
 
 	// Calculate total values for stats
-	$: totalValue = filteredListings.reduce((sum, listing) => sum + listing.base_price, 0);
+	$: totalValue = filteredListings.reduce((sum, listing) => sum + (listing.base_price || 0), 0);
 	$: averagePrice =
 		filteredListings.length > 0 ? Math.round(totalValue / filteredListings.length) : 0;
-	$: totalCapacity = filteredListings.reduce((sum, listing) => sum + listing.accommodates, 0);
+	$: totalCapacity = filteredListings.reduce((sum, listing) => sum + (listing.accommodates || 0), 0);
 
 	onMount(async () => {
-		await propertyStore.loadListings(fetch);
+		await Promise.all([
+			propertyStore.loadListings(fetch),
+			propertyStore.loadListingNames(fetch)
+		]);
 	});
 </script>
 
@@ -182,7 +250,7 @@
 								class="border-coral-200 rounded-xl border bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg"
 							>
 								<div class="text-xl font-bold text-slate-800">{filteredListings.length}</div>
-								<div class="text-xs text-slate-600">Properties</div>
+								<div class="text-xs text-slate-600">Apartments</div>
 							</div>
 							<div
 								class="border-coral-200 rounded-xl border bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg"
@@ -343,7 +411,7 @@
 					<div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
 						<div class="text-sm text-slate-600">
 							Showing <span class="font-semibold text-slate-800">{filteredListings.length}</span> of
-							<span class="font-semibold text-slate-800">{listings.length}</span> properties
+							<span class="font-semibold text-slate-800">{listings.length}</span> apartments
 						</div>
 						{#if hasActiveFilters()}
 							<button
@@ -368,7 +436,7 @@
 							class="border-coral-500 absolute left-0 top-0 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
 						></div>
 					</div>
-					<p class="mt-4 text-base text-slate-600">Loading your properties...</p>
+					<p class="mt-4 text-base text-slate-600">Loading your apartments...</p>
 				</div>
 			{:else if error}
 				<div class="rounded-2xl border border-red-200 bg-red-50 p-6 backdrop-blur-lg" in:scale>
@@ -462,7 +530,7 @@
 															class="bg-coral-100 border-coral-200 text-coral-700 rounded-full border px-2 py-1 text-xs font-medium"
 														>
 															{buildingListings.length}
-															{buildingListings.length === 1 ? 'property' : 'properties'}
+															{buildingListings.length === 1 ? 'apartment' : 'apartments'}
 														</span>
 													</div>
 												</div>
@@ -471,7 +539,7 @@
 
 										<button
 										    aria-label = "Expand Click"
-											on:click={(event) => handleExpandClick(buildingName, event)}
+											on:click={(event) => handleExpandClick(buildingName)}
 											class="hover:bg-coral-50 ml-4 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 transition-all duration-200 hover:scale-105"
 										>
 											<svg
@@ -508,87 +576,90 @@
 												: 'grid-cols-1'}"
 										>
 											{#each buildingListings as listing (listing.id)}
-												<button
+												<div
+													class="group/card relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md"
 													on:click={(event) => handleListingClick(listing, event)}
-													class="group/card hover:border-coral-200 rounded-xl border border-slate-200 bg-slate-50 p-5 text-left transition-all duration-200 hover:scale-[1.02] hover:bg-white hover:shadow-md"
+													on:keydown={(event) => event.key === 'Enter' && handleListingClick(listing, event)}
+													role="button"
+													tabindex="0"
 												>
 													<!-- Property Image -->
-													{#if listing.thumbnail_url}
-														<div class="relative mb-3 aspect-video overflow-hidden rounded-lg">
+													<div class="relative h-48 w-full overflow-hidden">
+														{#if listing.source === 'guesty' && listing.pictures && listing.pictures.length > 0}
 															<img
-																src={listing.thumbnail_url}
+																src={listing.pictures[0]}
 																alt={listing.title}
-																class="h-full w-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+																class="h-full w-full object-cover"
 															/>
-															<div
-																class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-200 group-hover/card:opacity-100"
-															></div>
-															<div class="absolute right-3 top-3">
-																<span
-																	class="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-xs font-medium text-slate-700 backdrop-blur-sm"
-																>
-																	{listing.property_type}
-																</span>
-															</div>
-														</div>
-													{/if}
-
-													<!-- Property Details -->
-													<div class="space-y-3">
-														<div>
-															<h3
-																class="group-hover/card:text-coral-600 line-clamp-2 text-lg font-semibold text-slate-800 transition-colors"
-															>
-																{listing.title}
-															</h3>
-															{#if listing.nickname}
-																<p class="mt-1 text-sm text-slate-600">{listing.nickname}</p>
-															{/if}
-														</div>
-
-														<!-- Stats -->
-														<div class="flex items-center justify-between text-xs">
-															<div class="flex items-center text-slate-500">
-																<svg
-																	class="mr-1 h-3 w-3"
-																	fill="none"
-																	stroke="currentColor"
-																	viewBox="0 0 24 24"
-																>
-																	<path
-																		stroke-linecap="round"
-																		stroke-linejoin="round"
-																		stroke-width="2"
-																		d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-																	/>
+														{:else}
+															<div class="h-full w-full bg-gray-100 flex items-center justify-center">
+																<svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+																	<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
 																</svg>
-																{listing.accommodates} guests
 															</div>
-															<div class="text-slate-500">
-																{listing.bedrooms} bed • {listing.bathrooms} bath
-															</div>
-														</div>
-
-														<!-- Price and Status -->
-														<div class="flex items-center justify-between">
-															<div class="text-xl font-bold text-green-600">
-																${listing.base_price.toLocaleString()}
-																<span class="text-xs font-normal text-slate-500"
-																	>/{listing.currency}</span
-																>
-															</div>
-															<div class="flex items-center space-x-2">
-																<span
-																	class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium {listing.active
-																		? 'border border-green-200 bg-green-100 text-green-700'
-																		: 'border border-red-200 bg-red-100 text-red-700'}"
-																>
-																	{listing.active ? 'Active' : 'Inactive'}
-																</span>
-															</div>
+														{/if}
+														<div class="absolute right-3 top-3">
+															<span class="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-xs font-medium text-slate-700 backdrop-blur-sm">
+																{listing.source === 'guesty' ? 'Guesty' : 'Doorloop'}
+															</span>
 														</div>
 													</div>
-												</button>
+
+													<!-- Property Details -->
+													<div class="flex flex-1 flex-col p-4">
+														<h3 class="mb-1 text-lg font-semibold text-slate-900">{listing.title}</h3>
+														<p class="mb-3 text-sm text-slate-600 line-clamp-2">{listing.description}</p>
+
+														<!-- Property Info -->
+														<div class="mt-auto space-y-3">
+															<!-- Address -->
+															<div class="text-sm text-slate-600">
+																{listing.address.formattedAddress}
+															</div>
+
+															<!-- Stats -->
+															<div class="flex items-center justify-between">
+																<div class="flex items-center gap-2">
+																	{#if listing.bedrooms}
+																		<span class="text-sm text-slate-600">
+																			{listing.bedrooms} beds
+																		</span>
+																	{/if}
+																	{#if listing.accommodates}
+																		<span class="text-sm text-slate-600">•</span>
+																		<span class="text-sm text-slate-600">
+																			{listing.accommodates} guests
+																		</span>
+																	{/if}
+																</div>
+																{#if listing.base_price}
+																	<div class="text-lg font-semibold text-green-600">
+																		${listing.base_price.toLocaleString()}
+																		{#if listing.currency}
+																			<span class="text-xs font-normal text-slate-500">/{listing.currency}</span>
+																		{/if}
+																	</div>
+																{/if}
+															</div>
+
+															<!-- Amenities -->
+															{#if listing.amenities && listing.amenities.length > 0}
+																<div class="flex flex-wrap gap-1">
+																	{#each listing.amenities.slice(0, 3) as amenity}
+																		<span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+																			{amenity}
+																		</span>
+																	{/each}
+																	{#if listing.amenities.length > 3}
+																		<span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+																			+{listing.amenities.length - 3} more
+																		</span>
+																	{/if}
+																</div>
+															{/if}
+														</div>
+													</div>
+												</div>
 											{/each}
 										</div>
 									</div>
@@ -618,12 +689,12 @@
 								</svg>
 							</div>
 							<h3 class="mb-3 text-xl font-semibold text-slate-800">
-								{hasActiveFilters() ? 'No properties match your filters' : 'No properties found'}
+								{hasActiveFilters() ? 'No apartments match your filters' : 'No apartment found'}
 							</h3>
 							<p class="mx-auto mb-6 max-w-md text-sm text-slate-600">
 								{hasActiveFilters()
 									? 'Try adjusting your search criteria or clearing some filters to see more results.'
-									: 'There are no properties to display at this time.'}
+									: 'There are no apartments to display at this time.'}
 							</p>
 							{#if hasActiveFilters()}
 								<button
@@ -640,6 +711,13 @@
 		</div>
 	</div>
 </div>
+
+<PropertyDetails 
+	property={selectedProperty}
+	listingData={selectedPropertyData}
+	show={showPropertyDetails}
+	on:close={handleCloseDetails}
+/>
 
 <style>
 	.line-clamp-2 {

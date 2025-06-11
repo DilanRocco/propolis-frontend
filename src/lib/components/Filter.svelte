@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { propertyStore, type PropertyState } from '$lib/stores/propertyStore';
+	import { propertyStore, type PropertyState, type ListingData } from '$lib/stores/propertyStore';
+	import PropertyDetails from './PropertyDetails.svelte';
+	import type { DoorloopProperty } from '../types/doorloop';
+	import { PUBLIC_API_URL } from '$env/static/public';
 
 	// Props
 	export let selectedNames: string[] = [];
@@ -22,6 +25,9 @@
 	let dateEnd: string | null = initialDateEnd;
 	let searchMode: 'buildings' | 'units' | 'all' = 'buildings';
 	let showAdvancedFilters = false;
+	let showPropertyDetails = false;
+	let selectedProperty: DoorloopProperty | null = null;
+	let selectedPropertyData: ListingData[] = [];
 
 	// Keep track of what type each selected name is
 	let selectedNameTypes: Record<string, 'building' | 'unit'> = {};
@@ -53,11 +59,24 @@
 	// Search mode options
 	const searchModeOptions = [
 		{ value: 'buildings', label: 'Buildings' },
-		{ value: 'units', label: 'Units' },
+		{ value: 'units', label: 'Apartments' },
 		{ value: 'all', label: 'All' }
 	] as const;
 
 	const dispatch = createEventDispatcher();
+
+	// List of buildings to exclude from the chart
+	const excludedBuildings = [
+		'304 NW 32 Downstairs',
+		'304 NW 32 Upstairs',
+		'Olive Balcony City',
+		'Olive Balcony Garden',
+		'Olive Standard',
+		'Plum 12-C',
+		'Plum 13-A',
+		'Pastel Apartments',
+		'Olive Deluxe'
+	];
 
 	// Subscribe to property store
 	const unsub = propertyStore.subscribe((s: PropertyState) => {
@@ -88,6 +107,9 @@
 		// Select which list of names to filter based on current search mode
 		let namesToFilter =
 			searchMode === 'buildings' ? buildingNames : searchMode === 'units' ? listingNames : allNames;
+
+		// Filter out excluded buildings
+		namesToFilter = namesToFilter.filter(name => !excludedBuildings.includes(name));
 
 		if (searchTerm.trim() === '') {
 			filteredListingNames = [...namesToFilter]; // Show all if search is empty
@@ -265,6 +287,26 @@
 		const typeLabel = type === 'building' ? '🏢' : '🏠';
 		return `${typeLabel} ${name}`;
 	}
+
+	async function handlePropertyClick(propertyName: string) {
+		// Fetch Doorloop property details
+		const res = await fetch(`${PUBLIC_API_URL}/api/doorloop/properties`);
+		if (!res.ok) return;
+		const data = await res.json();
+		
+		// Find the property
+		const property = data.data.find((p: DoorloopProperty) => p.name === propertyName);
+		if (property) {
+			selectedProperty = property;
+			selectedPropertyData = $propertyStore.listingData[propertyName] || [];
+			showPropertyDetails = true;
+		}
+	}
+
+	function handleCloseDetails() {
+		showPropertyDetails = false;
+		selectedProperty = null;
+	}
 </script>
 
 <!-- HTML template stays mostly the same, but update the property chip display -->
@@ -425,6 +467,15 @@
 		</div>
 	</div>
 </div>
+
+
+
+<PropertyDetails 
+	property={selectedProperty}
+	listingData={selectedPropertyData}
+	show={showPropertyDetails}
+	on:close={handleCloseDetails}
+/>
 
 <style>
 	.filters-container {
@@ -834,4 +885,5 @@
 			font-size: 0.8125rem;
 		}
 	}
+
 </style>

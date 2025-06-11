@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
   import { propertyStore } from '$lib/stores/propertyStore';
   import type { Listing } from '$lib/types/properties';
+  import PropertyAttributes from '$lib/components/dashboard/PropertyAttributes.svelte';
 
   // Get building name from URL params
   $: buildingName = decodeURIComponent($page.params.buildingName);
@@ -21,9 +22,9 @@
   $: buildingStats = {
     totalProperties: buildingListings.length,
     activeProperties: buildingListings.filter(l => l.active).length,
-    totalAccommodates: buildingListings.reduce((sum, l) => sum + l.accommodates, 0),
-    avgPrice: Math.round(buildingListings.reduce((sum, l) => sum + l.base_price, 0) / buildingListings.length || 0),
-    propertyTypes: [...new Set(buildingListings.map(l => l.property_type))],
+    totalAccommodates: buildingListings.reduce((sum, l) => sum + (l.accommodates || 0), 0),
+    avgPrice: Math.round(buildingListings.reduce((sum, l) => sum + (l.base_price || 0), 0) / buildingListings.length || 0),
+    propertyTypes: [...new Set(buildingListings.map(l => l.property_type || l.type))],
     cleanProperties: buildingListings.filter(l => l.cleaning_status === 'clean').length,
     totalRevenue: Object.values(listingData).flat().reduce((sum, reservation) => sum + reservation.total_paid, 0)
   };
@@ -47,6 +48,7 @@
   }
 
   onMount(async () => {
+    
     await propertyStore.loadListings(fetch);
     await loadReservationData();
   });
@@ -180,6 +182,19 @@
         </div>
       </div>
 
+      <!-- Building Attributes -->
+      <div class="mb-8">
+        <PropertyAttributes 
+          propertyId={buildingName}
+          isEditable={true}
+          isBuilding={true}
+          on:change={(e) => {
+            // Handle attribute changes here
+            console.log('Building attributes changed:', e.detail.attributes);
+          }}
+        />
+      </div>
+
       <!-- Additional Stats Row -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
@@ -230,7 +245,8 @@
             <div class="p-6 hover:bg-gray-50 transition-colors">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                  {#if listing.thumbnail_url}
+                  {console.log(listing)}
+                  {#if listing.thumbnail_url != ""}
                     <img 
                       src={listing.thumbnail_url} 
                       alt={listing.title}
@@ -250,11 +266,11 @@
                       <p class="text-sm text-gray-600">{listing.nickname}</p>
                     {/if}
                     <div class="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                      <span>{listing.property_type}</span>
+                      <span>{listing.property_type || listing.type}</span>
                       <span>•</span>
-                      <span>{listing.bedrooms} bed, {listing.bathrooms} bath</span>
+                      <span>{listing.bedrooms || 0} bed</span>
                       <span>•</span>
-                      <span>Sleeps {listing.accommodates}</span>
+                      <span>Sleeps {listing.accommodates || 0}</span>
                     </div>
                   </div>
                 </div>

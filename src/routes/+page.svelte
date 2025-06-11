@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import WelcomeCard from '../lib/components/dashboard/WelcomeCard.svelte';
 	import ProtectedRoute from '$lib/protectedRoute.svelte';
-	import ChatCard from '$lib/components/dashboard/ChatCard.svelte';
 	import DashboardSummary from '../lib/components/DashboardSummary.svelte';
 	import { 
 		dashboardData, 
@@ -20,7 +19,6 @@
 		// Load initial data when component mounts
 		fetchDashboardData();
 	});
-
 </script>
 
 <svelte:head>
@@ -48,11 +46,7 @@
 			</div>
 		{:else if data}
 			<!-- New Comprehensive Dashboard with Real API Data -->
-			<ChatCard />
 			<DashboardSummary dashboardData={data} />
 		{/if}
-		
-		<!-- Interactive Doorloop Occupancy Component -->
-		<!-- <DoorloopOccupancy /> -->
 	</div>
 </ProtectedRoute>
