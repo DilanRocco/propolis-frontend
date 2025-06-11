@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from 'svelte';
-	import { propertyStore, type PropertyState } from '$lib/stores/propertyStore';
+	import { propertyStore, type PropertyState, type ListingData } from '$lib/stores/propertyStore';
+	import PropertyDetails from './PropertyDetails.svelte';
+	import type { DoorloopProperty } from '../types/doorloop';
+	import { PUBLIC_API_URL } from '$env/static/public';
 
 	// Props
 	export let selectedNames: string[] = [];
@@ -9,6 +12,7 @@
 	export let initialDateEnd: string | null = null;
 	export let selectedBeds: number | null = null;
 	export let selectedPropertyType: string | null = null;
+	export let init = false;
 
 	// State
 	let listingNames: string[] = [];
@@ -22,6 +26,9 @@
 	let dateEnd: string | null = initialDateEnd;
 	let searchMode: 'buildings' | 'units' | 'all' = 'buildings';
 	let showAdvancedFilters = false;
+	let showPropertyDetails = false;
+	let selectedProperty: DoorloopProperty | null = null;
+	let selectedPropertyData: ListingData[] = [];
 
 	// Keep track of what type each selected name is
 	let selectedNameTypes: Record<string, 'building' | 'unit'> = {};
@@ -281,6 +288,26 @@
 		const typeLabel = type === 'building' ? '🏢' : '🏠';
 		return `${typeLabel} ${name}`;
 	}
+
+	async function handlePropertyClick(propertyName: string) {
+		// Fetch Doorloop property details
+		const res = await fetch(`${PUBLIC_API_URL}/api/doorloop/properties`);
+		if (!res.ok) return;
+		const data = await res.json();
+		
+		// Find the property
+		const property = data.data.find((p: DoorloopProperty) => p.name === propertyName);
+		if (property) {
+			selectedProperty = property;
+			selectedPropertyData = $propertyStore.listingData[propertyName] || [];
+			showPropertyDetails = true;
+		}
+	}
+
+	function handleCloseDetails() {
+		showPropertyDetails = false;
+		selectedProperty = null;
+	}
 </script>
 
 <!-- HTML template stays mostly the same, but update the property chip display -->
@@ -441,6 +468,28 @@
 		</div>
 	</div>
 </div>
+
+{#if $propertyStore.listingNames.property_names.length > 0}
+	<div class="property-list">
+		{#each $propertyStore.listingNames.property_names.filter(name => 
+			name.toLowerCase().includes(searchTerm.toLowerCase())
+		) as propertyName}
+			<div class="property-item" on:click={() => handlePropertyClick(propertyName)}>
+				<div class="property-name">{propertyName}</div>
+				<div class="property-count">
+					{$propertyStore.listingData[propertyName]?.length || 0} listings
+				</div>
+			</div>
+		{/each}
+	</div>
+{/if}
+
+<PropertyDetails 
+	property={selectedProperty}
+	listingData={selectedPropertyData}
+	show={showPropertyDetails}
+	on:close={handleCloseDetails}
+/>
 
 <style>
 	.filters-container {
@@ -849,5 +898,36 @@
 			padding: 0.375rem 0.75rem;
 			font-size: 0.8125rem;
 		}
+	}
+
+	.property-list {
+		display: grid;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+
+	.property-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.75rem;
+		background: #f8f8f8;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: background-color 0.2s;
+	}
+
+	.property-item:hover {
+		background: #f0f0f0;
+	}
+
+	.property-name {
+		font-weight: 500;
+		color: #333;
+	}
+
+	.property-count {
+		color: #666;
+		font-size: 0.9rem;
 	}
 </style>

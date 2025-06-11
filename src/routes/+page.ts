@@ -62,23 +62,23 @@ export async function load() {
     console.error('Error loading dashboard data:', error);
     
     // Fallback to static data if API fails
-    const dashboardData: DashboardData = {
-      longTermRevenue: 24314.53,
-      shortTermRevenue: 22312.23,
-      totalRevenue: 46626.76,
-      longTermOccupancyRate: 71.59,
-      shortTermOccupancyRate: 31.41,
-      averageOccupancyRate: 51.23,
-      averageLeaseTenancy: 100,
-      timeToLease: 44,
-      tenantTurnover: 36,
-      shortTermAverageDailyRate: 100,
-      revenuePerAvailableRoom: 100,
-      leaseBalanceOverdue: 100
-    }
+  const dashboardData: DashboardData = {
+    longTermRevenue: 24314.53,
+    shortTermRevenue: 22312.23,
+    totalRevenue: 46626.76,
+    longTermOccupancyRate: 71.59,
+    shortTermOccupancyRate: 31.41,
+    averageOccupancyRate: 51.23,
+    averageLeaseTenancy: 100,
+    timeToLease: 44,
+    tenantTurnover: 36,
+    shortTermAverageDailyRate: 100,
+    revenuePerAvailableRoom: 100,
+    leaseBalanceOverdue: 100
+  }
 
-    return {
-      dashboardData
-    };
+  return {
+    dashboardData
+  };
   }
 }
