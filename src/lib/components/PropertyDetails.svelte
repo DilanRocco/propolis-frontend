@@ -33,8 +33,8 @@
 </script>
 
 {#if show && property}
-  <div class="modal-backdrop" on:click={closeModal}>
-    <div class="modal-content" on:click|stopPropagation>
+  <div class="modal-backdrop" on:click={closeModal} on:keydown={(e) => e.key === 'Escape' && closeModal()} role="button" tabindex="0">
+    <div class="modal-content" on:click|stopPropagation on:keydown|stopPropagation role="dialog" aria-modal="true" tabindex="0">
       <button class="close-button" on:click={closeModal}>×</button>
       
       <div class="property-header">

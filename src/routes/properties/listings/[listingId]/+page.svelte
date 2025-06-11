@@ -338,7 +338,7 @@
             <p class="text-gray-600">No amenities listed for this property.</p>
           {/if}
 
-          {#if listing.tags.length > 0}
+          {#if listing.tags && listing.tags.length > 0}
             <div class="mt-6">
               <h3 class="text-lg font-medium text-gray-900 mb-3">Tags</h3>
               <div class="flex flex-wrap gap-2">
@@ -380,7 +380,7 @@
               </div>
               <div class="flex justify-between">
                 <dt class="text-sm font-medium text-gray-600">Security Deposit</dt>
-                <dd class="text-sm text-gray-900">${listing.security_deposit_fee}</dd>
+                <dd class="text-sm text-gray-900">${listing?.security_deposit_fee ?? 0}</dd>
               </div>
             </div>
           </dl>

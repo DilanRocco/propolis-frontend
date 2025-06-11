@@ -12,7 +12,6 @@
 	export let initialDateEnd: string | null = null;
 	export let selectedBeds: number | null = null;
 	export let selectedPropertyType: string | null = null;
-	export let init = false;
 
 	// State
 	let listingNames: string[] = [];
@@ -469,20 +468,7 @@
 	</div>
 </div>
 
-{#if $propertyStore.listingNames.property_names.length > 0}
-	<div class="property-list">
-		{#each $propertyStore.listingNames.property_names.filter(name => 
-			name.toLowerCase().includes(searchTerm.toLowerCase())
-		) as propertyName}
-			<div class="property-item" on:click={() => handlePropertyClick(propertyName)}>
-				<div class="property-name">{propertyName}</div>
-				<div class="property-count">
-					{$propertyStore.listingData[propertyName]?.length || 0} listings
-				</div>
-			</div>
-		{/each}
-	</div>
-{/if}
+
 
 <PropertyDetails 
 	property={selectedProperty}
@@ -900,34 +886,4 @@
 		}
 	}
 
-	.property-list {
-		display: grid;
-		gap: 0.5rem;
-		margin-top: 1rem;
-	}
-
-	.property-item {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0.75rem;
-		background: #f8f8f8;
-		border-radius: 8px;
-		cursor: pointer;
-		transition: background-color 0.2s;
-	}
-
-	.property-item:hover {
-		background: #f0f0f0;
-	}
-
-	.property-name {
-		font-weight: 500;
-		color: #333;
-	}
-
-	.property-count {
-		color: #666;
-		font-size: 0.9rem;
-	}
 </style>

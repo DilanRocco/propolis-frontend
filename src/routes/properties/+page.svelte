@@ -5,10 +5,8 @@
 	import type { Listing } from '$lib/types/properties';
 	import type { DoorloopProperty } from '$lib/types/doorloop';
 	import { fade, fly, scale } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
 	import { ListFilter, Search, Grid, List } from 'lucide-svelte';
 	import PropertyDetails from '$lib/components/PropertyDetails.svelte';
-	import { PUBLIC_API_URL } from '$env/static/public';
 
 	// Subscribe to the store
 	$: ({ listings, loading, error } = $propertyStore);
@@ -66,7 +64,7 @@
 	// Group filtered listings by building name
 	$: groupedListings = filteredListings.reduce(
 		(acc, listing) => {
-			const buildingName = listing.address_building_name || (listing.source === 'doorloop' ? listing.title : "Unknown Building");
+			const buildingName = listing.address_building_name ?? (listing.source === 'doorloop' ? listing.title : "Unknown Building");
 			if (!acc[buildingName]) {
 				acc[buildingName] = [];
 			}
@@ -92,7 +90,34 @@
 		// Find the property in our listings
 		const property = listings.find(p => p.title === propertyName);
 		if (property) {
-			selectedProperty = property;
+			const addressParts = property.address.formattedAddress.split(',');
+			selectedProperty = {
+				active: property.active ?? false,
+				address: {
+					street1: addressParts[0]?.trim() ?? '',
+					city: addressParts[1]?.trim() ?? '',
+					state: addressParts[2]?.trim().split(' ')[0] ?? '',
+					zip: addressParts[2]?.trim().split(' ')[1] ?? '',
+					country: 'US',
+					lat: property.address.location.lat,
+					lng: property.address.location.lng
+				},
+				numActiveUnits: 1,
+				class: 'Standard',
+				settings: {},
+				name: property.title,
+				description: property.description,
+				amenities: property.amenities,
+				pictures: property.pictures.map(url => ({ fileId: '', rank: 0, url })),
+				owners: [],
+				type: property.type,
+				id: property.id,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				createdBy: '',
+				updatedBy: '',
+				boardMembers: []
+			};
 			selectedPropertyData = $propertyStore.listingData[propertyName] || [];
 			showPropertyDetails = true;
 		}
@@ -114,7 +139,34 @@
 
 	function handleListingClick(listing: Listing, event: Event) {
 		event.stopPropagation();
-		selectedProperty = listing;
+		const addressParts = listing.address.formattedAddress.split(',');
+		selectedProperty = {
+			active: listing.active ?? false,
+			address: {
+				street1: addressParts[0]?.trim() ?? '',
+				city: addressParts[1]?.trim() ?? '',
+				state: addressParts[2]?.trim().split(' ')[0] ?? '',
+				zip: addressParts[2]?.trim().split(' ')[1] ?? '',
+				country: 'US',
+				lat: listing.address.location.lat,
+				lng: listing.address.location.lng
+			},
+			numActiveUnits: 1,
+			class: 'Standard',
+			settings: {},
+			name: listing.title,
+			description: listing.description,
+			amenities: listing.amenities,
+			pictures: listing.pictures.map(url => ({ fileId: '', rank: 0, url })),
+			owners: [],
+			type: listing.type,
+			id: listing.id,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+			createdBy: '',
+			updatedBy: '',
+			boardMembers: []
+		};
 		selectedPropertyData = $propertyStore.listingData[listing.title] || [];
 		showPropertyDetails = true;
 	}
@@ -527,6 +579,9 @@
 												<div
 													class="group/card relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md"
 													on:click={(event) => handleListingClick(listing, event)}
+													on:keydown={(event) => event.key === 'Enter' && handleListingClick(listing, event)}
+													role="button"
+													tabindex="0"
 												>
 													<!-- Property Image -->
 													<div class="relative h-48 w-full overflow-hidden">

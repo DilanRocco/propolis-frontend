@@ -226,8 +226,8 @@ function createPropertyStore() {
         // Convert Doorloop properties to Listing format
         const doorloopListings: Listing[] = doorloopResponse.data.map((property: DoorloopProperty) => ({
           _id: property.id,
-          title: property.name,
-          description: property.description || '',
+          adddress_building_name: property.name,
+          description_summary: property.description || '',
           address: {
             formattedAddress: `${property.address.street1}, ${property.address.city}, ${property.address.state} ${property.address.zip}`,
             location: {
@@ -235,10 +235,18 @@ function createPropertyStore() {
               lng: property.address.lng
             }
           },
+          address_building_name: property.name,
+          address_city: property.address.city,
+          address_state: property.address.state,
+          address_zip: property.address.zip,
+          address_street1: property.address.street1,
+          address_street2: property.address.street2,
           pictures: property.pictures?.map(pic => pic.url) || [],
           amenities: property.amenities || [],
           type: property.type,
-          source: 'doorloop'
+          source: 'doorloop',
+          room_type: property.type,
+          active: property.active,
         }));
 
         // Combine listings from both sources

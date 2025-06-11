@@ -29,7 +29,20 @@ export const ListingNormalizedSchema = z.object({
   address_state: z.string().optional(),
   address_neighborhood: z.string().optional(),
   room_type: z.string().optional(),
-  description_summary: z.string().optional()
+  description_summary: z.string().optional(),
+  security_deposit_fee: z.number().optional(),
+  extra_person_fee: z.number().optional(),
+  guests_included: z.number().optional(),
+  weekly_price_factor: z.number().optional(),
+  monthly_price_factor: z.number().optional(),
+  minimum_age: z.number().optional(),
+  min_nights: z.number().optional(),
+  max_nights: z.number().optional(),
+  area_square_feet: z.number().optional(),
+  bathrooms: z.number().optional(),
+  thumbnail_url: z.string().optional(),
+  cleaning_status: z.string().optional(),
+  tags: z.array(z.string()).optional()
 });
 
 export type FilterOptions = {
