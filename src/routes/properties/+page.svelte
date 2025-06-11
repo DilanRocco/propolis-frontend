@@ -182,7 +182,7 @@
 								class="border-coral-200 rounded-xl border bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg"
 							>
 								<div class="text-xl font-bold text-slate-800">{filteredListings.length}</div>
-								<div class="text-xs text-slate-600">Properties</div>
+								<div class="text-xs text-slate-600">Apartments</div>
 							</div>
 							<div
 								class="border-coral-200 rounded-xl border bg-white/80 px-4 py-3 shadow-sm backdrop-blur-lg"
@@ -343,7 +343,7 @@
 					<div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
 						<div class="text-sm text-slate-600">
 							Showing <span class="font-semibold text-slate-800">{filteredListings.length}</span> of
-							<span class="font-semibold text-slate-800">{listings.length}</span> properties
+							<span class="font-semibold text-slate-800">{listings.length}</span> apartments
 						</div>
 						{#if hasActiveFilters()}
 							<button
@@ -368,7 +368,7 @@
 							class="border-coral-500 absolute left-0 top-0 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"
 						></div>
 					</div>
-					<p class="mt-4 text-base text-slate-600">Loading your properties...</p>
+					<p class="mt-4 text-base text-slate-600">Loading your apartments...</p>
 				</div>
 			{:else if error}
 				<div class="rounded-2xl border border-red-200 bg-red-50 p-6 backdrop-blur-lg" in:scale>
@@ -462,7 +462,7 @@
 															class="bg-coral-100 border-coral-200 text-coral-700 rounded-full border px-2 py-1 text-xs font-medium"
 														>
 															{buildingListings.length}
-															{buildingListings.length === 1 ? 'property' : 'properties'}
+															{buildingListings.length === 1 ? 'apartment' : 'apartments'}
 														</span>
 													</div>
 												</div>
@@ -618,12 +618,12 @@
 								</svg>
 							</div>
 							<h3 class="mb-3 text-xl font-semibold text-slate-800">
-								{hasActiveFilters() ? 'No properties match your filters' : 'No properties found'}
+								{hasActiveFilters() ? 'No apartments match your filters' : 'No apartment found'}
 							</h3>
 							<p class="mx-auto mb-6 max-w-md text-sm text-slate-600">
 								{hasActiveFilters()
 									? 'Try adjusting your search criteria or clearing some filters to see more results.'
-									: 'There are no properties to display at this time.'}
+									: 'There are no apartments to display at this time.'}
 							</p>
 							{#if hasActiveFilters()}
 								<button
