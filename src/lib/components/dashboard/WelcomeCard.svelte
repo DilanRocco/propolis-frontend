@@ -135,26 +135,7 @@
 	</div>
 
 	<!-- Property Type Filter -->
-	<div class="flex flex-col gap-2">
-		<div class="text-sm font-medium text-slate-700">Property Type</div>
-		<select class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2">
-			<option value="">All Types</option>
-			<option value=""> Co-Living</option>
-			<option value=""> Entire Unit</option>
-		</select>
-	</div>
 
-	<!-- Bedrooms Filter -->
-	<div class="flex flex-col gap-2">
-		<div class="text-sm font-medium text-slate-700">Bed Bath</div>
-		<select class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2">
-			<option value="">Any</option>
-			<option value="1">1 bedroom</option>
-			<option value="2">2 bedrooms</option>
-			<option value="3">3 bedrooms</option>
-			<option value="4">4+ bedrooms</option>
-		</select>
-	</div>
 </div>
 
 <!-- AI View -->
