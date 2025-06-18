@@ -314,11 +314,11 @@
 		const unitCount = Object.values(selectedNameTypes).filter((t) => t === 'unit').length;
 
 		if (buildingCount > 0 && unitCount > 0) {
-			chartTitle += ` (${buildingCount} Buildings, ${unitCount} Units)`;
+			chartTitle += ` (${buildingCount} Buildings, ${unitCount} Apartments)`;
 		} else if (buildingCount > 0) {
 			chartTitle += ` (${buildingCount} Buildings)`;
 		} else if (unitCount > 0) {
-			chartTitle += ` (${unitCount} Units)`;
+			chartTitle += ` (${unitCount} Apartments)`;
 		}
 
 		// Add date range to title if present

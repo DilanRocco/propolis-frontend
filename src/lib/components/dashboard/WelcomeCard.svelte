@@ -139,16 +139,14 @@
 		<div class="text-sm font-medium text-slate-700">Property Type</div>
 		<select class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2">
 			<option value="">All Types</option>
-			<option value="apartment">Apartment</option>
-			<option value="house">House</option>
-			<option value="condo">Condo</option>
-			<option value="townhouse">Townhouse</option>
+			<option value=""> Co-Living</option>
+			<option value=""> Entire Unit</option>
 		</select>
 	</div>
 
 	<!-- Bedrooms Filter -->
 	<div class="flex flex-col gap-2">
-		<div class="text-sm font-medium text-slate-700">Bedrooms</div>
+		<div class="text-sm font-medium text-slate-700">Bed Bath</div>
 		<select class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2">
 			<option value="">Any</option>
 			<option value="1">1 bedroom</option>

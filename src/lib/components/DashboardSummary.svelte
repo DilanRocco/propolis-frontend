@@ -229,7 +229,7 @@
   }
   
   .metric-card.occupancy-card {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #c362cd 0%, #f5576c 100%);
     color: white;
   }
   

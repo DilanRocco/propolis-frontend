@@ -89,12 +89,12 @@
       <div class="details">
         <div class="detail-item">
           <span class="value">{occupancyData.occupied_units}</span>
-          <span class="label">Occupied Units</span>
+          <span class="label">Occupied Apartments</span>
         </div>
         
         <div class="detail-item">
           <span class="value">{occupancyData.total_units}</span>
-          <span class="label">Total Units</span>
+          <span class="label">Total Apartments</span>
         </div>
         
         <div class="detail-item">
