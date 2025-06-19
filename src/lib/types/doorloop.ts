@@ -52,7 +52,36 @@ export interface DoorloopProperty {
   boardMembers: any[];
 }
 
+export interface DoorloopUnit {
+  active: boolean;
+  addressSameAsProperty: boolean;
+  rentalApplicationListing: {
+    activeListing: boolean;
+  };
+  address: DoorloopAddress;
+  baths: number;
+  beds: number;
+  marketRent?: number;
+  name: string;
+  property: string; // ID of the parent property
+  size?: number;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  pictures?: DoorloopPicture[];
+  inEviction: boolean;
+  amenities: string[];
+  description?: string;
+}
+
 export interface DoorloopResponse {
   data: DoorloopProperty[];
   total: number;
+}
+
+export interface DoorloopUnitsResponse {
+  success: boolean;
+  data: DoorloopUnit[];
 } 

@@ -45,7 +45,16 @@ export const ListingNormalizedSchema = z.object({
   bathrooms: z.number().optional(),
   thumbnail_url: z.string().optional(),
   cleaning_status: z.string().optional(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  // Doorloop-specific properties
+  name: z.string().optional(),
+  unit_name: z.string().optional(),
+  unit_size: z.number().optional(),
+  property_id: z.string().optional(),
+  unit_id: z.string().optional(),
+  numActiveUnits: z.number().optional(),
+  class: z.string().optional(),
+  settings: z.record(z.any()).optional()
 });
 
 export type FilterOptions = {

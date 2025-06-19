@@ -1,7 +1,7 @@
 // src/lib/stores/propertyStore.ts
 import { writable } from 'svelte/store';
 import type { Listing } from '../types/properties';
-import type { DoorloopProperty, DoorloopResponse } from '../types/doorloop';
+import type { DoorloopProperty, DoorloopResponse, DoorloopUnit, DoorloopUnitsResponse } from '../types/doorloop';
 import { PUBLIC_API_URL } from '$env/static/public';
 
 export interface ListingData {
@@ -204,17 +204,23 @@ function createPropertyStore() {
       if (loadedListings) return;
       update(state => ({ ...state, loading: true, error: null }));
       try {
-        // Fetch both Guesty and Doorloop listings in parallel
-        const [guestyListings, doorloopResponse] = await Promise.all([
+        // Fetch Guesty listings, Doorloop properties, and Doorloop units in parallel
+        const [guestyListings, doorloopResponse, doorloopUnitsResponse] = await Promise.all([
           // Fetch Guesty listings
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/properties/listings`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
             return await res.json();
           })(),
-          // Fetch Doorloop listings
+          // Fetch Doorloop properties
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/doorloop/properties`);
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
+            return await res.json();
+          })(),
+          // Fetch Doorloop units
+          (async () => {
+            const res = await fetchFn(`${PUBLIC_API_URL}/api/doorloop/units`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
             return await res.json();
           })()
@@ -266,36 +272,99 @@ function createPropertyStore() {
           tags: listing.tags || []
         }));
 
-        // Convert Doorloop properties to Listing format
-        const doorloopListings: Listing[] = doorloopResponse.data.map((property: DoorloopProperty) => ({
-          _id: property.id,
-          id: property.id,
-          title: property.name,
-          description: property.description || '',
-          address: {
-            formattedAddress: `${property.address.street1}, ${property.address.city}, ${property.address.state} ${property.address.zip}`,
-            location: {
-              lat: property.address.lat || 0,
-              lng: property.address.lng || 0
+        // Group units by property ID
+        const unitsByProperty: Record<string, DoorloopUnit[]> = {};
+        if (doorloopUnitsResponse.success && doorloopUnitsResponse.data) {
+          doorloopUnitsResponse.data.forEach((unit: DoorloopUnit) => {
+            if (!unitsByProperty[unit.property]) {
+              unitsByProperty[unit.property] = [];
             }
-          },
-          pictures: property.pictures?.map(pic => pic.url) || [],
-          amenities: property.amenities || [],
-          type: property.type,
-          source: 'doorloop' as const,
-          active: property.active,
-          address_building_name: property.name,
-          address_city: property.address.city,
-          address_state: property.address.state,
-          address_zip: property.address.zip,
-          address_street1: property.address.street1,
-          address_street2: property.address.street2,
-          room_type: property.type,
-          name: property.name,
-          numActiveUnits: property.numActiveUnits,
-          class: property.class,
-          settings: property.settings
-        }));
+            unitsByProperty[unit.property].push(unit);
+          });
+        }
+
+        // Convert Doorloop properties to Listing format and include units
+        const doorloopListings: Listing[] = [];
+        
+        doorloopResponse.data.forEach((property: DoorloopProperty) => {
+          const propertyUnits = unitsByProperty[property.id] || [];
+          
+          if (propertyUnits.length > 0) {
+            // If property has units, create a listing for each unit
+            propertyUnits.forEach((unit: DoorloopUnit) => {
+              doorloopListings.push({
+                _id: unit.id,
+                id: unit.id,
+                title: `${property.name} - ${unit.name}`,
+                description: unit.description || property.description || '',
+                address: {
+                  formattedAddress: unit.addressSameAsProperty 
+                    ? `${property.address.street1}, ${property.address.city}, ${property.address.state} ${property.address.zip}`
+                    : `${unit.address.street1}, ${unit.address.city}, ${unit.address.state} ${unit.address.zip}`,
+                  location: {
+                    lat: unit.addressSameAsProperty ? (property.address.lat || 0) : (unit.address.lat || 0),
+                    lng: unit.addressSameAsProperty ? (property.address.lng || 0) : (unit.address.lng || 0)
+                  }
+                },
+                pictures: unit.pictures?.map(pic => pic.url) || property.pictures?.map(pic => pic.url) || [],
+                amenities: unit.amenities || property.amenities || [],
+                type: property.type,
+                source: 'doorloop' as const,
+                active: unit.active,
+                address_building_name: property.name,
+                address_city: unit.addressSameAsProperty ? property.address.city : unit.address.city,
+                address_state: unit.addressSameAsProperty ? property.address.state : unit.address.state,
+                address_zip: unit.addressSameAsProperty ? property.address.zip : unit.address.zip,
+                address_street1: unit.addressSameAsProperty ? property.address.street1 : unit.address.street1,
+                address_street2: unit.addressSameAsProperty ? property.address.street2 : unit.address.street2,
+                room_type: property.type,
+                name: property.name,
+                unit_name: unit.name,
+                bedrooms: unit.beds,
+                bathrooms: unit.baths,
+                unit_size: unit.size,
+                base_price: unit.marketRent,
+                numActiveUnits: property.numActiveUnits,
+                class: property.class,
+                settings: property.settings,
+                property_id: property.id,
+                unit_id: unit.id
+              });
+            });
+          } else {
+            // If property has no units, create a listing for the property itself
+            doorloopListings.push({
+              _id: property.id,
+              id: property.id,
+              title: property.name,
+              description: property.description || '',
+              address: {
+                formattedAddress: `${property.address.street1}, ${property.address.city}, ${property.address.state} ${property.address.zip}`,
+                location: {
+                  lat: property.address.lat || 0,
+                  lng: property.address.lng || 0
+                }
+              },
+              pictures: property.pictures?.map(pic => pic.url) || [],
+              amenities: property.amenities || [],
+              type: property.type,
+              source: 'doorloop' as const,
+              active: property.active,
+              address_building_name: property.name,
+              address_city: property.address.city,
+              address_state: property.address.state,
+              address_zip: property.address.zip,
+              address_street1: property.address.street1,
+              address_street2: property.address.street2,
+              room_type: property.type,
+              name: property.name,
+              numActiveUnits: property.numActiveUnits,
+              class: property.class,
+              settings: property.settings,
+              property_id: property.id
+            });
+          }
+        });
 
         // Combine listings from both sources
         const allListings = [...processedGuestyListings, ...doorloopListings];

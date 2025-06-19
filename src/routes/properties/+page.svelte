@@ -589,7 +589,7 @@
 														{#if listing.pictures && listing.pictures.length > 0}
 															<div class="h-full w-full">
 																<PictureGallery 
-																	pictures={listing.pictures}
+																	pictures={[listing.pictures[0]]}
 																	title={listing.title}
 																	showThumbnails={false}
 																	maxHeight="192px"
