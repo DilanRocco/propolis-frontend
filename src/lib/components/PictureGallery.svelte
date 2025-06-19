@@ -7,12 +7,30 @@
   export let title: string = '';
   export let showThumbnails: boolean = true;
   export let maxHeight: string = '400px';
+  export let loadImages: boolean = true;
 
   let currentImageIndex = 0;
   let showLightbox = false;
+  let loadedImages = new Set();
+  let mainImageLoaded = false;
 
   // Use feature flag to determine which pictures to show
   $: displayPictures = ENABLE_FULL_GALLERY ? pictures : (pictures.length > 0 ? [pictures[0]] : []);
+  
+  // Track when the current main image is loaded
+  $: {
+    if (displayPictures[currentImageIndex]) {
+      mainImageLoaded = loadedImages.has(displayPictures[currentImageIndex]);
+    }
+  }
+  
+  function handleImageLoad(imageSrc: string) {
+    loadedImages.add(imageSrc);
+    loadedImages = loadedImages; // Trigger reactivity
+    if (imageSrc === displayPictures[currentImageIndex]) {
+      mainImageLoaded = true;
+    }
+  }
   
   function nextImage() {
     if (ENABLE_FULL_GALLERY && displayPictures.length > 1) {
@@ -59,13 +77,30 @@
   <div class="picture-gallery">
     <!-- Main Image Display -->
     <div class="main-image-container" style="max-height: {maxHeight};">
-      <img 
-        src={displayPictures[currentImageIndex]} 
-        alt="{title} - Image {currentImageIndex + 1}"
-        class="main-image"
-        loading="lazy"
-        on:click={openLightbox}
-      />
+      <div class="image-wrapper">
+        <!-- Loading skeleton -->
+        {#if !mainImageLoaded}
+          <div class="image-skeleton">
+            <div class="skeleton-content">
+              <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="skeleton-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.293-1.293a1 1 0 011.414 0L20 16m-6-12v4m-2-2h4" />
+              </svg>
+              <p class="skeleton-text">Loading image...</p>
+            </div>
+          </div>
+        {/if}
+        
+        <!-- Actual image -->
+        <button class="image-button {mainImageLoaded ? 'loaded' : 'loading'}" on:click={openLightbox} aria-label="View image in fullscreen">
+          <img 
+            src={displayPictures[currentImageIndex]} 
+            alt="{title} - Image {currentImageIndex + 1}"
+            class="main-image"
+            loading="lazy"
+            on:load={() => handleImageLoad(displayPictures[currentImageIndex])}
+          />
+        </button>
+      </div>
       
       {#if displayPictures.length > 1}
         <!-- Navigation Arrows -->
@@ -87,11 +122,13 @@
       {/if}
 
       <!-- Expand Button -->
-      <button class="expand-button" on:click={openLightbox} aria-label="View in fullscreen">
-        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-        </svg>
-      </button>
+      {#if mainImageLoaded}
+        <button class="expand-button" on:click={openLightbox} aria-label="View in fullscreen">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+        </button>
+      {/if}
     </div>
 
     <!-- Thumbnail Navigation -->
@@ -115,8 +152,8 @@
 
   <!-- Lightbox Modal -->
   {#if showLightbox}
-    <div class="lightbox-backdrop" on:click={closeLightbox}>
-      <div class="lightbox-content" on:click|stopPropagation>
+    <div class="lightbox-backdrop" on:click={closeLightbox} on:keydown={(e) => e.key === 'Escape' && closeLightbox()} role="button" tabindex="0" aria-label="Close lightbox">
+      <div class="lightbox-content" on:click|stopPropagation on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); } }} role="button" tabindex="0" aria-label="Close lightbox">
         <button class="lightbox-close" on:click={closeLightbox} aria-label="Close lightbox">
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -171,16 +208,133 @@
     background: #f3f4f6;
   }
 
+  .image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .image-skeleton {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .skeleton-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #9ca3af;
+  }
+
+  .skeleton-icon {
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+
+  .skeleton-text {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
+    opacity: 0.8;
+  }
+
+  @keyframes skeleton-loading {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .image-button {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+    display: block;
+    position: relative;
+    z-index: 2;
+  }
+
+  .image-button.loading {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .image-button.loaded {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease;
+  }
+
   .main-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    cursor: pointer;
     transition: transform 0.2s ease;
+    display: block;
   }
 
-  .main-image:hover {
+  .image-button.loaded:hover .main-image {
     transform: scale(1.02);
+  }
+
+  .image-placeholder {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+    background: #f9fafb;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+
+  .image-placeholder:hover {
+    background: #f3f4f6;
+  }
+
+  .placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #6b7280;
+  }
+
+  .placeholder-icon {
+    margin-bottom: 12px;
+  }
+
+  .placeholder-text {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .placeholder-count {
+    margin: 0;
+    font-size: 14px;
+    color: #6b7280;
   }
 
   .nav-button {
