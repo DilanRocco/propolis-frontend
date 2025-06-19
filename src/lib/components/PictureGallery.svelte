@@ -293,25 +293,7 @@
   .image-button.loaded:hover .main-image {
     transform: scale(1.02);
   }
-
- 
-  .image-placeholder:hover {
-    background: #f3f4f6;
-  }
-
-  .placeholder-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #6b7280;
-  }
-
-
-
-
-
+  
   .nav-button {
     position: absolute;
     top: 50%;
