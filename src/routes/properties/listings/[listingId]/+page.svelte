@@ -1,10 +1,15 @@
 <!-- src/routes/properties/listings/[listingId]/+page.svelte -->
 <script lang="ts">
+  // 🚩 FEATURE FLAG: Toggle between full gallery and single image mode
+  const ENABLE_GALLERY_MODE = false; // Set to false to show only first image
+  
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { propertyStore } from '$lib/stores/propertyStore';
   import type { Listing } from '$lib/types/properties';
+  import { fetchPropertyById, type DetailedListing } from '$lib/api/properties';
+  import PictureGallery from '$lib/components/PictureGallery.svelte';
 
   // Get listing ID from URL params
   $: listingId = $page.params.listingId;
@@ -29,6 +34,10 @@
   };
 
   let activeTab = 'overview';
+  let detailedListing: DetailedListing | null = null;
+  let loadingImages = false;
+  let imageError: string | null = null;
+  let showEnhancedImages = false; // Start with basic images, upgrade to enhanced
   
   function goBack() {
     // Go back to building overview if we came from there, otherwise to properties list
@@ -50,10 +59,44 @@
     }
   }
 
+  async function loadDetailedImages() {
+    if (!listing?.id || detailedListing?.id === listing.id) return;
+
+    loadingImages = true;
+    imageError = null;
+
+    try {
+      detailedListing = await fetchPropertyById(listing.id, fetch);
+      showEnhancedImages = true; // Switch to enhanced images once loaded
+      console.log('Loaded high-quality images for property:', detailedListing);
+    } catch (err) {
+      imageError = err instanceof Error ? err.message : 'Could not load high-quality images';
+      console.error('Error loading detailed images:', err);
+    } finally {
+      loadingImages = false;
+    }
+  }
+
   onMount(async () => {
     await propertyStore.loadListings(fetch);
     await loadReservationData();
+    
+    // Load detailed images in background after initial render
+    if (listing) {
+      // Small delay to let the page render first
+      setTimeout(() => {
+        loadDetailedImages();
+      }, 100);
+    }
   });
+
+  // Watch for listing changes to load detailed images
+  $: if (listing?.id && !detailedListing) {
+    // Load detailed images in background
+    setTimeout(() => {
+      loadDetailedImages();
+    }, 100);
+  }
 </script>
 
 <svelte:head>
@@ -92,9 +135,8 @@
         </div>
         
         <div class="flex items-center space-x-3">
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Edit Property
-          </button>
+
+
           <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
             View Calendar
           </button>
@@ -161,16 +203,66 @@
           </div>
         </div>
 
-        <!-- Property Image -->
-        {#if listing.thumbnail_url}
-          <div class="aspect-video w-full overflow-hidden rounded-xl mb-6">
-            <img 
-              src={listing.thumbnail_url} 
-              alt={listing.title}
-              class="w-full h-full object-cover"
-            />
+        <!-- Property Image Gallery -->
+        <div class="mb-6">
+          <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold text-gray-900">Property Photos</h2>
+              {#if loadingImages && !showEnhancedImages}
+                <div class="flex items-center text-sm text-gray-500">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Upgrading to high-quality images...
+                </div>
+                             {:else if showEnhancedImages && detailedListing?.detailed_pictures && detailedListing.detailed_pictures.length > 0}
+                 <div class="text-sm text-green-600">
+                   ✓ {detailedListing.detailed_pictures.length} high-quality photos
+                 </div>
+              {:else}
+                <div class="text-sm text-gray-500">
+                  {(listing.pictures?.length || 0) + (listing.thumbnail_url ? 1 : 0)} photos
+                </div>
+              {/if}
+            </div>
+            
+            {#if ENABLE_GALLERY_MODE}
+              <PictureGallery 
+                pictures={showEnhancedImages && detailedListing?.detailed_pictures.length ? 
+                  detailedListing.detailed_pictures.map(p => p.full_url) : 
+                  (listing.pictures && listing.pictures.length > 0 ? listing.pictures : (listing.thumbnail_url ? [listing.thumbnail_url] : []))}
+                title={listing.title}
+                showThumbnails={true}
+                maxHeight="500px"
+              />
+            {:else}
+              <!-- Single Image Mode -->
+              <div class="single-image-container" style="height: 500px">
+                {#if showEnhancedImages && detailedListing?.detailed_pictures.length}
+                  <img 
+                    src={detailedListing.detailed_pictures[0].full_url}
+                    alt={listing.title}
+                    class="w-full h-full object-cover rounded-lg"
+                  />
+                {:else if listing.pictures && listing.pictures.length > 0}
+                  <img 
+                    src={listing.pictures[0]}
+                    alt={listing.title}
+                    class="w-full h-full object-cover rounded-lg"
+                  />
+                {:else if listing.thumbnail_url}
+                  <img 
+                    src={listing.thumbnail_url}
+                    alt={listing.title}
+                    class="w-full h-full object-cover rounded-lg"
+                  />
+                {:else}
+                  <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span class="text-gray-500">No image available</span>
+                  </div>
+                {/if}
+              </div>
+            {/if}
           </div>
-        {/if}
+        </div>
       </div>
 
       <!-- Quick Stats -->
@@ -355,33 +447,29 @@
         <div class="bg-white rounded-lg shadow-sm border p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Pricing Information</h2>
           <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-3">
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Base Price</dt>
-                <dd class="text-sm font-bold text-gray-900">${listing.base_price}</dd>
-              </div>
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Weekly Factor</dt>
-                <dd class="text-sm text-gray-900">{listing.weekly_price_factor}x</dd>
-              </div>
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Monthly Factor</dt>
-                <dd class="text-sm text-gray-900">{listing.monthly_price_factor}x</dd>
-              </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Base Price</dt>
+              <dd class="text-sm text-gray-900">${listing.base_price} {listing.currency}</dd>
             </div>
-            <div class="space-y-3">
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Extra Person Fee</dt>
-                <dd class="text-sm text-gray-900">${listing.extra_person_fee}</dd>
-              </div>
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Guests Included</dt>
-                <dd class="text-sm text-gray-900">{listing.guests_included}</dd>
-              </div>
-              <div class="flex justify-between">
-                <dt class="text-sm font-medium text-gray-600">Security Deposit</dt>
-                <dd class="text-sm text-gray-900">${listing?.security_deposit_fee ?? 0}</dd>
-              </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Weekly Price Factor</dt>
+              <dd class="text-sm text-gray-900">{listing.weekly_price_factor}x</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Monthly Price Factor</dt>
+              <dd class="text-sm text-gray-900">{listing.monthly_price_factor}x</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Extra Person Fee</dt>
+              <dd class="text-sm text-gray-900">${listing.extra_person_fee}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Security Deposit</dt>
+              <dd class="text-sm text-gray-900">${listing.security_deposit_fee}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm font-medium text-gray-600">Guests Included</dt>
+              <dd class="text-sm text-gray-900">{listing.guests_included}</dd>
             </div>
           </dl>
         </div>

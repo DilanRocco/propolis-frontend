@@ -207,51 +207,100 @@ function createPropertyStore() {
         // Fetch both Guesty and Doorloop listings in parallel
         const [guestyListings, doorloopResponse] = await Promise.all([
           // Fetch Guesty listings
-         
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/properties/listings`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
-           
             return await res.json();
           })(),
           // Fetch Doorloop listings
           (async () => {
             const res = await fetchFn(`${PUBLIC_API_URL}/api/doorloop/properties`);
             if (!res.ok) throw new Error(`Server returned ${res.status}`);
-          
             return await res.json();
           })()
         ]);
 
+        // Process Guesty listings - ensure pictures field is present and properly typed
+        const processedGuestyListings: Listing[] = guestyListings.map((listing: any) => ({
+          _id: listing.id,
+          id: listing.id,
+          title: listing.title || listing.nickname || 'Untitled Property',
+          description: listing.description_summary || '',
+          address: {
+            formattedAddress: listing.address_full || `${listing.address_city || ''}, ${listing.address_state || ''}`.trim(),
+            location: {
+              lat: parseFloat(listing.address_latitude) || 0,
+              lng: parseFloat(listing.address_longitude) || 0
+            }
+          },
+          pictures: listing.pictures || [], // Pictures are already processed by backend
+          amenities: listing.amenities || [],
+          type: listing.property_type || listing.room_type || 'unknown',
+          source: 'guesty' as const,
+          active: listing.active === true || listing.active === 'true',
+          base_price: listing.base_price,
+          currency: listing.currency,
+          accommodates: listing.accommodates,
+          bedrooms: listing.bedrooms,
+          property_type: listing.property_type,
+          nickname: listing.nickname,
+          address_full: listing.address_full,
+          address_building_name: listing.address_building_name,
+          address_city: listing.address_city,
+          address_state: listing.address_state,
+          address_neighborhood: listing.address_neighborhood,
+          room_type: listing.room_type,
+          description_summary: listing.description_summary,
+          security_deposit_fee: listing.security_deposit_fee,
+          extra_person_fee: listing.extra_person_fee,
+          guests_included: listing.guests_included,
+          weekly_price_factor: listing.weekly_price_factor,
+          monthly_price_factor: listing.monthly_price_factor,
+          minimum_age: listing.minimum_age,
+          min_nights: listing.min_nights,
+          max_nights: listing.max_nights,
+          area_square_feet: listing.area_square_feet,
+          bathrooms: listing.bathrooms,
+          thumbnail_url: listing.thumbnail_url,
+          cleaning_status: listing.cleaning_status,
+          tags: listing.tags || []
+        }));
+
         // Convert Doorloop properties to Listing format
         const doorloopListings: Listing[] = doorloopResponse.data.map((property: DoorloopProperty) => ({
           _id: property.id,
-          adddress_building_name: property.name,
-          description_summary: property.description || '',
+          id: property.id,
+          title: property.name,
+          description: property.description || '',
           address: {
             formattedAddress: `${property.address.street1}, ${property.address.city}, ${property.address.state} ${property.address.zip}`,
             location: {
-              lat: property.address.lat,
-              lng: property.address.lng
+              lat: property.address.lat || 0,
+              lng: property.address.lng || 0
             }
           },
+          pictures: property.pictures?.map(pic => pic.url) || [],
+          amenities: property.amenities || [],
+          type: property.type,
+          source: 'doorloop' as const,
+          active: property.active,
           address_building_name: property.name,
           address_city: property.address.city,
           address_state: property.address.state,
           address_zip: property.address.zip,
           address_street1: property.address.street1,
           address_street2: property.address.street2,
-          pictures: property.pictures?.map(pic => pic.url) || [],
-          amenities: property.amenities || [],
-          type: property.type,
-          source: 'doorloop',
           room_type: property.type,
-          active: property.active,
+          name: property.name,
+          numActiveUnits: property.numActiveUnits,
+          class: property.class,
+          settings: property.settings
         }));
 
         // Combine listings from both sources
-        const allListings = [...guestyListings, ...doorloopListings];
-        console.log(allListings)
+        const allListings = [...processedGuestyListings, ...doorloopListings];
+        console.log('All listings with pictures:', allListings);
+        
         update(state => ({
           ...state,
           listings: allListings,

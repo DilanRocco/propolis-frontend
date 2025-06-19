@@ -7,6 +7,7 @@
 	import { fade, fly, scale } from 'svelte/transition';
 	import { ListFilter, Search, Grid, List } from 'lucide-svelte';
 	import PropertyDetails from '$lib/components/PropertyDetails.svelte';
+	import PictureGallery from '$lib/components/PictureGallery.svelte';
 
 	// Subscribe to the store
 	$: ({ listings, loading, error } = $propertyStore);
@@ -583,13 +584,23 @@
 													role="button"
 													tabindex="0"
 												>
-													<!-- Property Image -->
+													<!-- Property Image Gallery -->
 													<div class="relative h-48 w-full overflow-hidden">
-														{#if listing.source === 'guesty' && listing.pictures && listing.pictures.length > 0}
+														{#if listing.pictures && listing.pictures.length > 0}
+															<div class="h-full w-full">
+																<PictureGallery 
+																	pictures={listing.pictures}
+																	title={listing.title}
+																	showThumbnails={false}
+																	maxHeight="192px"
+																/>
+															</div>
+														{:else if listing.thumbnail_url}
 															<img
-																src={listing.pictures[0]}
+																src={listing.thumbnail_url}
 																alt={listing.title}
-																class="h-full w-full object-cover"
+																class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+																loading="lazy"
 															/>
 														{:else}
 															<div class="h-full w-full bg-gray-100 flex items-center justify-center">

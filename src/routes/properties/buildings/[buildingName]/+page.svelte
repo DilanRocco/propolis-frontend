@@ -246,11 +246,19 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                   {console.log(listing)}
-                  {#if listing.thumbnail_url != ""}
+                  {#if listing.pictures && listing.pictures.length > 0}
+                    <img 
+                      src={listing.pictures[0]} 
+                      alt={listing.title}
+                      class="w-16 h-16 object-cover rounded-lg"
+                      loading="lazy"
+                    />
+                  {:else if listing.thumbnail_url && listing.thumbnail_url !== ""}
                     <img 
                       src={listing.thumbnail_url} 
                       alt={listing.title}
                       class="w-16 h-16 object-cover rounded-lg"
+                      loading="lazy"
                     />
                   {:else}
                     <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
