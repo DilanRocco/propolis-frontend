@@ -37,7 +37,7 @@
 			messageSubject = '';
 			messageContent = '';
 
-			alert(`Message sent successfully to ${getRecipientCount()} ${getTargetLabel()} properties!`);
+			alert(`Example message sent successfully! (Not actually sent)`);
 		} catch (error) {
 			alert('Failed to send message. Please try again.');
 		} finally {
