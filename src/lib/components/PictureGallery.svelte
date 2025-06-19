@@ -1,13 +1,13 @@
 <!-- PictureGallery.svelte -->
 <script lang="ts">
   // 🚩 FEATURE FLAG: Toggle between full gallery and single image mode
-  const ENABLE_FULL_GALLERY = true; // Set to false to show only first image
+  const ENABLE_FULL_GALLERY = false; // Set to false to show only first image
   
   export let pictures: string[] = [];
   export let title: string = '';
   export let showThumbnails: boolean = true;
   export let maxHeight: string = '400px';
-  export let loadImages: boolean = true;
+
 
   let currentImageIndex = 0;
   let showLightbox = false;
@@ -294,19 +294,7 @@
     transform: scale(1.02);
   }
 
-  .image-placeholder {
-    width: 100%;
-    height: 100%;
-    border: none;
-    padding: 0;
-    background: #f9fafb;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-  }
-
+ 
   .image-placeholder:hover {
     background: #f3f4f6;
   }
@@ -320,22 +308,9 @@
     color: #6b7280;
   }
 
-  .placeholder-icon {
-    margin-bottom: 12px;
-  }
 
-  .placeholder-text {
-    margin: 0 0 4px 0;
-    font-size: 16px;
-    font-weight: 500;
-    color: #374151;
-  }
 
-  .placeholder-count {
-    margin: 0;
-    font-size: 14px;
-    color: #6b7280;
-  }
+
 
   .nav-button {
     position: absolute;
