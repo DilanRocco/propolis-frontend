@@ -75,9 +75,7 @@
 			.trim();
 		
 		// Debug: log normalization for testing
-		if (name !== normalized) {
-			console.log(`Normalized "${name}" -> "${normalized}"`);
-		}
+
 		
 		return normalized;
 	}
