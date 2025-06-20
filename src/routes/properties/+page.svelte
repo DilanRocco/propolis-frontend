@@ -691,9 +691,9 @@
 																{#if listing.base_price}
 																	<div class="text-lg font-semibold text-green-600">
 																		${listing.base_price.toLocaleString()}
-																		{#if listing.currency}
-																			<span class="text-xs font-normal text-slate-500">/{listing.currency}</span>
-																		{/if}
+																		<span class="text-xs font-normal text-slate-500">
+																			/{listing.source === 'doorloop' ? 'month' : 'night'}
+																		</span>
 																	</div>
 																{/if}
 															</div>

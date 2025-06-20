@@ -223,16 +223,15 @@
 
         <div class="bg-white rounded-lg shadow-sm p-6 border">
           <h3 class="text-lg font-semibold text-gray-900 mb-3">Revenue Overview</h3>
-          <div class="space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Total Revenue</span>
-              <span class="text-lg font-bold text-green-600">${buildingStats.totalRevenue.toLocaleString()}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Avg per Property</span>
-              <span class="text-sm font-medium text-gray-900">
-                ${Math.round(buildingStats.totalRevenue / buildingStats.totalProperties || 0).toLocaleString()}
-              </span>
+          <div class="flex items-center justify-center py-4">
+            <div class="text-center">
+              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 mb-2">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Coming Soon
+              </div>
+              <p class="text-xs text-gray-500">Revenue tracking will be available in a future update</p>
             </div>
           </div>
         </div>
@@ -295,13 +294,10 @@
                 <div class="flex items-center space-x-4">
                   <div class="text-right">
                     <div class="text-lg font-semibold text-gray-900">${listing.base_price}</div>
-                    <div class="text-sm text-gray-500">per night</div>
+                    <div class="text-sm text-gray-500">per {listing.source === 'doorloop' ? 'month' : 'night'}</div>
                   </div>
 
                   <div class="flex items-center space-x-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {listing.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                      {listing.active ? 'Active' : 'Inactive'}
-                    </span>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {listing.source === 'guesty' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
                       {listing.source === 'guesty' ? 'Short Term' : 'Long Term'}
                     </span>
