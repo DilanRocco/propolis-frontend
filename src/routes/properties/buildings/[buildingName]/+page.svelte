@@ -13,10 +13,23 @@
   // Subscribe to store
   $: ({ listings, listingData, loading, error } = $propertyStore);
   
-  // Filter listings for this building
-  $: buildingListings = listings.filter(listing => 
-    listing.address_building_name === buildingName
-  );
+  // Function to normalize building names (same as in main properties page)
+  function normalizeBuildingName(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/\s+(apartments?|complex|building|tower|plaza|court|place)s?$/i, '')
+      .trim();
+  }
+  
+  // Filter listings for this building using normalized names
+  $: buildingListings = listings.filter(listing => {
+    if (!listing.address_building_name) return false;
+    
+    const normalizedBuildingName = normalizeBuildingName(buildingName);
+    const normalizedListingBuildingName = normalizeBuildingName(listing.address_building_name);
+    
+    return normalizedListingBuildingName === normalizedBuildingName;
+  });
 
   // Calculate building stats
   $: buildingStats = {
@@ -75,14 +88,7 @@
           </button>
         </div>
         
-        <div class="flex items-center space-x-3">
-          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Manage Building
-          </button>
-          <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-            Export Data
-          </button>
-        </div>
+
       </div>
     </div>
   </div>
@@ -135,6 +141,9 @@
             <div class="ml-4">
               <p class="text-sm font-medium text-gray-600">Total Properties</p>
               <p class="text-2xl font-bold text-gray-900">{buildingStats.totalProperties}</p>
+              <div class="text-xs text-gray-500 mt-1">
+                {buildingListings.filter(l => l.source === 'guesty').length} Short Term • {buildingListings.filter(l => l.source === 'doorloop').length} Long Term
+              </div>
             </div>
           </div>
         </div>
@@ -293,7 +302,9 @@
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {listing.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
                       {listing.active ? 'Active' : 'Inactive'}
                     </span>
-                    
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {listing.source === 'guesty' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                      {listing.source === 'guesty' ? 'Short Term' : 'Long Term'}
+                    </span>
                   </div>
 
                   <button

@@ -67,18 +67,45 @@
 		listing.address_building_name && listing.address_building_name.trim() !== ''
 	);
 
-	// Group filtered listings by building name
+	// Function to normalize building names for grouping similar names
+	function normalizeBuildingName(name: string): string {
+		const normalized = name
+			.toLowerCase()
+			.replace(/\s+(apartments?|complex|building|tower|plaza|court|place)s?$/i, '')
+			.trim();
+		
+		// Debug: log normalization for testing
+		if (name !== normalized) {
+			console.log(`Normalized "${name}" -> "${normalized}"`);
+		}
+		
+		return normalized;
+	}
+
+	// Group filtered listings by normalized building name
 	$: groupedListings = listingsWithBuildingNames.reduce(
 		(acc, listing) => {
-			const buildingName = listing.address_building_name!; // Safe to use ! since we filtered above
+			const originalBuildingName = listing.address_building_name!;
+			const normalizedName = normalizeBuildingName(originalBuildingName);
 			
-			if (!acc[buildingName]) {
-				acc[buildingName] = [];
+			// Use the first (alphabetically) building name as the display name for the group
+			if (!acc[normalizedName]) {
+				acc[normalizedName] = {
+					displayName: originalBuildingName,
+					listings: []
+				};
+			} else {
+				// Update display name to the shorter one (usually the one without "apartments")
+				const currentDisplayName = acc[normalizedName].displayName;
+				if (originalBuildingName.length < currentDisplayName.length) {
+					acc[normalizedName].displayName = originalBuildingName;
+				}
 			}
-			acc[buildingName].push(listing);
+			
+			acc[normalizedName].listings.push(listing);
 			return acc;
 		},
-		{} as Record<string, Listing[]>
+		{} as Record<string, { displayName: string; listings: Listing[] }>
 	);
 
 	// Track which buildings are expanded
@@ -470,7 +497,7 @@
 			{:else}
 				<!-- Buildings Grid - Key added to force re-render with stable transitions -->
 				<div class="space-y-6">
-					{#each Object.entries(groupedListings) as [buildingName, buildingListings], i (buildingName)}
+					{#each Object.entries(groupedListings) as [normalizedName, { displayName, listings: buildingListings }], i (normalizedName)}
 						<div class="group">
 							<!-- Building Card -->
 							<div
@@ -480,32 +507,42 @@
 								<div class="border-b border-slate-100 p-6">
 									<div class="flex items-center justify-between">
 										<button
-											on:click={() => handleBuildingClick(buildingName, buildingListings)}
+											on:click={() => handleBuildingClick(displayName, buildingListings)}
 											class="group/header flex-1 text-left"
 										>
-											<div class="flex items-center">
-												<div
-													class="from-coral-500 to-coral-600 mr-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-md transition-transform duration-200 group-hover/header:scale-105"
-												>
-													<svg
-														class="h-6 w-6 text-white"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0H3m2 0v-1a1 1 0 011-1h1m-1 4h12"
-														/>
-													</svg>
-												</div>
+																					<div class="flex items-center">
+											<!-- Building Thumbnail -->
+											<div class="mr-4 h-16 w-16 overflow-hidden rounded-xl shadow-md transition-transform duration-200 group-hover/header:scale-105">
+												{#if buildingListings[0]?.thumbnail_url}
+													<img 
+														src={buildingListings[0].thumbnail_url} 
+														alt={displayName}
+														class="h-full w-full object-cover"
+														loading="lazy"
+													/>
+												{:else}
+													<div class="from-coral-500 to-coral-600 flex h-full w-full items-center justify-center bg-gradient-to-br">
+														<svg
+															class="h-6 w-6 text-white"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																stroke-width="2"
+																d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0H3m2 0v-1a1 1 0 011-1h1m-1 4h12"
+															/>
+														</svg>
+													</div>
+												{/if}
+											</div>
 												<div>
 													<h2
 														class="group-hover/header:text-coral-600 text-2xl font-bold text-slate-800 transition-colors duration-200"
 													>
-														{buildingName}
+														{displayName}
 													</h2>
 													<div class="mt-1 flex items-center text-slate-600">
 														<svg
@@ -532,13 +569,15 @@
 																?.address_state}</span
 														>
 													</div>
-													<div class="mt-1 flex items-center">
+													<div class="mt-1 flex items-center space-x-2">
 														<span
 															class="bg-coral-100 border-coral-200 text-coral-700 rounded-full border px-2 py-1 text-xs font-medium"
 														>
 															{buildingListings.length}
 															{buildingListings.length === 1 ? 'apartment' : 'apartments'}
 														</span>
+														<!-- Source indicators -->
+
 													</div>
 												</div>
 											</div>
@@ -546,12 +585,12 @@
 
 										<button
 										    aria-label = "Expand Click"
-											on:click={(event) => handleExpandClick(buildingName)}
+											on:click={(event) => handleExpandClick(displayName)}
 											class="hover:bg-coral-50 ml-4 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 transition-all duration-200 hover:scale-105"
 										>
 											<svg
 												class="h-5 w-5 transform text-slate-600 transition-transform duration-300 {expandedBuildings.has(
-													buildingName
+													displayName
 												)
 													? 'rotate-180'
 													: ''}"
@@ -571,7 +610,7 @@
 								</div>
 
 								<!-- Expandable Properties -->
-								{#if expandedBuildings.has(buildingName)}
+								{#if expandedBuildings.has(displayName)}
 									<div
 										class="p-6"
 										in:fly={{ y: -10, duration: 300 }}
@@ -616,8 +655,8 @@
 															</div>
 														{/if}
 														<div class="absolute right-3 top-3">
-															<span class="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-xs font-medium text-slate-700 backdrop-blur-sm">
-																{listing.source === 'guesty' ? 'Guesty' : 'Doorloop'}
+															<span class="rounded-full border border-slate-200 bg-white/90 px-2 py-1 text-xs font-medium backdrop-blur-sm {listing.source === 'guesty' ? 'text-blue-700 bg-blue-50/90 border-blue-200' : 'text-green-700 bg-green-50/90 border-green-200'}">
+																{listing.source === 'guesty' ? 'Short Term' : 'Long Term'}
 															</span>
 														</div>
 													</div>
