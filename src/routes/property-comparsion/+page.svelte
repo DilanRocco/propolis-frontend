@@ -124,7 +124,7 @@
 <ProtectedRoute>
 <div class="dashboard-container">
 	<div class="card">
-		<h2 class="card-title">Property Revenue Comparison</h2>
+		
 
 		<!-- Property filters component -->
 		<Filter
@@ -180,22 +180,9 @@
 		padding: 0rem;
 	}
 
-	.card {
-		background: white;
-		border-radius: 12px;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-		padding: 1.5rem;
-		margin-bottom: 1.5rem;
-	}
 
-	.card-title {
-		color: #333;
-		font-size: 2.25rem;
-		font-weight: 700;
-		margin: 0 0 1.5rem 0;
-		border-bottom: 2px solid #f5f5f5;
-		padding-bottom: 0.75rem;
-	}
+
+
 
 	.selected-properties {
 		display: flex;
@@ -219,10 +206,6 @@
 			border-radius: 10px;
 		}
 
-		.card-title {
-			font-size: 1.25rem;
-			margin-bottom: 1rem;
-			padding-bottom: 0.5rem;
-		}
+
 	}
 </style>

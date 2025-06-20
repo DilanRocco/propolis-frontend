@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Building, Book, Users,  } from 'lucide-svelte';
+import { Home, MessageCircle, Building, Book, Users, MapPin, Eye } from 'lucide-svelte';
 
 // Main navigation routes
 export const routes = [
@@ -24,9 +24,9 @@ export const routes = [
     description: "Message the properties"
   },
   {
-    id: 'property-comparsion',
+    id: 'property-comparison',
     path: '/property-comparsion',
-    name: "Property Comparsion",
+    name: "Property Comparison",
     icon: Book,
     description: "Compare properties and units"
   }
@@ -42,6 +42,20 @@ export const hiddenRoutes = [
     name: "Login",
     icon: Users,
     description: "Login into the app"
+  },
+  {
+    id: 'building-detail',
+    path: '/properties/buildings',
+    name: "Building Overview",
+    icon: Building,
+    description: "Detailed view of building properties"
+  },
+  {
+    id: 'property-detail',
+    path: '/properties/listings',
+    name: "Property Details",
+    icon: Eye,
+    description: "Detailed view of individual property"
   }
 ]
 
@@ -71,7 +85,8 @@ export function getRouteByPath(path: string) {
   return route || { 
     name: 'Not Found', 
     description: 'Page not found',
-    path: '/404'
+    path: '/404',
+    icon: null
   };
 }
 

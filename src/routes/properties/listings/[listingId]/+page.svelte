@@ -213,8 +213,9 @@
                   <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                   Upgrading to high-quality images...
                 </div>
-                             {:else if showEnhancedImages && detailedListing?.detailed_pictures && detailedListing.detailed_pictures.length > 0}
+                             {:else if showEnhancedImages && detailedListing?.detailed_pictures && detailedListing.detailed_pictures.length > 0 && ENABLE_GALLERY_MODE}
                  <div class="text-sm text-green-600">
+                  
                    ✓ {detailedListing.detailed_pictures.length} high-quality photos
                  </div>
               {:else}
