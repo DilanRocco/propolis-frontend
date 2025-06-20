@@ -261,19 +261,11 @@
 
 	<div class="relative z-10">
 		<!-- Header -->
-		<div class="container mx-auto px-6 pb-6 pt-8">
+		<div class="container mx-auto  pb-6 " style="max-width: 1400px;">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<!-- Title Section -->
-				<div class="space-y-3">
-					<h1
-						class="via-coral-600 to-coral-700 bg-gradient-to-r from-slate-800 bg-clip-text text-4xl font-bold text-transparent lg:text-5xl"
-					>
-						Property Portfolio
-					</h1>
-					<p class="max-w-2xl text-lg text-slate-600">
-						Discover and manage your premium property collection with advanced filtering and
-						insights
-					</p>
+				<div class="space-y-0">
+
 
 					<!-- Stats Cards - Removed problematic transition -->
 					{#if !loading}
@@ -331,7 +323,7 @@
 
 		<!-- Advanced Filters Panel -->
 		{#if showFilters}
-			<div class="container mx-auto mb-6 px-6" transition:fly={{ y: -20, duration: 400 }}>
+			<div class="container mx-auto mb-6 px-6" style="max-width: 1400px;" transition:fly={{ y: -20, duration: 400 }}>
 				<div class="border-coral-200 rounded-2xl border bg-white/90 p-6 shadow-lg backdrop-blur-xl">
 					<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 						<!-- Search -->
@@ -459,7 +451,7 @@
 		{/if}
 
 		<!-- Content Area -->
-		<div class="container mx-auto px-6 pb-8">
+		<div class="container mx-auto pb-8" style="max-width: 1400px;">
 			{#if loading}
 				<div class="flex flex-col items-center justify-center py-20" in:fade>
 					<div class="relative">

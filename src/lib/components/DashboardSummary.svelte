@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { DashboardData } from '../types/dashboard';
   import { dashboardLoading } from '../stores/simpleDashboardStore';
+	import WelcomeCard from './dashboard/WelcomeCard.svelte';
   
   export let dashboardData: DashboardData;
   
@@ -33,7 +34,8 @@
 </script>
 
 <div class="dashboard-summary">
-  <h1>Property Management Dashboard</h1>
+  
+  <WelcomeCard />
   <p class="subtitle">Real-time data from Doorloop (Long-term) and Guesty (Short-term)</p>
   
   <!-- Revenue Section -->
@@ -162,17 +164,10 @@
 
 <style>
   .dashboard-summary {
-    padding: 2rem;
+    padding: 0rem;
     max-width: 1400px;
     margin: 0 auto;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  
-  h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 0.5rem 0;
   }
   
   .subtitle {
@@ -351,9 +346,7 @@
       padding: 1rem;
     }
     
-    h1 {
-      font-size: 2rem;
-    }
+
     
     .cards-grid {
       grid-template-columns: 1fr;

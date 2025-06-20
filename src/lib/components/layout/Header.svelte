@@ -30,7 +30,7 @@
 	
 </script>
 
-<header class="bg-gray-50s px-6 py-4">
+<header class="bg-gray-50s px-6 py-6">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
 			{#if !isDesktop}
@@ -51,8 +51,8 @@
 			{/if}
 
 			<div>
-				<h1 class="text-2xl font-bold text-gray-800">{currentRoute.name}</h1>
-				<p class="text-sm text-gray-500">{currentRoute.description}</p>
+				<h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-coral-600 to-coral-700 bg-clip-text text-transparent">{currentRoute.name}</h1>
+				<p class="text-1xl text-gray-500">{currentRoute.description}</p>
 			</div>
 		</div>
 

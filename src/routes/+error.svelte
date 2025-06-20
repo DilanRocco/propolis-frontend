@@ -15,7 +15,7 @@
   <div class="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
     <div class="text-9xl font-bold text-gray-200 mb-4">{$page.status}</div>
     
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">
       {#if $page.status === 404}
         Page Not Found
       {:else}
@@ -23,7 +23,7 @@
       {/if}
     </h1>
     
-    <p class="text-gray-600 max-w-md mb-8">
+    <p class="text-xl text-gray-600 max-w-md mb-8">
       {$page.error?.message || 
         ($page.status === 404 
           ? 'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.'

@@ -19,7 +19,7 @@ export const routes = [
   {
     id: 'Message',
     path: '/messages',
-    name: "Chat",
+    name: "Mass Messaging",
     icon: MessageCircle,
     description: "Message the properties"
   },

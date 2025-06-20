@@ -175,8 +175,9 @@
 
 	.dashboard-container {
 		font-family: var(--font-family);
-		max-width: 100%;
-		padding: 1rem;
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 0rem;
 	}
 
 	.card {
@@ -189,8 +190,8 @@
 
 	.card-title {
 		color: #333;
-		font-size: 1.5rem;
-		font-weight: 600;
+		font-size: 2.25rem;
+		font-weight: 700;
 		margin: 0 0 1.5rem 0;
 		border-bottom: 2px solid #f5f5f5;
 		padding-bottom: 0.75rem;

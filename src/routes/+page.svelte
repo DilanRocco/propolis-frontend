@@ -25,8 +25,8 @@
 	<title>Dashboard | Financial Dashboard</title>
 </svelte:head>
 <ProtectedRoute>
-	<div class="space-y-8">
-		<WelcomeCard />
+	<div class="space-y-0">
+		
 		
 		{#if loading}
 			<div class="flex items-center justify-center py-12">

@@ -106,7 +106,7 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header -->
   <div class="bg-white shadow-sm border-b">
-    <div class="container mx-auto px-6 py-4">
+    <div class="container mx-auto px-6 py-4" style="max-width: 1400px;">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <button
@@ -148,7 +148,7 @@
     </div>
   </div>
 
-  <div class="container mx-auto px-6 py-8">
+  <div class="container mx-auto px-6 py-8" style="max-width: 1400px;">
     {#if loading}
       <div class="flex justify-center items-center py-12">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -183,8 +183,8 @@
             {#if listing.nickname}
               <p class="text-xl text-gray-600 mb-2">{listing.nickname}</p>
             {/if}
-            <p class="text-lg text-gray-500">{listing.address_full}</p>
-            <p class="text-gray-500">{listing.address_city}, {listing.address_state}</p>
+            <p class="text-xl text-gray-500">{listing.address_full}</p>
+            <p class="text-xl text-gray-500">{listing.address_city}, {listing.address_state}</p>
           </div>
           
           <div class="text-right">

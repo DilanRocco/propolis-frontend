@@ -97,17 +97,7 @@
 	<!-- Header Section -->
 	<div class="messages-container">
 		<div class="header-section">
-			<div class="flex items-center gap-4">
-				<div
-					class="flex h-16 w-16 flex-col items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white"
-				>
-					<MessageSquare class="h-8 w-8" />
-				</div>
-				<div>
-					<h1 class="text-3xl font-bold text-gray-800">Mass Messaging</h1>
-					<p class="text-lg text-gray-600">Send messages to your rental properties</p>
-				</div>
-			</div>
+
 
 			<!-- Quick Stats -->
 			<div class="stats-row">
@@ -254,8 +244,8 @@
 
 <style>
 	.messages-container {
-		padding: 2rem;
-		max-width: 1200px;
+		padding: 0rem;
+		max-width: 1400px;
 		margin: 0 auto;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	}
