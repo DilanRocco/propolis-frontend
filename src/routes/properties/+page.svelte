@@ -511,13 +511,13 @@
 																					<div class="flex items-center">
 											<!-- Building Thumbnail -->
 											<div class="mr-4 h-16 w-16 overflow-hidden rounded-xl shadow-md transition-transform duration-200 group-hover/header:scale-105">
-												{#if buildingListings[0]?.thumbnail_url}
-													<img 
-														src={buildingListings[0].thumbnail_url} 
-														alt={displayName}
-														class="h-full w-full object-cover"
-														loading="lazy"
-													/>
+																							{#if buildingListings[0]?.thumbnail_url || (buildingListings[0]?.pictures && buildingListings[0]?.pictures.length > 0)}
+												<img 
+													src={buildingListings[0]?.thumbnail_url || buildingListings[0]?.pictures?.[0]} 
+													alt={displayName}
+													class="h-full w-full object-cover"
+													loading="lazy"
+												/>
 												{:else}
 													<div class="from-coral-500 to-coral-600 flex h-full w-full items-center justify-center bg-gradient-to-br">
 														<svg
@@ -638,9 +638,9 @@
 																	maxHeight="192px"
 																/>
 															</div>
-														{:else if listing.thumbnail_url}
+														{:else if listing.thumbnail_url || (listing.pictures && listing.pictures.length > 0)}
 															<img
-																src={listing.thumbnail_url}
+																src={listing.thumbnail_url || listing.pictures?.[0]}
 																alt={listing.title}
 																class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
 																loading="lazy"
