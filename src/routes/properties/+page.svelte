@@ -62,10 +62,16 @@
 		return true;
 	});
 
+	// Filter out listings with empty building names, then group by building name
+	$: listingsWithBuildingNames = filteredListings.filter(listing => 
+		listing.address_building_name && listing.address_building_name.trim() !== ''
+	);
+
 	// Group filtered listings by building name
-	$: groupedListings = filteredListings.reduce(
+	$: groupedListings = listingsWithBuildingNames.reduce(
 		(acc, listing) => {
-			const buildingName = listing.address_building_name ?? (listing.source === 'doorloop' ? listing.title : "Unknown Building");
+			const buildingName = listing.address_building_name!; // Safe to use ! since we filtered above
+			
 			if (!acc[buildingName]) {
 				acc[buildingName] = [];
 			}
