@@ -214,7 +214,7 @@
               <div class="flex justify-between items-center">
                 <span class="text-sm text-gray-600 capitalize">{type}</span>
                 <span class="text-sm font-medium text-gray-900">
-                  {buildingListings.filter(l => l.property_type === type).length}
+                  {buildingListings.filter(l => (l.property_type || l.type) === type).length}
                 </span>
               </div>
             {/each}
@@ -253,7 +253,7 @@
             <div class="p-6 hover:bg-gray-50 transition-colors">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                  {console.log(listing)}
+                
                   {#if listing.pictures && listing.pictures.length > 0}
                     <img 
                       src={listing.pictures[0]} 

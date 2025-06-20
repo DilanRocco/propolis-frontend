@@ -41,6 +41,23 @@ function createPropertyStore() {
   let loadedListings = false;
   let loadedNames = false;
 
+  // Utility function to normalize property types
+  function normalizePropertyType(propertyType: string | undefined): string {
+    if (!propertyType) return 'Unknown';
+    const normalized = propertyType.toLowerCase();
+    
+    // Map common property type variations
+    if (normalized === 'dorm') {
+      return 'Apartment';
+    }
+    if (normalized === 'residential_multi_family') {
+      return 'Multi-Family';
+    }
+    
+    // Capitalize first letter for consistency
+    return propertyType.charAt(0).toUpperCase() + propertyType.slice(1).toLowerCase();
+  }
+
   return {
     subscribe,
 
@@ -227,50 +244,55 @@ function createPropertyStore() {
         ]);
 
         // Process Guesty listings - ensure pictures field is present and properly typed
-        const processedGuestyListings: Listing[] = guestyListings.map((listing: any) => ({
-          _id: listing.id,
-          id: listing.id,
-          title: listing.title || listing.nickname || 'Untitled Property',
-          description: listing.description_summary || '',
-          address: {
-            formattedAddress: listing.address_full || `${listing.address_city || ''}, ${listing.address_state || ''}`.trim(),
-            location: {
-              lat: parseFloat(listing.address_latitude) || 0,
-              lng: parseFloat(listing.address_longitude) || 0
-            }
-          },
-          pictures: listing.pictures || [], // Pictures are already processed by backend
-          amenities: listing.amenities || [],
-          type: listing.property_type || listing.room_type || 'unknown',
-          source: 'guesty' as const,
-          active: listing.active === true || listing.active === 'true',
-          base_price: listing.base_price,
-          currency: listing.currency,
-          accommodates: listing.accommodates,
-          bedrooms: listing.bedrooms,
-          property_type: listing.property_type,
-          nickname: listing.nickname,
-          address_full: listing.address_full,
-          address_building_name: listing.address_building_name,
-          address_city: listing.address_city,
-          address_state: listing.address_state,
-          address_neighborhood: listing.address_neighborhood,
-          room_type: listing.room_type,
-          description_summary: listing.description_summary,
-          security_deposit_fee: listing.security_deposit_fee,
-          extra_person_fee: listing.extra_person_fee,
-          guests_included: listing.guests_included,
-          weekly_price_factor: listing.weekly_price_factor,
-          monthly_price_factor: listing.monthly_price_factor,
-          minimum_age: listing.minimum_age,
-          min_nights: listing.min_nights,
-          max_nights: listing.max_nights,
-          area_square_feet: listing.area_square_feet,
-          bathrooms: listing.bathrooms,
-          thumbnail_url: listing.thumbnail_url,
-          cleaning_status: listing.cleaning_status,
-          tags: listing.tags || []
-        }));
+        const processedGuestyListings: Listing[] = guestyListings.map((listing: any) => {
+          const normalizedPropertyType = normalizePropertyType(listing.property_type);
+          const normalizedRoomType = normalizePropertyType(listing.room_type);
+          
+          return {
+            _id: listing.id,
+            id: listing.id,
+            title: listing.title || listing.nickname || 'Untitled Property',
+            description: listing.description_summary || '',
+            address: {
+              formattedAddress: listing.address_full || `${listing.address_city || ''}, ${listing.address_state || ''}`.trim(),
+              location: {
+                lat: parseFloat(listing.address_latitude) || 0,
+                lng: parseFloat(listing.address_longitude) || 0
+              }
+            },
+            pictures: listing.pictures || [], // Pictures are already processed by backend
+            amenities: listing.amenities || [],
+            type: normalizedPropertyType || normalizedRoomType || 'Unknown',
+            source: 'guesty' as const,
+            active: listing.active === true || listing.active === 'true',
+            base_price: listing.base_price,
+            currency: listing.currency,
+            accommodates: listing.accommodates,
+            bedrooms: listing.bedrooms,
+            property_type: normalizedPropertyType,
+            nickname: listing.nickname,
+            address_full: listing.address_full,
+            address_building_name: listing.address_building_name,
+            address_city: listing.address_city,
+            address_state: listing.address_state,
+            address_neighborhood: listing.address_neighborhood,
+            room_type: normalizedRoomType,
+            description_summary: listing.description_summary,
+            security_deposit_fee: listing.security_deposit_fee,
+            extra_person_fee: listing.extra_person_fee,
+            guests_included: listing.guests_included,
+            weekly_price_factor: listing.weekly_price_factor,
+            monthly_price_factor: listing.monthly_price_factor,
+            minimum_age: listing.minimum_age,
+            min_nights: listing.min_nights,
+            max_nights: listing.max_nights,
+            area_square_feet: listing.area_square_feet,
+            bathrooms: listing.bathrooms,
+            thumbnail_url: listing.thumbnail_url,
+            cleaning_status: listing.cleaning_status,
+            tags: listing.tags || []
+          };
+        });
 
         // Group units by property ID
         const unitsByProperty: Record<string, DoorloopUnit[]> = {};
@@ -292,6 +314,8 @@ function createPropertyStore() {
           if (propertyUnits.length > 0) {
             // If property has units, create a listing for each unit
             propertyUnits.forEach((unit: DoorloopUnit) => {
+              const normalizedPropertyType = normalizePropertyType(property.type);
+              
               doorloopListings.push({
                 _id: unit.id,
                 id: unit.id,
@@ -308,7 +332,7 @@ function createPropertyStore() {
                 },
                 pictures: unit.pictures?.map(pic => pic.url) || property.pictures?.map(pic => pic.url) || [],
                 amenities: unit.amenities || property.amenities || [],
-                type: property.type,
+                type: normalizedPropertyType,
                 source: 'doorloop' as const,
                 active: unit.active,
                 address_building_name: property.name,
@@ -317,7 +341,8 @@ function createPropertyStore() {
                 address_zip: unit.addressSameAsProperty ? property.address.zip : unit.address.zip,
                 address_street1: unit.addressSameAsProperty ? property.address.street1 : unit.address.street1,
                 address_street2: unit.addressSameAsProperty ? property.address.street2 : unit.address.street2,
-                room_type: property.type,
+                property_type: normalizedPropertyType,
+                room_type: normalizedPropertyType,
                 name: property.name,
                 unit_name: unit.name,
                 bedrooms: unit.beds,
@@ -333,6 +358,8 @@ function createPropertyStore() {
             });
           } else {
             // If property has no units, create a listing for the property itself
+            const normalizedPropertyType = normalizePropertyType(property.type);
+            
             doorloopListings.push({
               _id: property.id,
               id: property.id,
@@ -347,7 +374,7 @@ function createPropertyStore() {
               },
               pictures: property.pictures?.map(pic => pic.url) || [],
               amenities: property.amenities || [],
-              type: property.type,
+              type: normalizedPropertyType,
               source: 'doorloop' as const,
               active: property.active,
               address_building_name: property.name,
@@ -356,7 +383,8 @@ function createPropertyStore() {
               address_zip: property.address.zip,
               address_street1: property.address.street1,
               address_street2: property.address.street2,
-              room_type: property.type,
+              property_type: normalizedPropertyType,
+              room_type: normalizedPropertyType,
               name: property.name,
               numActiveUnits: property.numActiveUnits,
               class: property.class,
