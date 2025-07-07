@@ -17,7 +17,8 @@ export interface DoorloopOccupancyResponse {
  */
 export async function getDoorloopOccupancyRate(
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  propertyId?: string,
 ): Promise<DoorloopOccupancyResponse> {
   const url = new URL(`${PUBLIC_API_URL}/api/doorloop/occupancy-rate-doorloop`);
   
@@ -27,6 +28,10 @@ export async function getDoorloopOccupancyRate(
   
   if (endDate) {
     url.searchParams.append('date_to', endDate);
+  }
+
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
   }
 
   const response = await fetch(url.toString(), {

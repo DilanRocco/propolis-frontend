@@ -8,6 +8,7 @@ import {
   extractLongTermRevenue,
   extractShortTermRevenue
 } from '../api/revenue';
+import { globalPropertyFilter } from './globalPropertyFilter';
 
 export interface DateRange {
   startDate: string;
@@ -50,12 +51,15 @@ export const dashboardDateRange = writable<DateRange>(getCurrentMonthRange());
 // Simple action functions
 export async function fetchDashboardData(dateRange?: DateRange) {
   const range = dateRange || get(dashboardDateRange);
+  const propertyFilter = get(globalPropertyFilter);
+  const selectedPropertyId = propertyFilter.selectedProperty?.id;
   
   dashboardLoading.set(true);
   dashboardError.set(null);
 
   try {
     console.log('Fetching dashboard data for range:', range);
+    console.log('Selected property ID:', selectedPropertyId);
     
     // Fetch all data in parallel
     const [
@@ -64,8 +68,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       guestyRevenue,
       shortTermOccupancy
     ] = await Promise.all([
-      getDoorloopOccupancyRate(range.startDate, range.endDate),
-      getDoorloopProfitLoss('cash', range.startDate, range.endDate),
+      getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
       getGuestyRevenue(range.startDate, range.endDate),
       getShortTermOccupancyRate(range.startDate, range.endDate)
     ]);
@@ -131,4 +135,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
 export function updateDateRange(newDateRange: DateRange) {
   dashboardDateRange.set(newDateRange);
   fetchDashboardData(newDateRange);
+}
+
+export function refetchDashboardData() {
+  fetchDashboardData();
 } 

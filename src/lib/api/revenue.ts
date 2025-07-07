@@ -82,11 +82,13 @@ export interface ShortTermOccupancyResponse {
  * @param accountingMethod - Accounting method (cash/accrual)
  * @param startDate - Start date (YYYY-MM-DD)
  * @param endDate - End date (YYYY-MM-DD)
+ * @param propertyId - Property ID
  */
 export async function getDoorloopProfitLoss(
   accountingMethod: string = 'cash',
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  propertyId?: string,
 ): Promise<DoorloopProfitLossResponse> {
   const url = new URL(`${PUBLIC_API_URL}/api/doorloop/profit-and-loss`);
   
@@ -98,6 +100,10 @@ export async function getDoorloopProfitLoss(
   
   if (endDate) {
     url.searchParams.append('end_date', endDate);
+  }
+  
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
   }
 
   const response = await fetch(url.toString(), {
