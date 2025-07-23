@@ -99,12 +99,12 @@ const fetchData = async (dateRange?: DateRange) => {
       const averageOccupancyRate = (doorloopOccupancy.occupancy_rate + shortTermOccupancy.occupancy_rate) / 2;
       
       const dashboardData: DashboardData = {
-        longTermRevenue: longTermRevenue,
-        shortTermRevenue: shortTermRevenue,
-        totalRevenue: totalRevenue,
-        longTermOccupancyRate: doorloopOccupancy.occupancy_rate,
-        shortTermOccupancyRate: shortTermOccupancy.occupancy_rate,
-        averageOccupancyRate: averageOccupancyRate,
+        longTermRevenue: Number(longTermRevenue.toFixed(2)),
+        shortTermRevenue: Number(shortTermRevenue.toFixed(2)),
+        totalRevenue: Number(totalRevenue.toFixed(2)),
+        longTermOccupancyRate: Number(doorloopOccupancy.occupancy_rate.toFixed(1)),
+        shortTermOccupancyRate: Number(shortTermOccupancy.occupancy_rate.toFixed(1)),
+        averageOccupancyRate: Number(averageOccupancyRate.toFixed(1)),
         averageLeaseTenancy: 100, // TODO: Add API endpoint for this
         timeToLease: 44, // TODO: Add API endpoint for this
         tenantTurnover: 36, // TODO: Add API endpoint for this
