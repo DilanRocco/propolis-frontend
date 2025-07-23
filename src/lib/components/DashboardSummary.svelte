@@ -43,12 +43,12 @@
        
       </CardWidget>
       <CardWidget info="Formula: coming soon">
-        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Average Occupancy</span>
+        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Long Term Revenue</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">${dashboardData.longTermRevenue}</div>
        
       </CardWidget>
       <CardWidget info="Formula: coming soon">
-        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Average Occupancy</span>
+        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Short Term Revenue</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">${dashboardData.shortTermRevenue}</div>
        
       </CardWidget>
