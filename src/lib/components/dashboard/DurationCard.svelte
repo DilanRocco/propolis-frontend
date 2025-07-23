@@ -7,14 +7,9 @@
     export let title: string
   </script>
   
-  <CardWidget>
-    <div class="flex items-center gap-2 font-bold text-xl mb-2">
-      
-    {title} 
-    </div>
-    
+  <CardWidget info="Formula: coming soon">
+    <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">{title}</span>
     <div class="mb-4">
-      <div class="text-2xl">{time} Days</div>
+      <div class="text-2xl text-[color:var(--color-propolis-teal)]">{time} Days</div>
     </div>
-    
   </CardWidget>

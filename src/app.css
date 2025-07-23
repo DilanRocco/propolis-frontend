@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-coral-50:  #fff5f5;
-  --color-coral-100: #fee2e2;
-  --color-coral-200: #fecaca;
-  --color-coral-300: #fca5a5;
-  --color-coral-500: #f97367;
-  --color-coral-600: #ef4444;
-  --color-coral-700: #dc2626;
+  --color-coral-50:  #e0f7fa;
+  --color-coral-100: #b2ebf2;
+  --color-coral-200: #80deea;
+  --color-coral-300: #4dd0e1;
+  --color-coral-500: #009688;
+  --color-coral-600: #00897b;
+  --color-coral-700: #00695c;
   --color-border-coral: #f97367;
+  /* Propolis brand colors */
+  --color-propolis-yellow: #FFD600;
+  --color-propolis-teal: #009688;
 }

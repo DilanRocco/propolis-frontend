@@ -53,8 +53,8 @@
 <div class="bg-gray-50 p-6 rounded-xl {marginBottom ? 'mb-6' : ''}">
     <!-- Enhanced Input Area -->
     <div class="relative">
-        <div class="absolute inset-0 bg-gradient-to-r from-coral-500/20 via-blue-500/20 to-purple-500/20 rounded-xl blur-xl opacity-50"></div>
-        <div class="relative bg-white rounded-xl border-2 border-gray-200 focus-within:border-coral-500 transition-all duration-300 shadow-lg">
+        <div class="absolute inset-0 rounded-xl blur-xl opacity-50" style="background: linear-gradient(to right, rgba(0, 150, 136, 0.2), rgba(255, 214, 0, 0.2), rgba(0, 150, 136, 0.1))"></div>
+        <div class="relative bg-white rounded-xl border-2 border-gray-200 focus-within-propolis transition-all duration-300 shadow-lg">
             <textarea
                 bind:value={chatInput}
                 on:keypress={handleKeyPress}
@@ -65,7 +65,7 @@
             <button
                 on:click={handleSendMessage}
                 disabled={!chatInput.trim() || isTyping}
-                class="absolute right-4 top-4 p-3 rounded-lg bg-gradient-to-br from-coral-500 to-coral-600 text-white hover:from-coral-600 hover:to-coral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+                class="absolute right-4 top-4 p-3 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:hover:shadow-lg ai-send-button"
             >
                 <Send class="w-4 h-4" />
             </button>
@@ -79,6 +79,18 @@
 </div>
 
 <style>
+    .focus-within-propolis:focus-within {
+        border-color: var(--color-propolis-teal);
+    }
+    
+    .ai-send-button {
+        background: linear-gradient(135deg, var(--color-propolis-teal), var(--color-propolis-yellow));
+    }
+    
+    .ai-send-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #007d6c, #e6c200);
+    }
+    
     @keyframes slideIn {
         from {
             opacity: 0;

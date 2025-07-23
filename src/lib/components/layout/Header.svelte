@@ -52,12 +52,13 @@
 					</button>
 				{/if}
 
+
 				<div>
 					<div class="flex items-center gap-3 mb-1">
 						{#if currentRoute.icon}
-							<svelte:component this={currentRoute.icon} class="w-8 h-8 text-coral-600" />
+							<svelte:component this={currentRoute.icon} class="w-8 h-8" style="color: var(--color-propolis-teal)" />
 						{/if}
-						<h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-coral-600 to-coral-700 bg-clip-text text-transparent">{currentRoute.name}</h1>
+						<h1 class="text-4xl font-bold   from-slate-800 bg-clip-text text-transparent" style="color: var(--color-propolis-teal)">{currentRoute.name}</h1>
 					</div>
 					<p class="text-1xl text-gray-500">{currentRoute.description}</p>
 				</div>

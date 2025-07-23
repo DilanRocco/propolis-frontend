@@ -31,8 +31,8 @@
             <div class="flex items-center justify-between p-6 border-b border-gray-200">
                 <div class="flex items-center gap-3">
                     <div class="relative">
-                        <div class="absolute inset-0 bg-gradient-to-br from-coral-400 to-coral-600 rounded-xl animate-pulse"></div>
-                        <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-coral-500 to-coral-600 rounded-xl shadow-lg">
+                        <div class="absolute inset-0 rounded-xl animate-pulse" style="background: linear-gradient(135deg, var(--color-propolis-teal), var(--color-propolis-yellow))"></div>
+                        <div class="relative flex items-center justify-center w-12 h-12 rounded-xl shadow-lg" style="background: linear-gradient(135deg, var(--color-propolis-teal), var(--color-propolis-yellow))">
                             <Sparkles class="w-6 h-6 text-white animate-bounce" />
                         </div>
                     </div>
@@ -56,15 +56,15 @@
                     <div class="bg-gray-50 rounded-xl p-6">
                         <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
                         <div class="space-y-3">
-                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover:border-coral-500 transition-colors">
+                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover-border-propolis transition-colors">
                                 <div class="font-medium text-gray-900">Analyze Property Performance</div>
                                 <div class="text-sm text-gray-600">Get insights on occupancy rates and revenue</div>
                             </button>
-                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover:border-coral-500 transition-colors">
+                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover-border-propolis transition-colors">
                                 <div class="font-medium text-gray-900">Market Analysis</div>
                                 <div class="text-sm text-gray-600">Compare your properties with market trends</div>
                             </button>
-                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover:border-coral-500 transition-colors">
+                            <button class="w-full text-left p-4 bg-white rounded-lg border border-gray-200 hover-border-propolis transition-colors">
                                 <div class="font-medium text-gray-900">Maintenance Schedule</div>
                                 <div class="text-sm text-gray-600">View upcoming maintenance tasks</div>
                             </button>
@@ -95,14 +95,14 @@
 
                 <!-- Chat Section -->
                 <div class="mt-6">
-                    <div class="bg-white rounded-xl border-2 border-gray-200 focus-within:border-coral-500 transition-all duration-300">
+                    <div class="bg-white rounded-xl border-2 border-gray-200 focus-within-propolis transition-all duration-300">
                         <textarea
                             placeholder="Ask about performance metrics, market analysis, maintenance schedules..."
                             class="w-full px-6 py-4 border-0 rounded-xl resize-none focus:ring-0 focus:outline-none transition-all duration-200 text-base placeholder-gray-400"
                             rows="3"
                         ></textarea>
                         <div class="px-6 pb-4">
-                            <button class="w-full py-2 bg-gradient-to-br from-coral-500 to-coral-600 text-white rounded-lg hover:from-coral-600 hover:to-coral-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <button class="w-full py-2 text-white rounded-lg ai-send-button transition-all duration-200 shadow-lg hover:shadow-xl">
                                 Send Message
                             </button>
                         </div>
@@ -111,4 +111,22 @@
             </div>
         </div>
     </div>
-{/if} 
+{/if}
+
+<style>
+    .focus-within-propolis:focus-within {
+        border-color: var(--color-propolis-teal);
+    }
+    
+    .hover-border-propolis:hover {
+        border-color: var(--color-propolis-teal);
+    }
+    
+    .ai-send-button {
+        background: linear-gradient(135deg, var(--color-propolis-teal), var(--color-propolis-yellow));
+    }
+    
+    .ai-send-button:hover {
+        background: linear-gradient(135deg, #007d6c, #e6c200);
+    }
+</style> 

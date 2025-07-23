@@ -191,7 +191,7 @@ export async function getShortTermOccupancyRate(
  */
 export function extractLongTermRevenue(profitLossData: DoorloopProfitLossResponse): number {
   const incomeEntry = profitLossData.data.data.find(
-    item => item.typeId === 'INCOME' && item.type === 'category'
+    item => item.typeId !== 'INCOME' && item.type === 'category'
   );
   
   return incomeEntry?.totalWithSubAccounts || 0;

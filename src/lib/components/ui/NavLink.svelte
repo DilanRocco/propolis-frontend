@@ -32,21 +32,25 @@
     rel="noopener noreferrer"
     class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
           {active 
-            ? 'bg-coral-50 text-coral-500' 
+            ? 'text-gray-700' 
             : 'text-gray-700 hover:bg-gray-100'}"
+    style={active 
+        ? 'background-color: rgba(0, 150, 136, 0.1); color: var(--color-propolis-teal);'
+        : ''}
     on:click={() => dispatch('click')}
   >
     {#if icon}
       <svelte:component 
         this={icon} 
-        class="w-5 h-5 {active ? 'text-coral-500' : 'text-gray-500'}" 
+        class="w-5 h-5"
+        style="color: {active ? 'var(--color-propolis-teal)' : '#6b7280'}"
       />
     {/if}
     
     <span>{text}</span>
     
     {#if badge !== null}
-      <div class="ml-auto bg-coral-100 text-coral-500 text-xs font-medium px-2 py-0.5 rounded">
+      <div class="ml-auto text-xs font-medium px-2 py-0.5 rounded" style="background-color: rgba(0, 150, 136, 0.1); color: var(--color-propolis-teal);">
         {badge}
       </div>
     {/if}
@@ -56,21 +60,25 @@
     href={to} 
     class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
           {active 
-            ? 'bg-coral-50 text-coral-500' 
+            ? 'text-gray-700' 
             : 'text-gray-700 hover:bg-gray-100'}"
+    style={active 
+        ? 'background-color: rgba(0, 150, 136, 0.1); color: var(--color-propolis-teal);'
+        : ''}
     on:click|preventDefault={handleClick}
   >
     {#if icon}
       <svelte:component 
         this={icon} 
-        class="w-5 h-5 {active ? 'text-coral-500' : 'text-gray-500'}" 
+        class="w-5 h-5"
+        style="color: {active ? 'var(--color-propolis-teal)' : '#6b7280'}"
       />
     {/if}
     
     <span>{text}</span>
     
     {#if badge !== null}
-      <div class="ml-auto bg-coral-100 text-coral-500 text-xs font-medium px-2 py-0.5 rounded">
+      <div class="ml-auto text-xs font-medium px-2 py-0.5 rounded" style="background-color: rgba(0, 150, 136, 0.1); color: var(--color-propolis-teal);">
         {badge}
       </div>
     {/if}

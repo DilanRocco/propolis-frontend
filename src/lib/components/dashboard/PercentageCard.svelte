@@ -13,16 +13,10 @@
 </script>
 
 <div bind:clientWidth={containerWidth}>
-	<CardWidget marginBottom={true}>
-		
-		<div class="mx-auto max-w-xs rounded-lg">
-			<div class="mb-6 flex items-center justify-center">
-
-					<ProgressCircle {percentage} {radius} color="#f97367" label="Tentant Turnover Rate" />
-				
-
-			</div>
+	<CardWidget info="Formula: coming soon">
+		<span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Tenant Turnover Rate</span>
+		<div class="mb-6 flex items-center justify-center">
+			<ProgressCircle {percentage} {radius} color="var(--color-propolis-teal)" label="Tenant Turnover Rate" />
 		</div>
-		</CardWidget
-	>
+	</CardWidget>
 </div>
