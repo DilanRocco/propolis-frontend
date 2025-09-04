@@ -57,10 +57,17 @@ export interface GuestyRevenueResponse {
   }>;
   summary: {
     total_revenue_usd: number;
+    total_host_payout_usd: number;
     total_paid_usd: number;
     total_balance_due_usd: number;
     reservation_count: number;
-    date_range: string | null;
+    revenue_by_currency: {
+      USD: number;
+    };
+    date_range: {
+      start_date: string;
+      end_date: string;
+    };
   };
   title: string;
   count: number;
@@ -124,10 +131,12 @@ export async function getDoorloopProfitLoss(
  * Fetch Guesty revenue data (short-term revenue)
  * @param startDate - Start date (YYYY-MM-DD)
  * @param endDate - End date (YYYY-MM-DD)
+ * @param propertyId - Property ID for filtering
  */
 export async function getGuestyRevenue(
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  propertyId?: string
 ): Promise<GuestyRevenueResponse> {
   const url = new URL(`${PUBLIC_API_URL}/api/guesty/revenue`);
   
@@ -138,6 +147,13 @@ export async function getGuestyRevenue(
   if (endDate) {
     url.searchParams.append('end_date', endDate);
   }
+  
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
+  }
+
+  console.log('🔍 Calling Guesty API with URL:', url.toString());
+  console.log('🔍 Property ID being sent:', propertyId || 'NONE (unfiltered)');
 
   const response = await fetch(url.toString(), {
     method: 'GET',
@@ -157,10 +173,12 @@ export async function getGuestyRevenue(
  * Fetch short-term occupancy rate from Guesty
  * @param startDate - Start date (YYYY-MM-DD)
  * @param endDate - End date (YYYY-MM-DD)
+ * @param propertyId - Property ID for filtering
  */
 export async function getShortTermOccupancyRate(
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  propertyId?: string
 ): Promise<ShortTermOccupancyResponse> {
   const url = new URL(`${PUBLIC_API_URL}/occupancy-rate`);
   
@@ -170,6 +188,10 @@ export async function getShortTermOccupancyRate(
   
   if (endDate) {
     url.searchParams.append('date_to', endDate);
+  }
+  
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
   }
 
   const response = await fetch(url.toString(), {
@@ -202,5 +224,10 @@ export function extractLongTermRevenue(profitLossData: DoorloopProfitLossRespons
  * Extract total revenue from Guesty revenue data
  */
 export function extractShortTermRevenue(guestyData: GuestyRevenueResponse): number {
-  return guestyData.summary?.total_revenue_usd || 0;
+  console.log('Extracting short-term revenue from:', guestyData);
+  console.log('Summary object:', guestyData?.summary);
+  console.log('Total revenue USD:', guestyData?.summary?.total_revenue_usd);
+  const revenue = guestyData.summary?.total_revenue_usd || 0;
+  console.log('Final extracted revenue:', revenue);
+  return revenue;
 } 

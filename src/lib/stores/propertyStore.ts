@@ -25,6 +25,19 @@ export interface PropertyState {
   error: string | null;
 }
 
+// Property mapping interface
+export interface PropertyMapping {
+  doorloopId: string;
+  guestyId: string;
+  propertyName: string;
+}
+
+export interface PropertyMappingState {
+  mappings: PropertyMapping[];
+  loading: boolean;
+  error: string | null;
+}
+
 function createPropertyStore() {
   const initialState: PropertyState = {
     listings: [],
@@ -429,6 +442,130 @@ function createPropertyStore() {
           listingData: newListingData
         };
       });
+    },
+
+    /** Create property mappings between Doorloop and Guesty IDs */
+    createPropertyMappings(): PropertyMapping[] {
+      const mappings: PropertyMapping[] = [];
+      
+      // Get current listings
+      let currentListings: Listing[] = [];
+      const unsubscribe = this.subscribe(state => {
+        currentListings = state.listings;
+      });
+      unsubscribe();
+
+      console.log('Creating property mappings from listings:', currentListings);
+
+      // Function to normalize building names (same as properties tab)
+      function normalizeBuildingName(name: string): string {
+        return name
+          .toLowerCase()
+          .replace(/\s+(apartments?|complex|building|tower|plaza|court|place)s?$/i, '')
+          .trim();
+      }
+
+      // Group listings by normalized building name
+      const listingsByNormalizedName: Record<string, { doorloop?: Listing; guesty?: Listing }> = {};
+      
+      currentListings.forEach(listing => {
+        const name = listing.title || listing.name || '';
+        const normalizedName = normalizeBuildingName(name);
+        
+        if (!listingsByNormalizedName[normalizedName]) {
+          listingsByNormalizedName[normalizedName] = {};
+        }
+        
+        if (listing.source === 'doorloop') {
+          listingsByNormalizedName[normalizedName].doorloop = listing;
+        } else if (listing.source === 'guesty') {
+          listingsByNormalizedName[normalizedName].guesty = listing;
+        }
+      });
+
+      console.log('Listings grouped by normalized name:', listingsByNormalizedName);
+      
+      // Debug: Show all Guesty property names
+      const guestyPropertyNames = currentListings
+        .filter(listing => listing.source === 'guesty')
+        .map(listing => listing.title || listing.name)
+        .sort();
+      console.log('All Guesty property names:', guestyPropertyNames);
+      
+      // Debug: Show all Doorloop property names
+      const doorloopPropertyNames = currentListings
+        .filter(listing => listing.source === 'doorloop')
+        .map(listing => listing.title || listing.name)
+        .sort();
+      console.log('All Doorloop property names:', doorloopPropertyNames);
+
+      // Create mappings for properties that exist in both systems
+      Object.entries(listingsByNormalizedName).forEach(([normalizedName, listings]) => {
+        if (listings.doorloop && listings.guesty) {
+          mappings.push({
+            doorloopId: listings.doorloop.id,
+            guestyId: listings.guesty.id,
+            propertyName: listings.doorloop.title || listings.doorloop.name || ''
+          });
+        }
+      });
+
+      console.log('Created property mappings:', mappings);
+      return mappings;
+    },
+
+    /** Get Guesty ID for a Doorloop property ID */
+    getGuestyIdForDoorloopId(doorloopId: string): string | null {
+      const mappings = this.createPropertyMappings();
+      console.log('Looking up Guesty ID for Doorloop ID:', doorloopId);
+      console.log('Available mappings:', mappings);
+      
+      // First try exact match
+      let mapping = mappings.find(m => m.doorloopId === doorloopId);
+      
+      // If no exact match, try to find by property name
+      if (!mapping) {
+        // Get the Doorloop property name
+        let currentListings: Listing[] = [];
+        const unsubscribe = this.subscribe(state => {
+          currentListings = state.listings;
+        });
+        unsubscribe();
+        
+        const doorloopProperty = currentListings.find(l => l.id === doorloopId && l.source === 'doorloop');
+        if (doorloopProperty) {
+          const propertyName = doorloopProperty.title || doorloopProperty.name || '';
+          console.log('Doorloop property name:', propertyName);
+          
+          // Normalize the name and find matching Guesty property
+          const normalizedName = propertyName
+            .toLowerCase()
+            .replace(/\s+(apartments?|complex|building|tower|plaza|court|place)s?$/i, '')
+            .trim();
+          
+          console.log('Normalized property name:', normalizedName);
+          
+          const guestyProperty = currentListings.find(l => 
+            l.source === 'guesty' && 
+            (l.title || l.name || '').toLowerCase().replace(/\s+(apartments?|complex|building|tower|plaza|court|place)s?$/i, '').trim() === normalizedName
+          );
+          
+          if (guestyProperty) {
+            console.log('Found matching Guesty property:', guestyProperty.title || guestyProperty.name);
+            return guestyProperty.id;
+          }
+        }
+      }
+      
+      console.log('Found mapping:', mapping);
+      return mapping?.guestyId || null;
+    },
+
+    /** Get Doorloop ID for a Guesty property ID */
+    getDoorloopIdForGuestyId(guestyId: string): string | null {
+      const mappings = this.createPropertyMappings();
+      const mapping = mappings.find(m => m.guestyId === guestyId);
+      return mapping?.doorloopId || null;
     },
 
     /** Reset everything back to initial empty state */

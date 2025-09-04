@@ -4,6 +4,7 @@
 	import { dashboardDateRange, updateDateRange } from '../../stores/simpleDashboardStore';
 	import AIView from './AIView.svelte';
 	import PropertyDropdown from '../PropertyDropdown.svelte';
+	import UnitsDropdown from '../UnitsDropdown.svelte';
 	
 	let day = 19;
 	let dayOfWeek = 'Tue';
@@ -110,6 +111,12 @@
 			<div class="flex flex-col gap-2">
 				<div class="text-sm font-medium text-slate-700">Property Filter</div>
 				<PropertyDropdown />
+			</div>
+
+			<!-- Units Filter -->
+			<div class="flex flex-col gap-2">
+				<div class="text-sm font-medium text-slate-700">Units Filter</div>
+				<UnitsDropdown />
 			</div>
 		</div>
 

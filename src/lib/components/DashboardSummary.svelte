@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { DashboardData } from '../types/dashboard';
-  import { dashboardLoading } from '../stores/simpleDashboardStore';
+  import { dashboardLoading, unitFilteringData } from '../stores/simpleDashboardStore';
 	import WelcomeCard from './dashboard/WelcomeCard.svelte';
   import CardWidget from './dashboard/CardWidget.svelte';
   
   export let dashboardData: DashboardData;
   
   $: loading = $dashboardLoading;
+  $: unitData = $unitFilteringData;
   
   // Format currency values
   function formatCurrency(value: number): string {
@@ -33,24 +34,78 @@
   <WelcomeCard />
   <p class="subtitle">Real-time data from Doorloop (Long-term) and Guesty (Short-term)</p>
   
+
+  
   <!-- Revenue Section -->
   <div class="section">
     <h2>📊 Revenue Overview</h2>
     <div class="cards-grid">
       <CardWidget info="Formula: coming soon">
-        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Total Revenue</span>
-        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">${dashboardData.totalRevenue}</div>
-       
+        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
+          {#if unitData}
+            Total Revenue (Filtered)
+          {:else}
+            Total Revenue
+          {/if}
+        </span>
+        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">
+          {#if unitData && unitData.filters_applied?.type === 'long-term' && unitData.data.length > 0}
+            {formatCurrency(unitData.data.reduce((sum, item) => sum + (item.Revenue || 0), 0))}
+          {:else if unitData && unitData.filters_applied?.type === 'short-term' && unitData.data.length > 0}
+            {formatCurrency(unitData.data.reduce((sum, item) => sum + (item.Revenue || 0), 0))}
+          {:else}
+            {formatCurrency(dashboardData.totalRevenue)}
+          {/if}
+        </div>
+        {#if unitData}
+          <div class="text-xs text-gray-500 mt-1">
+            {unitData.filters_applied.property} - {unitData.filters_applied.unit}
+          </div>
+        {/if}
       </CardWidget>
       <CardWidget info="Formula: coming soon">
-        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Long Term Revenue</span>
-        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">${dashboardData.longTermRevenue}</div>
-       
+        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
+          {#if unitData && unitData.filters_applied?.type === 'long-term'}
+            Long Term Revenue (Filtered)
+          {:else}
+            Long Term Revenue
+          {/if}
+        </span>
+        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">
+          {#if unitData && unitData.filters_applied?.type === 'long-term' && unitData.data.length > 0}
+            {formatCurrency(unitData.data.reduce((sum, item) => sum + (item.Revenue || 0), 0))}
+          {:else if unitData && unitData.filters_applied?.type === 'short-term'}
+            {formatCurrency(0)}
+          {:else}
+            {formatCurrency(dashboardData.longTermRevenue)}
+          {/if}
+        </div>
+        {#if unitData && unitData.filters_applied?.type === 'long-term'}
+          <div class="text-xs text-gray-500 mt-1">
+            {unitData.filters_applied.property} - {unitData.filters_applied.unit}
+          </div>
+        {/if}
       </CardWidget>
       <CardWidget info="Formula: coming soon">
-        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Short Term Revenue</span>
-        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">${dashboardData.shortTermRevenue}</div>
-       
+        <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
+          {#if unitData && unitData.filters_applied?.type === 'short-term'}
+            Short Term Revenue (Filtered)
+          {:else}
+            Short Term Revenue
+          {/if}
+        </span>
+        <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">
+          {#if unitData && unitData.filters_applied?.type === 'short-term' && unitData.data.length > 0}
+            {formatCurrency(unitData.data.reduce((sum, item) => sum + (item.Revenue || 0), 0))}
+          {:else}
+            {formatCurrency(dashboardData.shortTermRevenue)}
+          {/if}
+        </div>
+        {#if unitData && unitData.filters_applied?.type === 'short-term'}
+          <div class="text-xs text-gray-500 mt-1">
+            {unitData.filters_applied.property} - {unitData.filters_applied.unit}
+          </div>
+        {/if}
       </CardWidget>
      
     </div>
@@ -145,6 +200,9 @@
   .cards-grid.four-column {
     grid-template-columns: repeat(3, 1fr);
   }
+  
+
+  
   @media (max-width: 900px) {
     .cards-grid, .cards-grid.four-column {
       grid-template-columns: 1fr;

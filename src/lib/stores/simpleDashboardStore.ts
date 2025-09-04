@@ -9,10 +9,21 @@ import {
   extractShortTermRevenue
 } from '../api/revenue';
 import { globalPropertyFilter } from './globalPropertyFilter';
+import { propertyStore } from './propertyStore';
 
 export interface DateRange {
   startDate: string;
   endDate: string;
+}
+
+export interface UnitFilteringData {
+  data: any[];
+  count: number;
+  filters_applied: {
+    property: string;
+    unit: string;
+    type?: 'long-term' | 'short-term';
+  };
 }
 
 export interface DashboardState {
@@ -20,6 +31,7 @@ export interface DashboardState {
   loading: boolean;
   error: string | null;
   dateRange: DateRange;
+  unitFilteringData: UnitFilteringData | null;
 }
 
 // Get current month as default date range
@@ -39,7 +51,8 @@ const initialState: DashboardState = {
   data: null,
   loading: false,
   error: null,
-  dateRange: getCurrentMonthRange()
+  dateRange: getCurrentMonthRange(),
+  unitFilteringData: null
 };
 
 // Create the stores
@@ -47,6 +60,7 @@ export const dashboardData = writable<DashboardData | null>(null);
 export const dashboardLoading = writable<boolean>(false);
 export const dashboardError = writable<string | null>(null);
 export const dashboardDateRange = writable<DateRange>(getCurrentMonthRange());
+export const unitFilteringData = writable<UnitFilteringData | null>(null);
 
 // Simple action functions
 export async function fetchDashboardData(dateRange?: DateRange) {
@@ -54,12 +68,32 @@ export async function fetchDashboardData(dateRange?: DateRange) {
   const propertyFilter = get(globalPropertyFilter);
   const selectedPropertyId = propertyFilter.selectedProperty?.id;
   
+  // Get the corresponding Guesty ID if a Doorloop property is selected
+  let guestyPropertyId: string | undefined = undefined;
+  if (selectedPropertyId) {
+    const mappedGuestyId = propertyStore.getGuestyIdForDoorloopId(selectedPropertyId);
+    guestyPropertyId = mappedGuestyId || undefined;
+    console.log('Property mapping:', {
+      doorloopId: selectedPropertyId,
+      guestyId: guestyPropertyId,
+      propertyName: propertyFilter.selectedProperty?.name
+    });
+    
+    if (!guestyPropertyId) {
+      console.warn('⚠️ NO GUESTY PROPERTY ID FOUND! This means short-term revenue will be unfiltered.');
+    }
+  } else {
+    console.log('No property selected - showing unfiltered data');
+  }
+  
   dashboardLoading.set(true);
   dashboardError.set(null);
 
   try {
     console.log('Fetching dashboard data for range:', range);
-    console.log('Selected property ID:', selectedPropertyId);
+    console.log('Selected property ID (Doorloop):', selectedPropertyId);
+    console.log('Selected property ID (Guesty):', guestyPropertyId);
+    console.log('Selected property details:', propertyFilter.selectedProperty);
     
     // Fetch all data in parallel
     const [
@@ -70,8 +104,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     ] = await Promise.all([
       getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
-      getGuestyRevenue(range.startDate, range.endDate),
-      getShortTermOccupancyRate(range.startDate, range.endDate)
+      getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
+      getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);
     
     console.log('API responses received:', {
@@ -83,8 +117,22 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     
     // Extract revenue values
     const longTermRevenue = extractLongTermRevenue(doorloopProfitLoss);
-    const shortTermRevenue = extractShortTermRevenue(guestyRevenue);
+    let shortTermRevenue = extractShortTermRevenue(guestyRevenue);
+    
+    // If a property is selected, set short-term revenue to 0 since we can't filter it properly
+    if (selectedPropertyId) {
+      shortTermRevenue = 0;
+    }
+    
     const totalRevenue = longTermRevenue + shortTermRevenue;
+    
+    console.log('Revenue extraction details:', {
+      longTermRevenue,
+      shortTermRevenue,
+      totalRevenue,
+      guestyRevenueRaw: guestyRevenue,
+      guestyRevenueSummary: guestyRevenue?.summary
+    });
     
     // Calculate average occupancy rate
     const averageOccupancyRate = (doorloopOccupancy.occupancy_rate + shortTermOccupancy.occupancy_rate) / 2;
@@ -139,4 +187,14 @@ export function updateDateRange(newDateRange: DateRange) {
 
 export function refetchDashboardData() {
   fetchDashboardData();
+}
+
+// Function to update unit filtering data
+export function updateUnitFilteringData(data: UnitFilteringData) {
+  unitFilteringData.set(data);
+}
+
+// Function to clear unit filtering data
+export function clearUnitFilteringData() {
+  unitFilteringData.set(null);
 } 

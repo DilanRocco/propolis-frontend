@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { globalPropertyFilter, type PropertyOption } from '$lib/stores/globalPropertyFilter';
 	import { refetchDashboardData } from '$lib/stores/simpleDashboardStore';
+	import { propertyStore } from '$lib/stores/propertyStore';
 	import { ChevronDown, X } from 'lucide-svelte';
 
 	// Subscribe to the global property filter store
@@ -14,6 +15,9 @@
 	onMount(() => {
 		// Load properties when component mounts
 		globalPropertyFilter.loadProperties(fetch);
+		
+		// Also load property store to enable property mapping
+		propertyStore.loadListings(fetch);
 
 		// Close dropdown when clicking outside
 		function handleClickOutside(event: MouseEvent) {

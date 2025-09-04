@@ -362,7 +362,10 @@
               </div>
               <div class="flex justify-between">
                 <dt class="text-sm font-medium text-gray-600">Total Revenue</dt>
-                <dd class="text-sm font-bold text-green-600">${reservationStats.totalRevenue.toLocaleString()}</dd>
+                <dd class="text-sm font-bold text-green-600">${reservationStats.totalRevenue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}</dd>
               </div>
               <div class="flex justify-between">
                 <dt class="text-sm font-medium text-gray-600">Average per Reservation</dt>
@@ -396,7 +399,10 @@
                       </div>
                     </div>
                     <div class="text-right">
-                      <div class="text-lg font-semibold text-green-600">${reservation.total_paid.toLocaleString()}</div>
+                      <div class="text-lg font-semibold text-green-600">${reservation.total_paid.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}</div>
                       <div class="text-sm text-gray-500">Total Paid</div>
                     </div>
                   </div>

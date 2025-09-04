@@ -46,6 +46,9 @@ function createGlobalPropertyFilter() {
           name: property.name
         }));
 
+        // Debug: Log all property names
+        console.log('🔍 All Doorloop property names:', properties.map(p => p.name));
+
         // Sort properties alphabetically
         properties.sort((a, b) => a.name.localeCompare(b.name));
 
