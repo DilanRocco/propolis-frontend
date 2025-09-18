@@ -95,29 +95,42 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     console.log('Selected property ID (Guesty):', guestyPropertyId);
     console.log('Selected property details:', propertyFilter.selectedProperty);
     
-    // Fetch all data in parallel
+    // Fetch all data in parallel, but handle individual failures gracefully
     const [
       doorloopOccupancy,
       doorloopProfitLoss,
-      guestyRevenue,
-      shortTermOccupancy
-    ] = await Promise.all([
+      // guestyRevenue,
+      // shortTermOccupancy
+    ] = await Promise.allSettled([
       getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
-      getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
-      getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
+      // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
+      // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);
     
+    // Extract data from Promise.allSettled results, with fallbacks for failed requests
+    const doorloopOccupancyData = doorloopOccupancy.status === 'fulfilled' ? doorloopOccupancy.value : null;
+    const doorloopProfitLossData = doorloopProfitLoss.status === 'fulfilled' ? doorloopProfitLoss.value : null;
+    // const guestyRevenueData = guestyRevenue.status === 'fulfilled' ? guestyRevenue.value : null;
+    // const shortTermOccupancyData = shortTermOccupancy.status === 'fulfilled' ? shortTermOccupancy.value : null;
+    
+    // Log any failed requests
+    if (doorloopOccupancy.status === 'rejected') console.error('Doorloop occupancy failed:', doorloopOccupancy.reason);
+    if (doorloopProfitLoss.status === 'rejected') console.error('Doorloop profit/loss failed:', doorloopProfitLoss.reason);
+    // if (guestyRevenue.status === 'rejected') console.error('Guesty revenue failed:', guestyRevenue.reason);
+    // if (shortTermOccupancy.status === 'rejected') console.error('Short-term occupancy failed:', shortTermOccupancy.reason);
+    
     console.log('API responses received:', {
-      doorloopOccupancy,
-      doorloopProfitLoss: !!doorloopProfitLoss,
-      guestyRevenue: !!guestyRevenue,
-      shortTermOccupancy
+      doorloopOccupancy: doorloopOccupancyData,
+      doorloopProfitLoss: !!doorloopProfitLossData,
+      // guestyRevenue: !!guestyRevenueData,
+      // shortTermOccupancy: shortTermOccupancyData
     });
     
-    // Extract revenue values
-    const longTermRevenue = extractLongTermRevenue(doorloopProfitLoss);
-    let shortTermRevenue = extractShortTermRevenue(guestyRevenue);
+    // Extract revenue values with fallbacks
+    const longTermRevenue = doorloopProfitLossData ? extractLongTermRevenue(doorloopProfitLossData) : 0;
+    // let shortTermRevenue = guestyRevenueData ? extractShortTermRevenue(guestyRevenueData) : 0;
+    let shortTermRevenue = 0; // Commented out Guesty API
     
     // If a property is selected, set short-term revenue to 0 since we can't filter it properly
     if (selectedPropertyId) {
@@ -130,19 +143,22 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       longTermRevenue,
       shortTermRevenue,
       totalRevenue,
-      guestyRevenueRaw: guestyRevenue,
-      guestyRevenueSummary: guestyRevenue?.summary
+      // guestyRevenueRaw: guestyRevenueData,
+      // guestyRevenueSummary: guestyRevenueData?.summary
     });
     
-    // Calculate average occupancy rate
-    const averageOccupancyRate = (doorloopOccupancy.occupancy_rate + shortTermOccupancy.occupancy_rate) / 2;
+    // Calculate average occupancy rate with fallbacks
+    const doorloopRate = doorloopOccupancyData?.occupancy_rate || 0;
+    // const shortTermRate = shortTermOccupancyData?.occupancy_rate || 0;
+    const shortTermRate = 0; // Commented out Guesty API
+    const averageOccupancyRate = doorloopRate; // Only use Doorloop data
     
     const newDashboardData: DashboardData = {
       longTermRevenue: longTermRevenue,
       shortTermRevenue: shortTermRevenue,
       totalRevenue: totalRevenue,
-      longTermOccupancyRate: doorloopOccupancy.occupancy_rate,
-      shortTermOccupancyRate: shortTermOccupancy.occupancy_rate,
+      longTermOccupancyRate: doorloopRate,
+      shortTermOccupancyRate: shortTermRate,
       averageOccupancyRate: averageOccupancyRate,
       averageLeaseTenancy: 360, // TODO: Add API endpoint for this
       timeToLease: 44, // TODO: Add API endpoint for this
