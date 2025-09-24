@@ -40,7 +40,7 @@
   <div class="section">
     <h2>📊 Revenue Overview</h2>
     <div class="cards-grid">
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: longterm revenue + shortterm revenue">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
           {#if unitData}
             Total Revenue (Filtered)
@@ -63,7 +63,7 @@
           </div>
         {/if}
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Long term gross income">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
           {#if unitData && unitData.filters_applied?.type === 'long-term'}
             Long Term Revenue (Filtered)
@@ -86,7 +86,7 @@
           </div>
         {/if}
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Short term gross income">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">
           {#if unitData && unitData.filters_applied?.type === 'short-term'}
             Short Term Revenue (Filtered)
@@ -115,17 +115,17 @@
   <div class="section">
     <h2>🏠 Occupancy Rates</h2>
     <div class="cards-grid">
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: longterm occupancy + shortterm occupancy / 2">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Average Occupancy</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">{formatPercentage(dashboardData.averageOccupancyRate)}</div>
        
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: total occupied units / total units">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Long-term Occupancy</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">{formatPercentage(dashboardData.longTermOccupancyRate)}</div>
         
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: total occupied units / total units ">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Short-term Occupancy</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-yellow)]">{formatPercentage(dashboardData.shortTermOccupancyRate)}</div>
         
