@@ -137,27 +137,27 @@
   <div class="section">
     <h2>📈 Additional Metrics</h2>
     <div class="cards-grid four-column">
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: ( Σ (Lease End Date – Lease Start Date) ) ÷ (Number of Leases)">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Avg Lease Tenancy</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">{dashboardData.averageLeaseTenancy} days</div>
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Σ (Lease Start Date – Vacancy Date) ) ÷ (Number of Leases Signed)">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Time to Lease</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">{dashboardData.timeToLease} days</div>
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: (Move-Outs ÷ Active Tenants) × 100">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Tenant Turnover</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-yellow)]">{formatPercentage(dashboardData.tenantTurnover)}</div>
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Total STR Revenue ÷ Nights Booked">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Avg Daily Rate</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-yellow)]">{formatCurrency(dashboardData.shortTermAverageDailyRate)}</div>
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Total STR Revenue ÷ Available Nights">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Revenue per Available Room</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-teal)]">{formatCurrency(dashboardData.revenuePerAvailableRoom)}</div>
       </CardWidget>
-      <CardWidget info="Formula: coming soon">
+      <CardWidget info="Formula: Total Charges - Total Amount Paid">
         <span slot="title" class="mb-1 text-xs text-gray-500 font-semibold">Balance Overdue</span>
         <div class="card-value text-2xl font-bold text-[color:var(--color-propolis-yellow)]">{formatCurrency(dashboardData.leaseBalanceOverdue)}</div>
       </CardWidget>

@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 import type { DashboardData } from '../types/dashboard';
-import { getDoorloopOccupancyRate } from '../api/doorloop';
+import { getDoorloopOccupancyRate, getDoorloopAverageLeaseTenancy } from '../api/doorloop';
 import { 
   getDoorloopProfitLoss, 
   getGuestyRevenue, 
@@ -99,11 +99,13 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const [
       doorloopOccupancy,
       doorloopProfitLoss,
+      doorloopLeaseTenancy,
       // guestyRevenue,
       // shortTermOccupancy
     ] = await Promise.allSettled([
       getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopAverageLeaseTenancy(range.startDate, range.endDate, selectedPropertyId),
       // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
       // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);
@@ -111,18 +113,21 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     // Extract data from Promise.allSettled results, with fallbacks for failed requests
     const doorloopOccupancyData = doorloopOccupancy.status === 'fulfilled' ? doorloopOccupancy.value : null;
     const doorloopProfitLossData = doorloopProfitLoss.status === 'fulfilled' ? doorloopProfitLoss.value : null;
+    const doorloopLeaseTenancyData = doorloopLeaseTenancy.status === 'fulfilled' ? doorloopLeaseTenancy.value : null;
     // const guestyRevenueData = guestyRevenue.status === 'fulfilled' ? guestyRevenue.value : null;
     // const shortTermOccupancyData = shortTermOccupancy.status === 'fulfilled' ? shortTermOccupancy.value : null;
     
     // Log any failed requests
     if (doorloopOccupancy.status === 'rejected') console.error('Doorloop occupancy failed:', doorloopOccupancy.reason);
     if (doorloopProfitLoss.status === 'rejected') console.error('Doorloop profit/loss failed:', doorloopProfitLoss.reason);
+    if (doorloopLeaseTenancy.status === 'rejected') console.error('Doorloop lease tenancy failed:', doorloopLeaseTenancy.reason);
     // if (guestyRevenue.status === 'rejected') console.error('Guesty revenue failed:', guestyRevenue.reason);
     // if (shortTermOccupancy.status === 'rejected') console.error('Short-term occupancy failed:', shortTermOccupancy.reason);
     
     console.log('API responses received:', {
       doorloopOccupancy: doorloopOccupancyData,
       doorloopProfitLoss: !!doorloopProfitLossData,
+      doorloopLeaseTenancy: doorloopLeaseTenancyData,
       // guestyRevenue: !!guestyRevenueData,
       // shortTermOccupancy: shortTermOccupancyData
     });
@@ -153,6 +158,16 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const shortTermRate = 0; // Commented out Guesty API
     const averageOccupancyRate = doorloopRate; // Only use Doorloop data
     
+    // Extract lease tenancy data with fallback
+    const averageLeaseTenancy = doorloopLeaseTenancyData?.average_lease_duration || 360;
+    
+    console.log('🔍 Lease Tenancy Debug:', {
+      rawData: doorloopLeaseTenancyData,
+      averageLeaseDuration: doorloopLeaseTenancyData?.average_lease_duration,
+      finalValue: averageLeaseTenancy,
+      fallbackUsed: !doorloopLeaseTenancyData?.average_lease_duration
+    });
+    
     const newDashboardData: DashboardData = {
       longTermRevenue: longTermRevenue,
       shortTermRevenue: shortTermRevenue,
@@ -160,7 +175,7 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       longTermOccupancyRate: doorloopRate,
       shortTermOccupancyRate: shortTermRate,
       averageOccupancyRate: averageOccupancyRate,
-      averageLeaseTenancy: 360, // TODO: Add API endpoint for this
+      averageLeaseTenancy: averageLeaseTenancy,
       timeToLease: 44, // TODO: Add API endpoint for this
       tenantTurnover: 36, // TODO: Add API endpoint for this
       shortTermAverageDailyRate: 84.30, // TODO: Calculate from Guesty data

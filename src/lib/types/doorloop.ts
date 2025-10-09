@@ -84,4 +84,11 @@ export interface DoorloopResponse {
 export interface DoorloopUnitsResponse {
   success: boolean;
   data: DoorloopUnit[];
+}
+
+export interface DoorloopLeaseTenancyResponse {
+  lease_count: number;
+  total_lease_duration: number;
+  average_lease_duration: number;
+  property_id?: string;
 } 
