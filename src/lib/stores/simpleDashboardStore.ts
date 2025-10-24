@@ -1,6 +1,6 @@
 import { writable, get } from 'svelte/store';
 import type { DashboardData } from '../types/dashboard';
-import { getDoorloopOccupancyRate, getDoorloopAverageLeaseTenancy } from '../api/doorloop';
+import { getDoorloopOccupancyRate, getDoorloopAverageLeaseTenancy, getDoorloopTenantTurnoverRate, getDoorloopBalanceDue } from '../api/doorloop';
 import { 
   getDoorloopProfitLoss, 
   getGuestyRevenue, 
@@ -100,12 +100,16 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       doorloopOccupancy,
       doorloopProfitLoss,
       doorloopLeaseTenancy,
+      doorloopTenantTurnover,
+      doorloopBalanceDue,
       // guestyRevenue,
       // shortTermOccupancy
     ] = await Promise.allSettled([
       getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
       getDoorloopAverageLeaseTenancy(range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopTenantTurnoverRate(range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopBalanceDue(range.startDate, range.endDate, selectedPropertyId),
       // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
       // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);
@@ -114,6 +118,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const doorloopOccupancyData = doorloopOccupancy.status === 'fulfilled' ? doorloopOccupancy.value : null;
     const doorloopProfitLossData = doorloopProfitLoss.status === 'fulfilled' ? doorloopProfitLoss.value : null;
     const doorloopLeaseTenancyData = doorloopLeaseTenancy.status === 'fulfilled' ? doorloopLeaseTenancy.value : null;
+    const doorloopTenantTurnoverData = doorloopTenantTurnover.status === 'fulfilled' ? doorloopTenantTurnover.value : null;
+    const doorloopBalanceDueData = doorloopBalanceDue.status === 'fulfilled' ? doorloopBalanceDue.value : null;
     // const guestyRevenueData = guestyRevenue.status === 'fulfilled' ? guestyRevenue.value : null;
     // const shortTermOccupancyData = shortTermOccupancy.status === 'fulfilled' ? shortTermOccupancy.value : null;
     
@@ -121,6 +127,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     if (doorloopOccupancy.status === 'rejected') console.error('Doorloop occupancy failed:', doorloopOccupancy.reason);
     if (doorloopProfitLoss.status === 'rejected') console.error('Doorloop profit/loss failed:', doorloopProfitLoss.reason);
     if (doorloopLeaseTenancy.status === 'rejected') console.error('Doorloop lease tenancy failed:', doorloopLeaseTenancy.reason);
+    if (doorloopTenantTurnover.status === 'rejected') console.error('Doorloop tenant turnover failed:', doorloopTenantTurnover.reason);
+    if (doorloopBalanceDue.status === 'rejected') console.error('Doorloop balance due failed:', doorloopBalanceDue.reason);
     // if (guestyRevenue.status === 'rejected') console.error('Guesty revenue failed:', guestyRevenue.reason);
     // if (shortTermOccupancy.status === 'rejected') console.error('Short-term occupancy failed:', shortTermOccupancy.reason);
     
@@ -128,6 +136,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       doorloopOccupancy: doorloopOccupancyData,
       doorloopProfitLoss: !!doorloopProfitLossData,
       doorloopLeaseTenancy: doorloopLeaseTenancyData,
+      doorloopTenantTurnover: doorloopTenantTurnoverData,
+      doorloopBalanceDue: !!doorloopBalanceDueData,
       // guestyRevenue: !!guestyRevenueData,
       // shortTermOccupancy: shortTermOccupancyData
     });
@@ -159,13 +169,25 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const averageOccupancyRate = doorloopRate; // Only use Doorloop data
     
     // Extract lease tenancy data with fallback
-    const averageLeaseTenancy = doorloopLeaseTenancyData?.average_lease_duration || 360;
+    const averageLeaseTenancy = doorloopLeaseTenancyData?.average_lease_duration || 0;
+    
+    // Extract tenant turnover data with fallback
+    const tenantTurnoverRate = doorloopTenantTurnoverData?.['tenant turnover rate'] || 0;
+
+    const leaseBalanceOverdue = doorloopBalanceDueData?.totalBalance || 0;
     
     console.log('🔍 Lease Tenancy Debug:', {
       rawData: doorloopLeaseTenancyData,
       averageLeaseDuration: doorloopLeaseTenancyData?.average_lease_duration,
       finalValue: averageLeaseTenancy,
       fallbackUsed: !doorloopLeaseTenancyData?.average_lease_duration
+    });
+    
+    console.log('🔍 Tenant Turnover Debug:', {
+      rawData: doorloopTenantTurnoverData,
+      tenantTurnoverRate: doorloopTenantTurnoverData?.['tenant turnover rate'],
+      finalValue: tenantTurnoverRate,
+      fallbackUsed: !doorloopTenantTurnoverData?.['tenant turnover rate']
     });
     
     const newDashboardData: DashboardData = {
@@ -176,11 +198,11 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       shortTermOccupancyRate: shortTermRate,
       averageOccupancyRate: averageOccupancyRate,
       averageLeaseTenancy: averageLeaseTenancy,
-      timeToLease: 44, // TODO: Add API endpoint for this
-      tenantTurnover: 36, // TODO: Add API endpoint for this
-      shortTermAverageDailyRate: 84.30, // TODO: Calculate from Guesty data
-      revenuePerAvailableRoom: 82.54, // TODO: Calculate from revenue and units
-      leaseBalanceOverdue: 45986.24// TODO: Add API endpoint for this
+      timeToLease: 0, // TODO: Add API endpoint for this
+      tenantTurnover: tenantTurnoverRate,
+      shortTermAverageDailyRate: 0, // TODO: Calculate from Guesty data
+      revenuePerAvailableRoom: 0, // TODO: Calculate from revenue and units
+      leaseBalanceOverdue: leaseBalanceOverdue// TODO: Add API endpoint for this
     };
 
     console.log('Setting dashboard data:', newDashboardData);
@@ -198,8 +220,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       shortTermOccupancyRate: 31.41,
       averageOccupancyRate: 51.23,
       averageLeaseTenancy: 100,
-      timeToLease: 44,
-      tenantTurnover: 36,
+      timeToLease: 0,
+      tenantTurnover: 0,
       shortTermAverageDailyRate: 100,
       revenuePerAvailableRoom: 100,
       leaseBalanceOverdue: 100
