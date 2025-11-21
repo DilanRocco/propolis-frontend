@@ -20,6 +20,13 @@ export interface DoorloopBalanceDueResponse {
   totalBalance: number;
 }
 
+export interface DoorloopTimeToLeaseResponse {
+  time_to_lease_days: number;
+  total_days_to_lease: number;
+  number_of_leases_signed: number;
+  skipped_leases: number;
+}
+
 /**
  * Fetch Doorloop occupancy rate for long-term rentals
  * @param startDate - Start date in YYYY-MM-DD format
@@ -71,7 +78,7 @@ export async function getDoorloopAverageLeaseTenancy(
   endDate?: string,
   propertyId?: string,
 ): Promise<DoorloopLeaseTenancyResponse> {
-  const url = new URL(`${PUBLIC_API_URL}/api/doorloop/avg_lease_tenancy`);
+  const url = new URL(`${PUBLIC_API_URL}/api/doorloop/average-lease-tenancy`);
   
   if (startDate) {
     url.searchParams.append('date_from', startDate);
@@ -205,6 +212,53 @@ export async function getDoorloopBalanceDue(
 
   const data = await response.json();
   console.log('🔍 Balance Due API Response:', data);
+  console.log('🔍 Balance Due API Response - totalBalance:', data?.totalBalance);
+  console.log('🔍 Balance Due API Response - full object:', JSON.stringify(data, null, 2));
+  
+  return data;
+}
+
+/**
+ * Fetch Doorloop time to lease data
+ * @param startDate - Start date in YYYY-MM-DD format (required)
+ * @param endDate - End date in YYYY-MM-DD format (required)
+ * @param propertyId - Optional property ID to filter by
+ * @returns Promise<DoorloopTimeToLeaseResponse>
+ */
+export async function getDoorloopTimeToLease(
+  startDate: string,
+  endDate: string,
+  propertyId?: string,
+): Promise<DoorloopTimeToLeaseResponse> {
+  const url = new URL(`${PUBLIC_API_URL}/api/doorloop/time_to_lease`);
+  
+  url.searchParams.append('date_from', startDate);
+  url.searchParams.append('date_to', endDate);
+
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
+  }
+
+  console.log('🔍 Time to Lease API Call:', {
+    url: url.toString(),
+    startDate,
+    endDate,
+    propertyId
+  });
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Doorloop time to lease: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log('🔍 Time to Lease API Response:', data);
   
   return data;
 }

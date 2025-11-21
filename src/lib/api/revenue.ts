@@ -84,6 +84,13 @@ export interface ShortTermOccupancyResponse {
   message: string;
 }
 
+export interface JurnyShortTermKPIsResponse {
+  revenue: string;
+  occupancy: number;
+  adr: string;
+  revpar: string;
+}
+
 /**
  * Fetch Doorloop profit and loss data (long-term revenue)
  * @param accountingMethod - Accounting method (cash/accrual)
@@ -219,6 +226,93 @@ export function extractLongTermRevenue(profitLossData: DoorloopProfitLossRespons
   return incomeEntry?.totalWithSubAccounts || 0;
 }
 
+
+/**
+ * Fetch Jurny short-term KPIs data
+ * @param startDate - Start date (YYYY-MM-DD)
+ * @param endDate - End date (YYYY-MM-DD)
+ * @param propertyId - Optional property ID for filtering
+ */
+export async function getJurnyShortTermKPIs(
+  startDate: string,
+  endDate: string,
+  propertyId?: string
+): Promise<JurnyShortTermKPIsResponse> {
+  const url = new URL(`${PUBLIC_API_URL}/api/jurny/short-term-kpis`);
+  
+  // Add required date parameters (backend expects date_start and date_to)
+  url.searchParams.append('date_start', startDate);
+  url.searchParams.append('date_to', endDate);
+  
+  // Note: property_id might not be supported by this endpoint
+  // Only add if the endpoint supports it
+  if (propertyId) {
+    url.searchParams.append('property_id', propertyId);
+  }
+
+  console.log('🔍 Calling Jurny Short-Term KPIs API with URL:', url.toString());
+  console.log('🔍 Parameters:', { startDate, endDate, propertyId });
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      let errorText = '';
+      let errorJson = null;
+      
+      try {
+        errorText = await response.text();
+        // Try to parse as JSON if possible
+        try {
+          errorJson = JSON.parse(errorText);
+        } catch {
+          // Not JSON, use as text
+        }
+      } catch (e) {
+        errorText = 'Could not read error response';
+      }
+      
+      console.error('🔍 Jurny API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: url.toString(),
+        parameters: { startDate, endDate, propertyId },
+        body: errorText,
+        parsedError: errorJson
+      });
+      
+      const errorMessage = errorJson?.detail || errorJson?.message || errorText || response.statusText;
+      throw new Error(`Failed to fetch Jurny short-term KPIs: ${response.status} ${response.statusText} - ${errorMessage}`);
+    }
+
+    const responseText = await response.text();
+    console.log('🔍 Jurny API Raw Response Text:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('🔍 Jurny Short-Term KPIs API Response (parsed):', data);
+    } catch (parseError) {
+      console.error('🔍 Jurny API JSON Parse Error:', parseError);
+      console.error('🔍 Response text that failed to parse:', responseText);
+      throw new Error(`Failed to parse Jurny API response as JSON: ${parseError}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('🔍 Jurny API Call Error:', error);
+    // Re-throw with more context if it's not already our custom error
+    if (error instanceof Error && !error.message.includes('Failed to fetch Jurny')) {
+      throw new Error(`Jurny API call failed: ${error.message}`);
+    }
+    throw error;
+  }
+}
 
 /**
  * Extract total revenue from Guesty revenue data

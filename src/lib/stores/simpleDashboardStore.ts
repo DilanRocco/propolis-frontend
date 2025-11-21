@@ -1,10 +1,11 @@
 import { writable, get } from 'svelte/store';
 import type { DashboardData } from '../types/dashboard';
-import { getDoorloopOccupancyRate, getDoorloopAverageLeaseTenancy, getDoorloopTenantTurnoverRate, getDoorloopBalanceDue } from '../api/doorloop';
+import { getDoorloopOccupancyRate, getDoorloopAverageLeaseTenancy, getDoorloopTenantTurnoverRate, getDoorloopBalanceDue, getDoorloopTimeToLease } from '../api/doorloop';
 import { 
   getDoorloopProfitLoss, 
   getGuestyRevenue, 
   getShortTermOccupancyRate,
+  getJurnyShortTermKPIs,
   extractLongTermRevenue,
   extractShortTermRevenue
 } from '../api/revenue';
@@ -102,6 +103,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       doorloopLeaseTenancy,
       doorloopTenantTurnover,
       doorloopBalanceDue,
+      doorloopTimeToLease,
+      jurnyShortTermKPIs,
       // guestyRevenue,
       // shortTermOccupancy
     ] = await Promise.allSettled([
@@ -110,6 +113,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       getDoorloopAverageLeaseTenancy(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopTenantTurnoverRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopBalanceDue(range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopTimeToLease(range.startDate, range.endDate, selectedPropertyId),
+      getJurnyShortTermKPIs(range.startDate, range.endDate),
       // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
       // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);
@@ -120,6 +125,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const doorloopLeaseTenancyData = doorloopLeaseTenancy.status === 'fulfilled' ? doorloopLeaseTenancy.value : null;
     const doorloopTenantTurnoverData = doorloopTenantTurnover.status === 'fulfilled' ? doorloopTenantTurnover.value : null;
     const doorloopBalanceDueData = doorloopBalanceDue.status === 'fulfilled' ? doorloopBalanceDue.value : null;
+    const doorloopTimeToLeaseData = doorloopTimeToLease.status === 'fulfilled' ? doorloopTimeToLease.value : null;
+    const jurnyShortTermKPIsData = jurnyShortTermKPIs.status === 'fulfilled' ? jurnyShortTermKPIs.value : null;
     // const guestyRevenueData = guestyRevenue.status === 'fulfilled' ? guestyRevenue.value : null;
     // const shortTermOccupancyData = shortTermOccupancy.status === 'fulfilled' ? shortTermOccupancy.value : null;
     
@@ -129,6 +136,17 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     if (doorloopLeaseTenancy.status === 'rejected') console.error('Doorloop lease tenancy failed:', doorloopLeaseTenancy.reason);
     if (doorloopTenantTurnover.status === 'rejected') console.error('Doorloop tenant turnover failed:', doorloopTenantTurnover.reason);
     if (doorloopBalanceDue.status === 'rejected') console.error('Doorloop balance due failed:', doorloopBalanceDue.reason);
+    if (doorloopTimeToLease.status === 'rejected') console.error('Doorloop time to lease failed:', doorloopTimeToLease.reason);
+    if (jurnyShortTermKPIs.status === 'rejected') {
+      console.error('❌ Jurny short-term KPIs failed:', jurnyShortTermKPIs.reason);
+      console.error('❌ Jurny error details:', {
+        reason: jurnyShortTermKPIs.reason,
+        message: jurnyShortTermKPIs.reason?.message,
+        stack: jurnyShortTermKPIs.reason?.stack
+      });
+    } else {
+      console.log('✅ Jurny short-term KPIs succeeded:', jurnyShortTermKPIs.value);
+    }
     // if (guestyRevenue.status === 'rejected') console.error('Guesty revenue failed:', guestyRevenue.reason);
     // if (shortTermOccupancy.status === 'rejected') console.error('Short-term occupancy failed:', shortTermOccupancy.reason);
     
@@ -138,19 +156,16 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       doorloopLeaseTenancy: doorloopLeaseTenancyData,
       doorloopTenantTurnover: doorloopTenantTurnoverData,
       doorloopBalanceDue: !!doorloopBalanceDueData,
+      doorloopTimeToLease: doorloopTimeToLeaseData,
+      jurnyShortTermKPIs: jurnyShortTermKPIsData,
       // guestyRevenue: !!guestyRevenueData,
       // shortTermOccupancy: shortTermOccupancyData
     });
     
     // Extract revenue values with fallbacks
     const longTermRevenue = doorloopProfitLossData ? extractLongTermRevenue(doorloopProfitLossData) : 0;
-    // let shortTermRevenue = guestyRevenueData ? extractShortTermRevenue(guestyRevenueData) : 0;
-    let shortTermRevenue = 0; // Commented out Guesty API
-    
-    // If a property is selected, set short-term revenue to 0 since we can't filter it properly
-    if (selectedPropertyId) {
-      shortTermRevenue = 0;
-    }
+    // Extract short-term revenue from Jurny KPIs (revenue is a string, parse to number)
+    const shortTermRevenue = jurnyShortTermKPIsData?.revenue ? parseFloat(jurnyShortTermKPIsData.revenue) : 0;
     
     const totalRevenue = longTermRevenue + shortTermRevenue;
     
@@ -158,15 +173,16 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       longTermRevenue,
       shortTermRevenue,
       totalRevenue,
+      jurnyKPIs: jurnyShortTermKPIsData,
       // guestyRevenueRaw: guestyRevenueData,
       // guestyRevenueSummary: guestyRevenueData?.summary
     });
     
     // Calculate average occupancy rate with fallbacks
     const doorloopRate = doorloopOccupancyData?.occupancy_rate || 0;
-    // const shortTermRate = shortTermOccupancyData?.occupancy_rate || 0;
-    const shortTermRate = 0; // Commented out Guesty API
-    const averageOccupancyRate = doorloopRate; // Only use Doorloop data
+    // Extract short-term occupancy from Jurny KPIs
+    const shortTermRate = jurnyShortTermKPIsData?.occupancy || 0;
+    const averageOccupancyRate = doorloopRate; // Only use Doorloop data for average (or calculate combined if needed)
     
     // Extract lease tenancy data with fallback
     const averageLeaseTenancy = doorloopLeaseTenancyData?.average_lease_duration || 0;
@@ -175,6 +191,20 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     const tenantTurnoverRate = doorloopTenantTurnoverData?.['tenant turnover rate'] || 0;
 
     const leaseBalanceOverdue = doorloopBalanceDueData?.totalBalance || 0;
+    
+    console.log('🔍 Balance Due Debug:', {
+      rawData: doorloopBalanceDueData,
+      totalBalance: doorloopBalanceDueData?.totalBalance,
+      finalValue: leaseBalanceOverdue,
+      fallbackUsed: !doorloopBalanceDueData?.totalBalance
+    });
+    
+    // Extract time to lease data with fallback
+    const timeToLease = doorloopTimeToLeaseData?.time_to_lease_days || 0;
+    
+    // Extract short-term metrics from Jurny KPIs
+    const shortTermAverageDailyRate = jurnyShortTermKPIsData?.adr ? parseFloat(jurnyShortTermKPIsData.adr) : 0;
+    const revenuePerAvailableRoom = jurnyShortTermKPIsData?.revpar ? parseFloat(jurnyShortTermKPIsData.revpar) : 0;
     
     console.log('🔍 Lease Tenancy Debug:', {
       rawData: doorloopLeaseTenancyData,
@@ -190,6 +220,27 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       fallbackUsed: !doorloopTenantTurnoverData?.['tenant turnover rate']
     });
     
+    console.log('🔍 Time to Lease Debug:', {
+      rawData: doorloopTimeToLeaseData,
+      timeToLeaseDays: doorloopTimeToLeaseData?.time_to_lease_days,
+      finalValue: timeToLease,
+      fallbackUsed: !doorloopTimeToLeaseData?.time_to_lease_days
+    });
+    
+    console.log('🔍 Jurny Short-Term KPIs Debug:', {
+      rawData: jurnyShortTermKPIsData,
+      revenue: jurnyShortTermKPIsData?.revenue,
+      occupancy: jurnyShortTermKPIsData?.occupancy,
+      adr: jurnyShortTermKPIsData?.adr,
+      revpar: jurnyShortTermKPIsData?.revpar,
+      finalValues: {
+        shortTermRevenue,
+        shortTermRate,
+        shortTermAverageDailyRate,
+        revenuePerAvailableRoom
+      }
+    });
+    
     const newDashboardData: DashboardData = {
       longTermRevenue: longTermRevenue,
       shortTermRevenue: shortTermRevenue,
@@ -198,11 +249,11 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       shortTermOccupancyRate: shortTermRate,
       averageOccupancyRate: averageOccupancyRate,
       averageLeaseTenancy: averageLeaseTenancy,
-      timeToLease: 0, // TODO: Add API endpoint for this
+      timeToLease: timeToLease,
       tenantTurnover: tenantTurnoverRate,
-      shortTermAverageDailyRate: 0, // TODO: Calculate from Guesty data
-      revenuePerAvailableRoom: 0, // TODO: Calculate from revenue and units
-      leaseBalanceOverdue: leaseBalanceOverdue// TODO: Add API endpoint for this
+      shortTermAverageDailyRate: shortTermAverageDailyRate,
+      revenuePerAvailableRoom: revenuePerAvailableRoom,
+      leaseBalanceOverdue: leaseBalanceOverdue
     };
 
     console.log('Setting dashboard data:', newDashboardData);
