@@ -14,10 +14,13 @@
 
 	onMount(() => {
 		// Load properties when component mounts
-		globalPropertyFilter.loadProperties(fetch);
-		
-		// Also load property store to enable property mapping
-		propertyStore.loadListings(fetch);
+		// Use Promise.allSettled to prevent errors from blocking the app
+		Promise.allSettled([
+			globalPropertyFilter.loadProperties(fetch),
+			propertyStore.loadListings(fetch).catch(err => {
+				console.warn('Failed to load property listings (non-critical):', err);
+			})
+		]);
 
 		// Close dropdown when clicking outside
 		function handleClickOutside(event: MouseEvent) {

@@ -35,7 +35,15 @@ function createGlobalPropertyFilter() {
         const response = await fetchFn(`${PUBLIC_API_URL}/api/doorloop/properties`);
 
         if (!response.ok) {
-          throw new Error('Failed to fetch properties');
+          // Log error but don't throw - allow app to continue
+          console.error(`Failed to fetch Doorloop properties: ${response.status} ${response.statusText}`);
+          update(state => ({
+            ...state,
+            loading: false,
+            error: `Failed to load properties: ${response.status} ${response.statusText}`,
+            availableProperties: []
+          }));
+          return;
         }
 
         const data = await response.json();
@@ -46,15 +54,33 @@ function createGlobalPropertyFilter() {
           name: property.name
         }));
 
+        // Filter out excluded properties
+        const excludedPropertyNames = ['3320 NW 5th Ave', '3320 nw 5th ave', '3320 NW 5th Avenue'];
+        const filteredProperties = properties.filter(
+          property => !excludedPropertyNames.some(excluded => 
+            property.name.toLowerCase().trim() === excluded.toLowerCase().trim()
+          )
+        );
+
+        // Add Jurny-only properties (short-term properties not in Doorloop)
+        const jurnyOnlyProperties: PropertyOption[] = [
+          { id: 'jurny-olive-apartments', name: 'Olive Apartments' }
+        ];
+
+        // Combine Doorloop and Jurny properties
+        const allProperties = [...filteredProperties, ...jurnyOnlyProperties];
+
         // Debug: Log all property names
         console.log('🔍 All Doorloop property names:', properties.map(p => p.name));
+        console.log('🔍 Jurny-only properties:', jurnyOnlyProperties.map(p => p.name));
+        console.log('🔍 All available properties:', allProperties.map(p => p.name));
 
         // Sort properties alphabetically
-        properties.sort((a, b) => a.name.localeCompare(b.name));
+        allProperties.sort((a, b) => a.name.localeCompare(b.name));
 
         update(state => ({
           ...state,
-          availableProperties: properties,
+          availableProperties: allProperties,
           loading: false,
           error: null
         }));

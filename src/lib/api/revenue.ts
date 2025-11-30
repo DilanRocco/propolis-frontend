@@ -218,7 +218,11 @@ export async function getShortTermOccupancyRate(
 /**
  * Extract total income from Doorloop profit and loss data
  */
-export function extractLongTermRevenue(profitLossData: DoorloopProfitLossResponse): number {
+export function extractLongTermRevenue(profitLossData: DoorloopProfitLossResponse | null | undefined): number {
+  if (!profitLossData || !profitLossData.data || !profitLossData.data.data) {
+    return 0;
+  }
+  
   const incomeEntry = profitLossData.data.data.find(
     item => item.typeId === 'INCOME' && item.type === 'category'
   );

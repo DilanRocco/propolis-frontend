@@ -111,13 +111,19 @@ export async function fetchDashboardData(dateRange?: DateRange) {
   const selectedPropertyName = propertyFilter.selectedProperty?.name;
   const mappedPropertyName = mapPropertyNameForJurny(selectedPropertyName);
   
+  // Check if this is a Jurny-only property (ID starts with "jurny-")
+  const isJurnyOnlyProperty = selectedPropertyId?.startsWith('jurny-');
+  
+  // Only use Doorloop property ID if it's not a Jurny-only property
+  const doorloopPropertyId = isJurnyOnlyProperty ? undefined : selectedPropertyId;
+  
   // Get the corresponding Guesty ID if a Doorloop property is selected
   let guestyPropertyId: string | undefined = undefined;
-  if (selectedPropertyId) {
-    const mappedGuestyId = propertyStore.getGuestyIdForDoorloopId(selectedPropertyId);
+  if (doorloopPropertyId) {
+    const mappedGuestyId = propertyStore.getGuestyIdForDoorloopId(doorloopPropertyId);
     guestyPropertyId = mappedGuestyId || undefined;
     console.log('Property mapping:', {
-      doorloopId: selectedPropertyId,
+      doorloopId: doorloopPropertyId,
       guestyId: guestyPropertyId,
       propertyName: propertyFilter.selectedProperty?.name
     });
@@ -125,6 +131,8 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     if (!guestyPropertyId) {
       console.warn('⚠️ NO GUESTY PROPERTY ID FOUND! This means short-term revenue will be unfiltered.');
     }
+  } else if (isJurnyOnlyProperty) {
+    console.log('Jurny-only property selected:', selectedPropertyName);
   } else {
     console.log('No property selected - showing unfiltered data');
   }
@@ -134,8 +142,10 @@ export async function fetchDashboardData(dateRange?: DateRange) {
 
   try {
     console.log('Fetching dashboard data for range:', range);
-    console.log('Selected property ID (Doorloop):', selectedPropertyId);
+    console.log('Selected property ID (Doorloop):', doorloopPropertyId);
     console.log('Selected property ID (Guesty):', guestyPropertyId);
+    console.log('Selected property name (Jurny):', mappedPropertyName);
+    console.log('Is Jurny-only property:', isJurnyOnlyProperty);
     console.log('Selected property details:', propertyFilter.selectedProperty);
     
     // Fetch all data in parallel, but handle individual failures gracefully
@@ -150,12 +160,12 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       // guestyRevenue,
       // shortTermOccupancy
     ] = await Promise.allSettled([
-      getDoorloopOccupancyRate(range.startDate, range.endDate, selectedPropertyId),
-      getDoorloopProfitLoss('cash', range.startDate, range.endDate, selectedPropertyId),
-      getDoorloopAverageLeaseTenancy(range.startDate, range.endDate, selectedPropertyId),
-      getDoorloopTenantTurnoverRate(range.startDate, range.endDate, selectedPropertyId),
-      getDoorloopBalanceDue(range.startDate, range.endDate, selectedPropertyId),
-      getDoorloopTimeToLease(range.startDate, range.endDate, selectedPropertyId),
+      getDoorloopOccupancyRate(range.startDate, range.endDate, doorloopPropertyId),
+      getDoorloopProfitLoss('cash', range.startDate, range.endDate, doorloopPropertyId),
+      getDoorloopAverageLeaseTenancy(range.startDate, range.endDate, doorloopPropertyId),
+      getDoorloopTenantTurnoverRate(range.startDate, range.endDate, doorloopPropertyId),
+      getDoorloopBalanceDue(range.startDate, range.endDate, doorloopPropertyId),
+      getDoorloopTimeToLease(range.startDate, range.endDate, doorloopPropertyId),
       getJurnyShortTermKPIs(range.startDate, range.endDate, mappedPropertyName),
       // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
       // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
@@ -205,7 +215,11 @@ export async function fetchDashboardData(dateRange?: DateRange) {
     });
     
     // Extract revenue values with fallbacks
-    const longTermRevenue = doorloopProfitLossData ? extractLongTermRevenue(doorloopProfitLossData) : 0;
+    // If Jurny-only property, set all Doorloop data to 0
+    if (isJurnyOnlyProperty) {
+      console.log('🏠 Jurny-only property detected. Setting all Doorloop data to 0.');
+    }
+    const longTermRevenue = isJurnyOnlyProperty ? 0 : (doorloopProfitLossData ? extractLongTermRevenue(doorloopProfitLossData) : 0);
     // Extract short-term revenue from Jurny KPIs (revenue is a string, parse to number)
     const shortTermRevenue = jurnyShortTermKPIsData?.revenue ? parseFloat(jurnyShortTermKPIsData.revenue) : 0;
     
@@ -216,33 +230,42 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       shortTermRevenue,
       totalRevenue,
       jurnyKPIs: jurnyShortTermKPIsData,
+      isJurnyOnlyProperty,
       // guestyRevenueRaw: guestyRevenueData,
       // guestyRevenueSummary: guestyRevenueData?.summary
     });
     
     // Calculate average occupancy rate with fallbacks
-    const doorloopRate = doorloopOccupancyData?.occupancy_rate || 0;
+    // If Jurny-only property, set Doorloop rate to 0
+    const doorloopRate = isJurnyOnlyProperty ? 0 : (doorloopOccupancyData?.occupancy_rate || 0);
     // Extract short-term occupancy from Jurny KPIs
     const shortTermRate = jurnyShortTermKPIsData?.occupancy || 0;
-    const averageOccupancyRate = doorloopRate; // Only use Doorloop data for average (or calculate combined if needed)
+    // For Jurny-only properties, average is just the short-term rate (since long-term is 0)
+    // For mixed properties, calculate average of both
+    const averageOccupancyRate = isJurnyOnlyProperty ? shortTermRate : (doorloopRate + shortTermRate) / 2;
     
     // Extract lease tenancy data with fallback
-    const averageLeaseTenancy = doorloopLeaseTenancyData?.average_lease_duration || 0;
+    // If Jurny-only property, set to 0
+    const averageLeaseTenancy = isJurnyOnlyProperty ? 0 : (doorloopLeaseTenancyData?.average_lease_duration || 0);
     
     // Extract tenant turnover data with fallback
-    const tenantTurnoverRate = doorloopTenantTurnoverData?.['tenant turnover rate'] || 0;
+    // If Jurny-only property, set to 0
+    const tenantTurnoverRate = isJurnyOnlyProperty ? 0 : (doorloopTenantTurnoverData?.['tenant turnover rate'] || 0);
 
-    const leaseBalanceOverdue = doorloopBalanceDueData?.totalBalance || 0;
+    // If Jurny-only property, set to 0
+    const leaseBalanceOverdue = isJurnyOnlyProperty ? 0 : (doorloopBalanceDueData?.totalBalance || 0);
     
     console.log('🔍 Balance Due Debug:', {
       rawData: doorloopBalanceDueData,
       totalBalance: doorloopBalanceDueData?.totalBalance,
       finalValue: leaseBalanceOverdue,
-      fallbackUsed: !doorloopBalanceDueData?.totalBalance
+      fallbackUsed: !doorloopBalanceDueData?.totalBalance,
+      isJurnyOnlyProperty
     });
     
     // Extract time to lease data with fallback
-    const timeToLease = doorloopTimeToLeaseData?.time_to_lease_days || 0;
+    // If Jurny-only property, set to 0
+    const timeToLease = isJurnyOnlyProperty ? 0 : (doorloopTimeToLeaseData?.time_to_lease_days || 0);
     
     // Extract short-term metrics from Jurny KPIs
     const shortTermAverageDailyRate = jurnyShortTermKPIsData?.adr ? parseFloat(jurnyShortTermKPIsData.adr) : 0;
