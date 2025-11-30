@@ -63,11 +63,53 @@ export const dashboardError = writable<string | null>(null);
 export const dashboardDateRange = writable<DateRange>(getCurrentMonthRange());
 export const unitFilteringData = writable<UnitFilteringData | null>(null);
 
+// Map property names from dropdown to the format expected by Jurny API
+function mapPropertyNameForJurny(propertyName: string | undefined): string | undefined {
+  if (!propertyName) return undefined;
+  
+  // Map exact property names from dropdown to Jurny API format
+  // The keys should match exactly what appears in the dropdown (case-sensitive)
+  const propertyNameMap: Record<string, string> = {
+    // Add exact property names from dropdown as keys
+    'Aerie Apartments': 'Aerie Apartments',
+    'Plum Apartments': 'Plum Apartments',
+    'Saffron': 'Saffron Apartments',
+    'Olive Apartments': 'Olive Apartments',
+    'Pastel Apartments': 'Pastel Apartments'
+  };
+  
+  // First try exact match (case-sensitive)
+  if (propertyNameMap[propertyName]) {
+    console.log('🔍 Property name mapped:', propertyName, '→', propertyNameMap[propertyName]);
+    return propertyNameMap[propertyName];
+  }
+  
+  // Fallback to case-insensitive match
+  const normalizedName = propertyName.toLowerCase().trim();
+  const normalizedMap: Record<string, string> = {
+    'aerie apartments': 'Aerie Apartments',
+    'plum apartments': 'Plum Apartments',
+    'saffron': 'Saffron Apartments',
+    'olive apartments': 'Olive Apartments',
+    'pastel apartments': 'Pastel Apartments'
+  };
+  
+  if (normalizedMap[normalizedName]) {
+    console.log('🔍 Property name mapped (normalized):', propertyName, '→', normalizedMap[normalizedName]);
+    return normalizedMap[normalizedName];
+  }
+  
+  console.log('🔍 Property name not mapped, using original:', propertyName);
+  return propertyName;
+}
+
 // Simple action functions
 export async function fetchDashboardData(dateRange?: DateRange) {
   const range = dateRange || get(dashboardDateRange);
   const propertyFilter = get(globalPropertyFilter);
   const selectedPropertyId = propertyFilter.selectedProperty?.id;
+  const selectedPropertyName = propertyFilter.selectedProperty?.name;
+  const mappedPropertyName = mapPropertyNameForJurny(selectedPropertyName);
   
   // Get the corresponding Guesty ID if a Doorloop property is selected
   let guestyPropertyId: string | undefined = undefined;
@@ -114,7 +156,7 @@ export async function fetchDashboardData(dateRange?: DateRange) {
       getDoorloopTenantTurnoverRate(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopBalanceDue(range.startDate, range.endDate, selectedPropertyId),
       getDoorloopTimeToLease(range.startDate, range.endDate, selectedPropertyId),
-      getJurnyShortTermKPIs(range.startDate, range.endDate),
+      getJurnyShortTermKPIs(range.startDate, range.endDate, mappedPropertyName),
       // getGuestyRevenue(range.startDate, range.endDate, guestyPropertyId),
       // getShortTermOccupancyRate(range.startDate, range.endDate, guestyPropertyId)
     ]);

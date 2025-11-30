@@ -80,11 +80,25 @@ const createAuthStore = () => {
       update((state) => ({ ...state, loading: true, error: null }));
       
       try {
-        const response = await fetch(`${PUBLIC_API_URL}/api/auth/login`, {
+        const loginUrl = `${PUBLIC_API_URL}/api/auth/login`;
+        console.log('🔍 Login API URL:', loginUrl);
+        console.log('🔍 PUBLIC_API_URL:', PUBLIC_API_URL);
+        
+        const response = await fetch(loginUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
+        
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = { detail: `Server error: ${response.status} ${response.statusText}` };
+          }
+          throw new Error(errorData.detail || `Login failed: ${response.status} ${response.statusText}`);
+        }
         
         const data = await response.json();
         

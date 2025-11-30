@@ -236,7 +236,7 @@ export function extractLongTermRevenue(profitLossData: DoorloopProfitLossRespons
 export async function getJurnyShortTermKPIs(
   startDate: string,
   endDate: string,
-  propertyId?: string
+  propertyName?: string
 ): Promise<JurnyShortTermKPIsResponse> {
   const url = new URL(`${PUBLIC_API_URL}/api/jurny/short-term-kpis`);
   
@@ -244,14 +244,13 @@ export async function getJurnyShortTermKPIs(
   url.searchParams.append('date_start', startDate);
   url.searchParams.append('date_to', endDate);
   
-  // Note: property_id might not be supported by this endpoint
-  // Only add if the endpoint supports it
-  if (propertyId) {
-    url.searchParams.append('property_id', propertyId);
+  // Add property name if provided
+  if (propertyName) {
+    url.searchParams.append('property_name', propertyName);
   }
 
   console.log('🔍 Calling Jurny Short-Term KPIs API with URL:', url.toString());
-  console.log('🔍 Parameters:', { startDate, endDate, propertyId });
+  console.log('🔍 Parameters:', { startDate, endDate, propertyName });
 
   try {
     const response = await fetch(url.toString(), {
@@ -281,7 +280,7 @@ export async function getJurnyShortTermKPIs(
         status: response.status,
         statusText: response.statusText,
         url: url.toString(),
-        parameters: { startDate, endDate, propertyId },
+        parameters: { startDate, endDate, propertyName },
         body: errorText,
         parsedError: errorJson
       });
