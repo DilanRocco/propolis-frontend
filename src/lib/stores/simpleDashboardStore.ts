@@ -103,6 +103,83 @@ function mapPropertyNameForJurny(propertyName: string | undefined): string | und
   return propertyName;
 }
 
+// Helper function to fetch dashboard data without updating the store (for comparison)
+export async function fetchDashboardDataForComparison(
+  dateRange: DateRange,
+  property?: { id: string; name: string } | null
+): Promise<DashboardData> {
+  const selectedPropertyId = property?.id;
+  const selectedPropertyName = property?.name;
+  const mappedPropertyName = mapPropertyNameForJurny(selectedPropertyName);
+  
+  // Check if this is a Jurny-only property (ID starts with "jurny-")
+  const isJurnyOnlyProperty = selectedPropertyId?.startsWith('jurny-');
+  
+  // Only use Doorloop property ID if it's not a Jurny-only property
+  const doorloopPropertyId = isJurnyOnlyProperty ? undefined : selectedPropertyId;
+  
+  // Fetch all data in parallel
+  const [
+    doorloopOccupancy,
+    doorloopProfitLoss,
+    doorloopLeaseTenancy,
+    doorloopTenantTurnover,
+    doorloopBalanceDue,
+    doorloopTimeToLease,
+    jurnyShortTermKPIs,
+  ] = await Promise.allSettled([
+    getDoorloopOccupancyRate(dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getDoorloopProfitLoss('cash', dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getDoorloopAverageLeaseTenancy(dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getDoorloopTenantTurnoverRate(dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getDoorloopBalanceDue(dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getDoorloopTimeToLease(dateRange.startDate, dateRange.endDate, doorloopPropertyId),
+    getJurnyShortTermKPIs(dateRange.startDate, dateRange.endDate, mappedPropertyName),
+  ]);
+  
+  // Extract data from Promise.allSettled results
+  const doorloopOccupancyData = doorloopOccupancy.status === 'fulfilled' ? doorloopOccupancy.value : null;
+  const doorloopProfitLossData = doorloopProfitLoss.status === 'fulfilled' ? doorloopProfitLoss.value : null;
+  const doorloopLeaseTenancyData = doorloopLeaseTenancy.status === 'fulfilled' ? doorloopLeaseTenancy.value : null;
+  const doorloopTenantTurnoverData = doorloopTenantTurnover.status === 'fulfilled' ? doorloopTenantTurnover.value : null;
+  const doorloopBalanceDueData = doorloopBalanceDue.status === 'fulfilled' ? doorloopBalanceDue.value : null;
+  const doorloopTimeToLeaseData = doorloopTimeToLease.status === 'fulfilled' ? doorloopTimeToLease.value : null;
+  const jurnyShortTermKPIsData = jurnyShortTermKPIs.status === 'fulfilled' ? jurnyShortTermKPIs.value : null;
+  
+  // Extract revenue values
+  const longTermRevenue = isJurnyOnlyProperty ? 0 : (doorloopProfitLossData ? extractLongTermRevenue(doorloopProfitLossData) : 0);
+  const shortTermRevenue = jurnyShortTermKPIsData?.revenue ? parseFloat(jurnyShortTermKPIsData.revenue) : 0;
+  const totalRevenue = longTermRevenue + shortTermRevenue;
+  
+  // Calculate occupancy rates
+  const doorloopRate = isJurnyOnlyProperty ? 0 : (doorloopOccupancyData?.occupancy_rate || 0);
+  const shortTermRate = jurnyShortTermKPIsData?.occupancy || 0;
+  const averageOccupancyRate = isJurnyOnlyProperty ? shortTermRate : (doorloopRate + shortTermRate) / 2;
+  
+  // Extract other metrics
+  const averageLeaseTenancy = isJurnyOnlyProperty ? 0 : (doorloopLeaseTenancyData?.average_lease_duration || 0);
+  const tenantTurnoverRate = isJurnyOnlyProperty ? 0 : (doorloopTenantTurnoverData?.['tenant turnover rate'] || 0);
+  const leaseBalanceOverdue = isJurnyOnlyProperty ? 0 : (doorloopBalanceDueData?.totalBalance || 0);
+  const timeToLease = isJurnyOnlyProperty ? 0 : (doorloopTimeToLeaseData?.time_to_lease_days || 0);
+  const shortTermAverageDailyRate = jurnyShortTermKPIsData?.adr ? parseFloat(jurnyShortTermKPIsData.adr) : 0;
+  const revenuePerAvailableRoom = jurnyShortTermKPIsData?.revpar ? parseFloat(jurnyShortTermKPIsData.revpar) : 0;
+  
+  return {
+    longTermRevenue,
+    shortTermRevenue,
+    totalRevenue,
+    longTermOccupancyRate: doorloopRate,
+    shortTermOccupancyRate: shortTermRate,
+    averageOccupancyRate,
+    averageLeaseTenancy,
+    timeToLease,
+    tenantTurnover: tenantTurnoverRate,
+    shortTermAverageDailyRate,
+    revenuePerAvailableRoom,
+    leaseBalanceOverdue
+  };
+}
+
 // Simple action functions
 export async function fetchDashboardData(dateRange?: DateRange) {
   const range = dateRange || get(dashboardDateRange);

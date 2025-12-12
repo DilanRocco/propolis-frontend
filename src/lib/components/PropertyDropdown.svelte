@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { globalPropertyFilter, type PropertyOption } from '$lib/stores/globalPropertyFilter';
-	import { refetchDashboardData } from '$lib/stores/simpleDashboardStore';
 	import { propertyStore } from '$lib/stores/propertyStore';
 	import { ChevronDown, X } from 'lucide-svelte';
 
@@ -42,13 +41,13 @@
 	function selectProperty(property: PropertyOption) {
 		globalPropertyFilter.setSelectedProperty(property);
 		isDropdownOpen = false;
-		refetchDashboardData();
+		// Don't auto-filter, user must click filter button
 	}
 
 	function clearSelection() {
 		globalPropertyFilter.clearSelectedProperty();
 		isDropdownOpen = false;
-		refetchDashboardData();
+		// Don't auto-filter, user must click filter button
 	}
 
 	function handleKeydown(event: KeyboardEvent) {

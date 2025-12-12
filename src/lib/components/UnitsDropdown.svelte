@@ -207,9 +207,7 @@
 			}
 		}
 		
-		console.log('🔍 About to call refetchDashboardData');
-		refetchDashboardData();
-		console.log('🔍 After refetchDashboardData call');
+		// Don't auto-filter, user must click filter button
 	}
 
 	async function clearSelection() {
@@ -221,7 +219,7 @@
 		// Clear unit filtering data when no unit is selected
 		clearUnitFilteringData();
 		
-		refetchDashboardData();
+		// Don't auto-filter, user must click filter button
 	}
 
 	// Fetch long-term unit data from rent-paid-unit-details endpoint

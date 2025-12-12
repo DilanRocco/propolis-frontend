@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Mic, Sparkles } from 'lucide-svelte';
+	import { Mic, Sparkles, Filter } from 'lucide-svelte';
 	import { onMount } from 'svelte';
-	import { dashboardDateRange, updateDateRange } from '../../stores/simpleDashboardStore';
+	import { dashboardDateRange, updateDateRange, refetchDashboardData } from '../../stores/simpleDashboardStore';
 	import AIView from './AIView.svelte';
 	import PropertyDropdown from '../PropertyDropdown.svelte';
 	import UnitsDropdown from '../UnitsDropdown.svelte';
@@ -37,17 +37,21 @@
 		isAIViewOpen = !isAIViewOpen;
 	}
 	
-	// Handle date range changes
-	function handleDateRangeChange() {
+	// Apply filters when filter button is clicked
+	function applyFilters() {
 		if (startDate && endDate) {
+			// Update date range and fetch data (this will also pick up property/unit filters from stores)
 			updateDateRange({
 				startDate,
 				endDate
 			});
+		} else {
+			// If dates are not set, just refetch with current date range (will pick up property/unit filters)
+			refetchDashboardData();
 		}
 	}
 	
-	// Quick date range presets
+	// Quick date range presets (only set dates, don't filter)
 	function setQuickRange(days: number) {
 		const today = new Date();
 		const start = new Date(today);
@@ -55,7 +59,7 @@
 		
 		startDate = start.toISOString().split('T')[0];
 		endDate = today.toISOString().split('T')[0];
-		handleDateRangeChange();
+		// Don't auto-filter, user must click filter button
 	}
 	
 	function setCurrentMonth() {
@@ -65,7 +69,7 @@
 		
 		startDate = startOfMonth.toISOString().split('T')[0];
 		endDate = endOfMonth.toISOString().split('T')[0];
-		handleDateRangeChange();
+		// Don't auto-filter, user must click filter button
 	}
 </script>
 
@@ -93,14 +97,12 @@
 					<input
 						type="date"
 						bind:value={startDate}
-						on:change={handleDateRangeChange}
 						class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2"
 						placeholder="Start Date"
 					/>
 					<input
 						type="date"
 						bind:value={endDate}
-						on:change={handleDateRangeChange}
 						class="focus:ring-coral-500 rounded-lg border border-slate-300 bg-white py-2 px-3 text-sm text-slate-700 transition-all focus:border-transparent focus:ring-2"
 						placeholder="End Date"
 					/>
@@ -117,6 +119,21 @@
 			<div class="flex flex-col gap-2">
 				<div class="text-sm font-medium text-slate-700">Units Filter</div>
 				<UnitsDropdown />
+			</div>
+
+			<!-- Filter Button -->
+			<div class="flex flex-col gap-2">
+				<div class="text-sm font-medium text-slate-700 opacity-0">Apply</div>
+				<button
+					on:click={applyFilters}
+					class="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors font-medium text-sm"
+					style="background-color: var(--color-propolis-teal);"
+					on:mouseenter={(e) => e.currentTarget.style.opacity = '0.9'}
+					on:mouseleave={(e) => e.currentTarget.style.opacity = '1'}
+				>
+					<Filter class="w-4 h-4" />
+					Apply Filters
+				</button>
 			</div>
 		</div>
 
