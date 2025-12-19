@@ -16,7 +16,7 @@
     
     function closeTooltip() {
       showTooltip = false;
-    }
+    } 
     
     // Close tooltip when clicking outside
     onMount(() => {
