@@ -177,8 +177,9 @@
         </div>
         <div class="space-y-3">
           <div>
-            <label class="text-xs text-gray-600 block mb-1">Start Date</label>
+            <label for="startDate1" class="text-xs text-gray-600 block mb-1">Start Date</label>
             <input
+              id="startDate1"
               type="date"
               bind:value={dateRange1.start}
               on:change={fetchPeriod1}
@@ -186,8 +187,9 @@
             />
           </div>
           <div>
-            <label class="text-xs text-gray-600 block mb-1">End Date</label>
+            <label for="endDate1" class="text-xs text-gray-600 block mb-1">End Date</label>
             <input
+              id="endDate1"
               type="date"
               bind:value={dateRange1.end}
               on:change={fetchPeriod1}
@@ -195,11 +197,13 @@
             />
           </div>
           <div>
-            <label class="text-xs text-gray-600 block mb-1">Property (Optional)</label>
+            <label for="property1" class="text-xs text-gray-600 block mb-1">Property (Optional)</label>
             <div class="relative">
               <select
+                id="property1"
                 on:change={(e) => {
-                  const selectedId = e.target.value;
+                  const target = e.currentTarget as HTMLSelectElement;
+                  const selectedId = target.value;
                   if (selectedId) {
                     const prop = $globalPropertyFilter.availableProperties.find(p => p.id === selectedId);
                     property1 = prop || null;
@@ -233,8 +237,9 @@
         </div>
         <div class="space-y-3">
           <div>
-            <label class="text-xs text-gray-600 block mb-1">Start Date</label>
+            <label for="startDate2" class="text-xs text-gray-600 block mb-1">Start Date</label>
             <input
+              id="startDate2"
               type="date"
               bind:value={dateRange2.start}
               on:change={fetchPeriod2}
@@ -242,8 +247,9 @@
             />
           </div>
           <div>
-            <label class="text-xs text-gray-600 block mb-1">End Date</label>
+            <label for="endDate2" class="text-xs text-gray-600 block mb-1">End Date</label>
             <input
+              id="endDate2"
               type="date"
               bind:value={dateRange2.end}
               on:change={fetchPeriod2}
@@ -251,11 +257,13 @@
             />
           </div>
           <div>
-            <label class="text-xs text-gray-600 block mb-1">Property (Optional)</label>
+            <label for="property2" class="text-xs text-gray-600 block mb-1">Property (Optional)</label>
             <div class="relative">
               <select
+                id="property2"
                 on:change={(e) => {
-                  const selectedId = e.target.value;
+                  const target = e.currentTarget as HTMLSelectElement;
+                  const selectedId = target.value;
                   if (selectedId) {
                     const prop = $globalPropertyFilter.availableProperties.find(p => p.id === selectedId);
                     property2 = prop || null;
@@ -286,8 +294,8 @@
     {#if kpis1 && kpis2}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each kpiDefinitions as definition}
-          {@const val1 = kpis1[definition.key]}
-          {@const val2 = kpis2[definition.key]}
+          {@const val1 = kpis1[definition.key as keyof DashboardData] as number}
+          {@const val2 = kpis2[definition.key as keyof DashboardData] as number}
           {@const { change, isPositive } = calculateChange(val1, val2, definition.inverse)}
           
           <div class="bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
